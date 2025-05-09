@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using AspnetCoreMvcFull.Models;
+using VN_Center.Models;
 
-namespace AspnetCoreMvcFull.Controllers;
+namespace VN_Center.Controllers;
 
 public class FormLayoutsController : Controller
 {
