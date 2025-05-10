@@ -44,6 +44,13 @@
                 <div>Comunidades</div>
             </a>
         </li>
+
+        <li class='menu-item@(currentPage.StartsWith("/Solicitudes") ? " active" : "")'>
+            <a asp-controller="Solicitudes" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-file-blank"></i> @* Icono para Solicitudes *@
+                <div>Solicitudes</div>
+            </a>
+        </li>
         @* Aquí puedes añadir más enlaces para otras entidades (Beneficiarios, Solicitudes, etc.) cuando las generes *@
 
 

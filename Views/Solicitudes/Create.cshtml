@@ -1,0 +1,421 @@
+@model VN_Center.Models.Entities.Solicitudes
+
+@{
+    ViewData["Title"] = "Crear Nueva Solicitud";
+    // Opciones para dropdowns
+    var opcionesSiNo = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "true", Text = "Sí" },
+        new SelectListItem { Value = "false", Text = "No" }
+    };
+
+    var tiposSolicitud = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione un tipo..." },
+        new SelectListItem { Value = "Voluntariado", Text = "Voluntariado" },
+        new SelectListItem { Value = "Pasantia", Text = "Pasantía (Internship)" }
+    };
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Solicitudes /</span> Registrar Nueva Solicitud
+    </h4>
+
+    <form asp-action="Create" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Por favor, corrija los siguientes errores:</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="accordion mt-3" id="accordionSolicitud">
+
+            <div class="card accordion-item active">
+                <h2 class="accordion-header" id="headingPersonal">
+                    <button type="button" class="accordion-button" data-bs-toggle="collapse" data-bs-target="#collapsePersonal" aria-expanded="true" aria-controls="collapsePersonal">
+                        Información Personal y de Contacto
+                    </button>
+                </h2>
+                <div id="collapsePersonal" class="accordion-collapse collapse show" aria-labelledby="headingPersonal" data-bs-parent="#accordionSolicitud">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Nombres" class="form-label"></label>
+                                <input asp-for="Nombres" class="form-control" placeholder="Nombres del solicitante" />
+                                <span asp-validation-for="Nombres" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Apellidos" class="form-label"></label>
+                                <input asp-for="Apellidos" class="form-control" placeholder="Apellidos del solicitante" />
+                                <span asp-validation-for="Apellidos" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" placeholder="ejemplo@correo.com" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Telefono" class="form-label"></label>
+                                <input asp-for="Telefono" class="form-control" placeholder="Número de teléfono" />
+                                <span asp-validation-for="Telefono" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PermiteContactoWhatsApp" class="form-label"></label>
+                                <select asp-for="PermiteContactoWhatsApp" class="form-select" asp-items="new SelectList(opcionesSiNo, nameof(SelectListItem.Value), nameof(SelectListItem.Text))">
+                                    <option value="">Seleccione una opción...</option>
+                                </select>
+                                <span asp-validation-for="PermiteContactoWhatsApp" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaNacimiento" class="form-label"></label>
+                                <input asp-for="FechaNacimiento" class="form-control" type="date" />
+                                <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Direccion" class="form-label"></label>
+                            <textarea asp-for="Direccion" class="form-control" rows="3" placeholder="Dirección completa"></textarea>
+                            <span asp-validation-for="Direccion" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card accordion-item">
+                <h2 class="accordion-header" id="headingDetallesSolicitud">
+                    <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseDetallesSolicitud" aria-expanded="false" aria-controls="collapseDetallesSolicitud">
+                        Detalles de la Solicitud y Documentación
+                    </button>
+                </h2>
+                <div id="collapseDetallesSolicitud" class="accordion-collapse collapse" aria-labelledby="headingDetallesSolicitud" data-bs-parent="#accordionSolicitud">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TipoSolicitud" class="form-label"></label>
+                                <select asp-for="TipoSolicitud" class="form-select" asp-items="tiposSolicitud">
+                                </select>
+                                <span asp-validation-for="TipoSolicitud" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaInicioPreferida" class="form-label"></label>
+                                <input asp-for="FechaInicioPreferida" class="form-control" type="date" />
+                                <span asp-validation-for="FechaInicioPreferida" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DuracionEstancia" class="form-label"></label>
+                                <input asp-for="DuracionEstancia" class="form-control" />
+                                <span asp-validation-for="DuracionEstancia" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DuracionEstanciaOtro" class="form-label"></label>
+                                <input asp-for="DuracionEstanciaOtro" class="form-control" placeholder="Si seleccionó 'otra' duración, especifique aquí" />
+                                <span asp-validation-for="DuracionEstanciaOtro" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PasaporteValidoSeisMeses" class="form-label"></label>
+                                <select asp-for="PasaporteValidoSeisMeses" class="form-select" asp-items="new SelectList(opcionesSiNo, nameof(SelectListItem.Value), nameof(SelectListItem.Text))">
+                                    <option value="">Seleccione una opción...</option>
+                                </select>
+                                <span asp-validation-for="PasaporteValidoSeisMeses" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaExpiracionPasaporte" class="form-label"></label>
+                                <input asp-for="FechaExpiracionPasaporte" class="form-control" type="date" />
+                                <span asp-validation-for="FechaExpiracionPasaporte" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="ProfesionOcupacion" class="form-label"></label>
+                            <input asp-for="ProfesionOcupacion" class="form-control" placeholder="Profesión u ocupación actual" />
+                            <span asp-validation-for="ProfesionOcupacion" class="text-danger"></span>
+                        </div>
+                        @* Considerar campos para subir PathCV y PathCartaRecomendacion más adelante *@
+                    </div>
+                </div>
+            </div>
+
+            <div class="card accordion-item">
+                <h2 class="accordion-header" id="headingExperiencia">
+                    <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseExperiencia" aria-expanded="false" aria-controls="collapseExperiencia">
+                        Experiencia, Habilidades e Idiomas
+                    </button>
+                </h2>
+                <div id="collapseExperiencia" class="accordion-collapse collapse" aria-labelledby="headingExperiencia" data-bs-parent="#accordionSolicitud">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <label asp-for="ExperienciaPreviaSVL" class="form-label"></label>
+                            <textarea asp-for="ExperienciaPreviaSVL" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="ExperienciaPreviaSVL" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="ExperienciaLaboralRelevante" class="form-label"></label>
+                            <textarea asp-for="ExperienciaLaboralRelevante" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="ExperienciaLaboralRelevante" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="HabilidadesRelevantes" class="form-label"></label>
+                            <textarea asp-for="HabilidadesRelevantes" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="HabilidadesRelevantes" class="text-danger"></span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="NivelIdiomaEspañolID" class="form-label"></label>
+                                <select asp-for="NivelIdiomaEspañolID" class="form-select" asp-items="ViewBag.NivelIdiomaEspañolID">
+                                    <option value="">Seleccione nivel...</option>
+                                </select>
+                                <span asp-validation-for="NivelIdiomaEspañolID" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ComodidadHabilidadesEsp" class="form-label"></label>
+                                <input asp-for="ComodidadHabilidadesEsp" type="number" min="1" max="5" class="form-control" placeholder="1 (básico) - 5 (fluido)" />
+                                <span asp-validation-for="ComodidadHabilidadesEsp" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="OtrosIdiomasHablados" class="form-label"></label>
+                            <input asp-for="OtrosIdiomasHablados" class="form-control" placeholder="Ej: Inglés (Avanzado), Francés (Básico)" />
+                            <span asp-validation-for="OtrosIdiomasHablados" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card accordion-item">
+                <h2 class="accordion-header" id="headingMotivaciones">
+                    <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseMotivaciones" aria-expanded="false" aria-controls="collapseMotivaciones">
+                        Motivaciones y Conocimiento del Programa
+                    </button>
+                </h2>
+                <div id="collapseMotivaciones" class="accordion-collapse collapse" aria-labelledby="headingMotivaciones" data-bs-parent="#accordionSolicitud">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <label asp-for="MotivacionInteresCR" class="form-label"></label>
+                            <textarea asp-for="MotivacionInteresCR" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="MotivacionInteresCR" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="DescripcionSalidaZonaConfort" class="form-label"></label>
+                            <textarea asp-for="DescripcionSalidaZonaConfort" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="DescripcionSalidaZonaConfort" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="InformacionAdicionalPersonal" class="form-label"></label>
+                            <textarea asp-for="InformacionAdicionalPersonal" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="InformacionAdicionalPersonal" class="text-danger"></span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FuenteConocimientoID" class="form-label"></label>
+                                <select asp-for="FuenteConocimientoID" class="form-select" asp-items="ViewBag.FuenteConocimientoID">
+                                    <option value="">Seleccione una fuente...</option>
+                                </select>
+                                <span asp-validation-for="FuenteConocimientoID" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FuenteConocimientoOtro" class="form-label"></label>
+                                <input asp-for="FuenteConocimientoOtro" class="form-control" placeholder="Si seleccionó 'Otra', especifique" />
+                                <span asp-validation-for="FuenteConocimientoOtro" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card accordion-item">
+                <h2 class="accordion-header" id="headingPasantia">
+                    <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapsePasantia" aria-expanded="false" aria-controls="collapsePasantia">
+                        Información Específica de Pasantías (Si aplica)
+                    </button>
+                </h2>
+                <div id="collapsePasantia" class="accordion-collapse collapse" aria-labelledby="headingPasantia" data-bs-parent="#accordionSolicitud">
+                    <div class="accordion-body">
+                        <div class="alert alert-info" role="alert">
+                            Complete esta sección solo si está aplicando a una Pasantía (Internship).
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="NombreUniversidad" class="form-label"></label>
+                                <input asp-for="NombreUniversidad" class="form-control" />
+                                <span asp-validation-for="NombreUniversidad" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CarreraAreaEstudio" class="form-label"></label>
+                                <input asp-for="CarreraAreaEstudio" class="form-control" />
+                                <span asp-validation-for="CarreraAreaEstudio" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="FechaGraduacionEsperada" class="form-label"></label>
+                            <input asp-for="FechaGraduacionEsperada" class="form-control" type="date" />
+                            <span asp-validation-for="FechaGraduacionEsperada" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="PreferenciasAlojamientoFamilia" class="form-label"></label>
+                            <textarea asp-for="PreferenciasAlojamientoFamilia" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="PreferenciasAlojamientoFamilia" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="EnsayoRelacionEstudiosIntereses" class="form-label"></label>
+                            <textarea asp-for="EnsayoRelacionEstudiosIntereses" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="EnsayoRelacionEstudiosIntereses" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="EnsayoHabilidadesConocimientosAdquirir" class="form-label"></label>
+                            <textarea asp-for="EnsayoHabilidadesConocimientosAdquirir" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="EnsayoHabilidadesConocimientosAdquirir" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="EnsayoContribucionAprendizajeComunidad" class="form-label"></label>
+                            <textarea asp-for="EnsayoContribucionAprendizajeComunidad" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="EnsayoContribucionAprendizajeComunidad" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="EnsayoExperienciasTransculturalesPrevias" class="form-label"></label>
+                            <textarea asp-for="EnsayoExperienciasTransculturalesPrevias" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="EnsayoExperienciasTransculturalesPrevias" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card accordion-item">
+                <h2 class="accordion-header" id="headingEmergencia">
+                    <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseEmergencia" aria-expanded="false" aria-controls="collapseEmergencia">
+                        Contacto de Emergencia e Información Adicional
+                    </button>
+                </h2>
+                <div id="collapseEmergencia" class="accordion-collapse collapse" aria-labelledby="headingEmergencia" data-bs-parent="#accordionSolicitud">
+                    <div class="accordion-body">
+                        <h6 class="mb-3 text-primary">Información de Contacto de Emergencia</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="NombreContactoEmergencia" class="form-label"></label>
+                                <input asp-for="NombreContactoEmergencia" class="form-control" />
+                                <span asp-validation-for="NombreContactoEmergencia" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="RelacionContactoEmergencia" class="form-label"></label>
+                                <input asp-for="RelacionContactoEmergencia" class="form-control" placeholder="Ej: Madre, Padre, Cónyuge" />
+                                <span asp-validation-for="RelacionContactoEmergencia" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TelefonoContactoEmergencia" class="form-label"></label>
+                                <input asp-for="TelefonoContactoEmergencia" class="form-control" />
+                                <span asp-validation-for="TelefonoContactoEmergencia" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="EmailContactoEmergencia" class="form-label"></label>
+                                <input asp-for="EmailContactoEmergencia" class="form-control" />
+                                <span asp-validation-for="EmailContactoEmergencia" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <hr class="my-4" />
+                        <h6 class="mb-3 text-primary">Información Adicional para Alojamiento (si aplica)</h6>
+                        <div class="mb-3">
+                            <label asp-for="InfoPersonalFamiliaHobbies" class="form-label"></label>
+                            <textarea asp-for="InfoPersonalFamiliaHobbies" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="InfoPersonalFamiliaHobbies" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="AlergiasRestriccionesDieteticas" class="form-label"></label>
+                            <textarea asp-for="AlergiasRestriccionesDieteticas" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="AlergiasRestriccionesDieteticas" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="SolicitudesEspecialesAlojamiento" class="form-label"></label>
+                            <textarea asp-for="SolicitudesEspecialesAlojamiento" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="SolicitudesEspecialesAlojamiento" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div> <div class="card mt-4">
+            <div class="card-body text-center">
+                <button type="submit" class="btn btn-primary btn-lg me-2">Guardar Solicitud</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Script para mostrar/ocultar campos de pasantía según TipoSolicitud
+        // y para manejar la visibilidad de "Otra Duración" y "Otra Fuente"
+        document.addEventListener('DOMContentLoaded', function () {
+            const tipoSolicitudSelect = document.getElementById('TipoSolicitud');
+            const seccionPasantiaAccordionItem = document.getElementById('headingPasantia')?.closest('.accordion-item');
+            const duracionEstanciaInput = document.getElementById('DuracionEstancia');
+            const duracionEstanciaOtroDiv = document.getElementById('DuracionEstanciaOtro')?.closest('.mb-3');
+            const fuenteConocimientoSelect = document.getElementById('FuenteConocimientoID');
+            const fuenteConocimientoOtroDiv = document.getElementById('FuenteConocimientoOtro')?.closest('.mb-3');
+
+            function togglePasantiaSectionVisibility() {
+                if (tipoSolicitudSelect && seccionPasantiaAccordionItem) {
+                    if (tipoSolicitudSelect.value === 'Pasantia') {
+                        seccionPasantiaAccordionItem.style.display = ''; // Muestra la sección
+                    } else {
+                        seccionPasantiaAccordionItem.style.display = 'none'; // Oculta la sección
+                        // Opcionalmente, colapsar si está visible
+                        const collapseElement = seccionPasantiaAccordionItem.querySelector('.accordion-collapse');
+                        if (collapseElement && collapseElement.classList.contains('show')) {
+                            var bsCollapse = new bootstrap.Collapse(collapseElement, { toggle: false });
+                            bsCollapse.hide();
+                        }
+                    }
+                }
+            }
+
+            function toggleDuracionOtro() {
+                if(duracionEstanciaInput && duracionEstanciaOtroDiv) {
+                    // Si el campo DuracionEstancia tiene el texto "Otro" (case-insensitive)
+                     if (duracionEstanciaInput.value.trim().toLowerCase() === 'otro' || duracionEstanciaInput.value.trim().toLowerCase() === 'other') {
+                         duracionEstanciaOtroDiv.style.display = 'block';
+                     } else {
+                         duracionEstanciaOtroDiv.style.display = 'none';
+                     }
+                }
+            }
+
+            function toggleFuenteOtro() {
+                if(fuenteConocimientoSelect && fuenteConocimientoOtroDiv) {
+                    // Obtener el texto de la opción seleccionada
+                    const selectedOptionText = fuenteConocimientoSelect.options[fuenteConocimientoSelect.selectedIndex]?.text;
+                    if (selectedOptionText && (selectedOptionText.toLowerCase() === 'other' || selectedOptionText.toLowerCase() === 'otro')) {
+                        fuenteConocimientoOtroDiv.style.display = 'block';
+                    } else {
+                        fuenteConocimientoOtroDiv.style.display = 'none';
+                    }
+                }
+            }
+
+            if (tipoSolicitudSelect) {
+                tipoSolicitudSelect.addEventListener('change', togglePasantiaSectionVisibility);
+                togglePasantiaSectionVisibility();
+            }
+            if (duracionEstanciaInput) {
+                 duracionEstanciaInput.addEventListener('input', toggleDuracionOtro);
+                 toggleDuracionOtro();
+            }
+            if (fuenteConocimientoSelect) {
+                fuenteConocimientoSelect.addEventListener('change', toggleFuenteOtro);
+                toggleFuenteOtro();
+            }
+        });
+    </script>
+}
