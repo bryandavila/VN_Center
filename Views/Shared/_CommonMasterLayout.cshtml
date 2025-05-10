@@ -1,4 +1,4 @@
-@inject IHttpContextAccessor httpContextAccessor
+    @inject IHttpContextAccessor httpContextAccessor
 
 <!DOCTYPE html>
 <html lang="en"
@@ -8,7 +8,7 @@
       data-template='vertical-menu-aspnet-core-mvc-template-free'>
 
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-f" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
     @{
@@ -22,8 +22,9 @@
     <link rel="canonical" href='@productPage'>
     <link rel="icon" type="image/x-icon" href="~/img/favicon/favicon.ico" />
 
-    @* SE HA QUITADO RenderSectionAsync("Scripts") DE AQUÍ *@
     @await Html.PartialAsync("Sections/_Styles")
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
     @RenderSection("VendorStyles", required: false)
 
@@ -42,7 +43,9 @@
 
     @RenderSection("PageScripts", required: false)
 
-    @* ESTA ES LA UBICACIÓN CORRECTA PARA LA SECCIÓN DE SCRIPTS *@
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @* ESTA ES LA UBICACIÓN CORRECTA PARA LA SECCIÓN DE SCRIPTS DE PÁGINA *@
     @await RenderSectionAsync("Scripts", required: false)
 
     <script async defer src="https://buttons.github.io/buttons.js"></script>

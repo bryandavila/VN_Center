@@ -43,9 +43,11 @@
                         </dd>
                     </dl>
 
-                    <form asp-action="Delete" class="mt-4">
+                    <form asp-action="Delete" method="post" id="deleteForm">
+                        @* Añadido method="post" y un id al form *@
                         <input type="hidden" asp-for="ComunidadID" />
-                        <button type="submit" class="btn btn-danger me-2">Sí, Eliminar</button>
+                        @* Cambiado el input type="submit" a type="button" y añadido un id *@
+                        <button type="button" id="btnConfirmDelete" class="btn btn-danger me-2">Sí, Eliminar</button>
                         <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
                     </form>
                 </div>
@@ -53,3 +55,36 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteButton = document.getElementById('btnConfirmDelete');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', function (event) {
+                    event.preventDefault(); // Prevenir el envío inmediato del formulario
+
+                    Swal.fire({
+                        title: '¿Estás realmente seguro?',
+                        text: "¡No podrás revertir esta acción!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33', // Color rojo para el botón de confirmar
+                        cancelButtonColor: '#6c757d', // Color gris para el botón de cancelar
+                        confirmButtonText: 'Sí, ¡elimínalo!',
+                        cancelButtonText: 'No, cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Si el usuario confirma, enviar el formulario
+                            document.getElementById('deleteForm').submit();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+}
