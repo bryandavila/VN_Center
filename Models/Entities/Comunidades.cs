@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations; // Necesario para [Display]
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VN_Center.Models.Entities
@@ -13,12 +13,15 @@ namespace VN_Center.Models.Entities
 
     [Required]
     [StringLength(150)]
+    [Display(Name = "Nombre de la Comunidad")] // Nombre a mostrar para NombreComunidad
     public string NombreComunidad { get; set; } = null!;
 
     [Column(TypeName = "NVARCHAR(MAX)")]
+    [Display(Name = "Ubicación Detallada")] // Nombre a mostrar para UbicacionDetallada
     public string? UbicacionDetallada { get; set; }
 
     [Column(TypeName = "NVARCHAR(MAX)")]
+    [Display(Name = "Notas Adicionales")] // Nombre a mostrar para NotasComunidad
     public string? NotasComunidad { get; set; }
 
     // Propiedades de navegación

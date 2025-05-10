@@ -21,19 +21,31 @@
     <div class="menu-inner-shadow"></div>
 
     <ul class="menu-inner py-1">
-        <li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards/") ? " active open" : "")'>
+        <li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards") ? " active open" : "")'>
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-home-smile"></i>
                 <div class="text-truncate" data-i18n="Dashboards">Dashboards</div>
             </a>
             <ul class="menu-sub">
-                <li class='menu-item@(currentPage == "/" || currentPage == "/Dashboards/Index" ? " active" : "")'>
+                <li class='menu-item@( (currentPage == "/") || (currentPage == "/Dashboards/Index") ? " active" : "")'>
                     <a asp-controller="Dashboards" asp-action="Index" class="menu-link">
                         <div>Analytics</div>
                     </a>
                 </li>
             </ul>
         </li>
+
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Gestión de Datos</span>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/Comunidades") ? " active" : "")'>
+            <a asp-controller="Comunidades" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-arch"></i> @* Icono para Comunidades *@
+                <div>Comunidades</div>
+            </a>
+        </li>
+        @* Aquí puedes añadir más enlaces para otras entidades (Beneficiarios, Solicitudes, etc.) cuando las generes *@
+
 
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Apps &amp; Pages</span>

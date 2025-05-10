@@ -1,0 +1,55 @@
+@model VN_Center.Models.Entities.Comunidades
+
+@{
+    ViewData["Title"] = "Eliminar Comunidad";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Comunidades /</span> Eliminar
+    </h4>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0 text-danger">Confirmar Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">¿Estás seguro de que quieres eliminar la comunidad "<strong>@Model.NombreComunidad</strong>"?</p>
+                    <p class="text-danger small">Esta acción no se puede deshacer.</p>
+                    <hr />
+                    <dl class="row">
+                        <dt class="col-sm-3 text-md-end">
+                            @Html.DisplayNameFor(model => model.NombreComunidad)
+                        </dt>
+                        <dd class="col-sm-9">
+                            @Html.DisplayFor(model => model.NombreComunidad)
+                        </dd>
+
+                        <dt class="col-sm-3 text-md-end">
+                            @Html.DisplayNameFor(model => model.UbicacionDetallada)
+                        </dt>
+                        <dd class="col-sm-9">
+                            @(string.IsNullOrEmpty(Model.UbicacionDetallada) ? "No especificada" : Model.UbicacionDetallada)
+                        </dd>
+
+                        <dt class="col-sm-3 text-md-end">
+                            @Html.DisplayNameFor(model => model.NotasComunidad)
+                        </dt>
+                        <dd class="col-sm-9">
+                            @(string.IsNullOrEmpty(Model.NotasComunidad) ? "Sin notas" : Model.NotasComunidad)
+                        </dd>
+                    </dl>
+
+                    <form asp-action="Delete" class="mt-4">
+                        <input type="hidden" asp-for="ComunidadID" />
+                        <button type="submit" class="btn btn-danger me-2">Sí, Eliminar</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

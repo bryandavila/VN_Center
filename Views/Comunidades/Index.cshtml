@@ -1,0 +1,64 @@
+@model IEnumerable<VN_Center.Models.Entities.Comunidades>
+
+@{
+    ViewData["Title"] = "Lista de Comunidades";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos /</span> Comunidades
+    </h4>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Comunidades Registradas</h5>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i> Crear Nueva Comunidad
+            </a>
+        </div>
+        <div class="table-responsive text-nowrap">
+            @if (Model.Any())
+            {
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.NombreComunidad)</th>
+                            <th>@Html.DisplayNameFor(model => model.UbicacionDetallada)</th>
+                            <th>@Html.DisplayNameFor(model => model.NotasComunidad)</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><strong>@Html.DisplayFor(modelItem => item.NombreComunidad)</strong></td>
+                                <td>@Html.DisplayFor(modelItem => item.UbicacionDetallada)</td>
+                                <td>@Html.DisplayFor(modelItem => item.NotasComunidad)</td>
+                                <td class="text-center">
+                                    <div class="dropdown">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item" asp-action="Edit" asp-route-id="@item.ComunidadID"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                                            <a class="dropdown-item" asp-action="Details" asp-route-id="@item.ComunidadID"><i class="bx bx-detail me-1"></i> Detalles</a>
+                                            <a class="dropdown-item" asp-action="Delete" asp-route-id="@item.ComunidadID"><i class="bx bx-trash me-1"></i> Eliminar</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="card-body">
+                    <p class="text-center">No hay comunidades registradas todavía. <a asp-action="Create">Crea la primera</a>.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
