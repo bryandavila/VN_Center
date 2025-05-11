@@ -1,0 +1,79 @@
+@model VN_Center.Models.Entities.UsuariosSistema
+
+@{
+    ViewData["Title"] = "Eliminar Usuario del Sistema";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Administración / Usuarios del Sistema /</span> Eliminar
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0 text-danger">Confirmar Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">¿Estás seguro de que quieres eliminar al usuario "<strong>@Model.NombreUsuario</strong>" (@Model.Nombres @Model.Apellidos)?</p>
+                    <p class="text-danger small">Esta acción no se puede deshacer.</p>
+                    <hr />
+                    <h6 class="mt-3 mb-2">Detalles del Usuario a Eliminar:</h6>
+                    <dl class="row">
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.NombreUsuario)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.NombreUsuario)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.NombreCompleto)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.NombreCompleto)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Email)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.Email)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.RolesSistema.NombreRol)</dt>
+                        <dd class="col-sm-8">@(Model.RolesSistema?.NombreRol ?? "N/A")</dd>
+                    </dl>
+
+                    <form asp-action="Delete" method="post" id="deleteForm" class="mt-4">
+                        <input type="hidden" asp-for="UsuarioID" />
+                        <button type="button" id="btnConfirmDelete" class="btn btn-danger me-2">Sí, Eliminar Usuario</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteButton = document.getElementById('btnConfirmDelete');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', function (event) {
+                    event.preventDefault();
+
+                    Swal.fire({
+                        title: '¿Estás realmente seguro?',
+                        text: "¡No podrás revertir la eliminación de este usuario!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, ¡elimínalo!',
+                        cancelButtonText: 'No, cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('deleteForm').submit();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+}

@@ -1,0 +1,105 @@
+@model VN_Center.Models.Entities.UsuariosSistema
+
+@{
+    ViewData["Title"] = "Crear Nuevo Usuario del Sistema";
+    var opcionesActivo = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "true", Text = "Sí" },
+        new SelectListItem { Value = "false", Text = "No" }
+    };
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Administración / Usuarios del Sistema /</span> Crear Nuevo
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Información del Nuevo Usuario</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Nombres" class="form-label"></label>
+                                <input asp-for="Nombres" class="form-control" placeholder="Nombres completos" />
+                                <span asp-validation-for="Nombres" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Apellidos" class="form-label"></label>
+                                <input asp-for="Apellidos" class="form-control" placeholder="Apellidos completos" />
+                                <span asp-validation-for="Apellidos" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="NombreUsuario" class="form-label"></label>
+                            <input asp-for="NombreUsuario" class="form-control" placeholder="Nombre único para iniciar sesión" />
+                            <span asp-validation-for="NombreUsuario" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="ejemplo@correo.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3 form-password-toggle">
+                            <label for="Password" class="form-label">Contraseña</label> @* Cambiado: label for="Password" *@
+                            <div class="input-group input-group-merge">
+                                <input type="password" id="Password" name="Password" class="form-control" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" /> @* Cambiado: quitado asp-for, añadido name="Password" *@
+                                <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                            </div>
+                            @* El span de validación para 'Password' se mostrará si añades un error con esa clave en el ModelState *@
+                            <span class="text-danger" data-valmsg-for="Password"></span>
+                            <small class="form-text text-muted">La contraseña es obligatoria para nuevos usuarios.</small>
+                        </div>
+
+                        @* Opcional: Campo para Confirmar Contraseña (necesitaría lógica en el controlador)
+                        <div class="mb-3 form-password-toggle">
+                            <label for="ConfirmPassword" class="form-label">Confirmar Contraseña</label>
+                            <div class="input-group input-group-merge">
+                                <input type="password" id="ConfirmPassword" name="ConfirmPassword" class="form-control" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" />
+                                <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                            </div>
+                            <span data-valmsg-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+                        *@
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="RolUsuarioID" class="form-label"></label>
+                                <select asp-for="RolUsuarioID" class="form-select" asp-items="ViewBag.RolUsuarioID">
+                                    <option value="">Seleccione un rol...</option>
+                                </select>
+                                <span asp-validation-for="RolUsuarioID" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Activo" class="form-label"></label>
+                                <select asp-for="Activo" class="form-select" asp-items="opcionesActivo"></select>
+                                <span asp-validation-for="Activo" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Crear Usuario</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

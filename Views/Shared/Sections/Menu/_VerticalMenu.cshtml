@@ -65,6 +65,16 @@
                 <div>Solicitudes</div>
             </a>
         </li>
+
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Administración del Sistema</span>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/UsuariosSistema") ? " active" : "")'>
+            <a asp-controller="UsuariosSistema" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-user-circle"></i> @* Icono para Usuarios *@
+                <div>Usuarios del Sistema</div>
+            </a>
+        </li>
         @* Aquí puedes añadir más enlaces para otras entidades (Beneficiarios, Solicitudes, etc.) cuando las generes *@
 
 

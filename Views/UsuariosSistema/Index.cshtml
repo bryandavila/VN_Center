@@ -1,0 +1,85 @@
+@model IEnumerable<VN_Center.Models.Entities.UsuariosSistema>
+
+@{
+    ViewData["Title"] = "Usuarios del Sistema";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Administración /</span> Usuarios del Sistema
+    </h4>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Usuarios Registrados</h5>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i> Crear Nuevo Usuario
+            </a>
+        </div>
+        <div class="table-responsive text-nowrap">
+            @if (Model.Any())
+            {
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.First().NombreUsuario)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().NombreCompleto)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().Email)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().RolesSistema.NombreRol)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().Activo)</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><strong>@Html.DisplayFor(modelItem => item.NombreUsuario)</strong></td>
+                                <td>@Html.DisplayFor(modelItem => item.NombreCompleto)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                                <td>@(item.RolesSistema?.NombreRol ?? "N/A")</td>
+                                <td>
+                                    @if (item.Activo)
+                                    {
+                                        <span class="badge bg-label-success">Sí</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-label-danger">No</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="dropdown">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item" asp-action="Edit" asp-route-id="@item.UsuarioID"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                                            <a class="dropdown-item" asp-action="Details" asp-route-id="@item.UsuarioID"><i class="bx bx-detail me-1"></i> Detalles</a>
+                                            <a class="dropdown-item" asp-action="Delete" asp-route-id="@item.UsuarioID"><i class="bx bx-trash me-1"></i> Eliminar</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="card-body">
+                    <p class="text-center">No hay usuarios registrados todavía. <a asp-action="Create">Crea el primero</a>.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
