@@ -80,6 +80,13 @@
             </a>
         </li>
 
+        <li class='menu-item@(currentPage.StartsWith("/ParticipacionesActivas") ? " active" : "")'>
+            <a asp-controller="ParticipacionesActivas" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-link-alt"></i> @* Icono para Participaciones *@
+                <div>Participaciones Activas</div>
+            </a>
+        </li>
+
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Administración del Sistema</span>
         </li>

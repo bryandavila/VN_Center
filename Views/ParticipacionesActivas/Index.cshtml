@@ -1,0 +1,83 @@
+@model IEnumerable<VN_Center.Models.Entities.ParticipacionesActivas>
+
+@{
+    ViewData["Title"] = "Participaciones Activas";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos /</span> Participaciones Activas
+    </h4>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Participaciones Registradas</h5>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i> Registrar Nueva Participación
+            </a>
+        </div>
+        <div class="table-responsive text-nowrap">
+            @if (Model.Any())
+            {
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.First().Solicitud.Nombres)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().ProgramaProyecto.NombreProgramaProyecto)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().FechaInicioParticipacion)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().RolDesempenado)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().HorasTCUCompletadas)</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><strong>@(item.Solicitud?.Nombres) @(item.Solicitud?.Apellidos)</strong></td>
+                                <td>@(item.ProgramaProyecto?.NombreProgramaProyecto ?? "N/A")</td>
+                                <td>@item.FechaInicioParticipacion.ToString("dd/MM/yyyy")</td>
+                                <td>@Html.DisplayFor(modelItem => item.RolDesempenado)</td>
+                                <td>@Html.DisplayFor(modelItem => item.HorasTCUCompletadas)</td>
+                                <td class="text-center">
+                                    <div class="dropdown">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item" asp-action="Edit" asp-route-id="@item.ParticipacionID"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                                            <a class="dropdown-item" asp-action="Details" asp-route-id="@item.ParticipacionID"><i class="bx bx-detail me-1"></i> Detalles</a>
+                                            <a class="dropdown-item" asp-action="Delete" asp-route-id="@item.ParticipacionID"><i class="bx bx-trash me-1"></i> Eliminar</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="card-body">
+                    <p class="text-center">No hay participaciones activas registradas todavía. <a asp-action="Create">Registra la primera</a>.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

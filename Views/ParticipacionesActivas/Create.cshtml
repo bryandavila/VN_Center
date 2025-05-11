@@ -1,0 +1,91 @@
+@model VN_Center.Models.Entities.ParticipacionesActivas
+
+@{
+    ViewData["Title"] = "Registrar Nueva Participación";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos / Participaciones Activas /</span> Registrar Nueva
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Detalles de la Participación</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="SolicitudID" class="form-label"></label>
+                            <select asp-for="SolicitudID" class="form-select" asp-items="ViewBag.SolicitudID">
+                                <option value="">Seleccione un solicitante...</option>
+                            </select>
+                            <span asp-validation-for="SolicitudID" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ProgramaProyectoID" class="form-label"></label>
+                            <select asp-for="ProgramaProyectoID" class="form-select" asp-items="ViewBag.ProgramaProyectoID">
+                                <option value="">Seleccione un programa/proyecto...</option>
+                            </select>
+                            <span asp-validation-for="ProgramaProyectoID" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaAsignacion" class="form-label"></label>
+                                <input asp-for="FechaAsignacion" class="form-control" type="date" />
+                                <span asp-validation-for="FechaAsignacion" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaInicioParticipacion" class="form-label"></label>
+                                <input asp-for="FechaInicioParticipacion" class="form-control" type="date" />
+                                <span asp-validation-for="FechaInicioParticipacion" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="FechaFinParticipacion" class="form-label"></label>
+                            <input asp-for="FechaFinParticipacion" class="form-control" type="date" />
+                            <span asp-validation-for="FechaFinParticipacion" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="RolDesempenado" class="form-label"></label>
+                            <input asp-for="RolDesempenado" class="form-control" placeholder="Ej: Tutor de inglés, Apoyo logístico" />
+                            <span asp-validation-for="RolDesempenado" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="HorasTCUCompletadas" class="form-label"></label>
+                            <input asp-for="HorasTCUCompletadas" type="number" min="0" class="form-control" placeholder="Número de horas (si aplica)" />
+                            <span asp-validation-for="HorasTCUCompletadas" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="NotasSupervisor" class="form-label"></label>
+                            <textarea asp-for="NotasSupervisor" class="form-control" rows="4" placeholder="Comentarios o notas del supervisor sobre la participación..."></textarea>
+                            <span asp-validation-for="NotasSupervisor" class="text-danger"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Guardar Participación</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
