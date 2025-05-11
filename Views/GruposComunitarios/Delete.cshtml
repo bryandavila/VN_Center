@@ -1,0 +1,75 @@
+@model VN_Center.Models.Entities.GruposComunitarios
+
+@{
+    ViewData["Title"] = "Eliminar Grupo Comunitario";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos / Grupos Comunitarios /</span> Eliminar
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0 text-danger">Confirmar Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">¿Estás seguro de que quieres eliminar el grupo comunitario "<strong>@Model.NombreGrupo</strong>"?</p>
+                    <p class="text-warning small">Advertencia: Eliminar un grupo puede afectar a los beneficiarios o programas asociados a él.</p>
+                    <hr />
+                    <dl class="row">
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.NombreGrupo)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.NombreGrupo)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.TipoGrupo)</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.TipoGrupo) ? "No especificado" : Model.TipoGrupo)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Comunidad.NombreComunidad)</dt>
+                        <dd class="col-sm-8">@(Model.Comunidad?.NombreComunidad ?? "N/A")</dd>
+                    </dl>
+
+                    <form asp-action="Delete" method="post" id="deleteForm" class="mt-4">
+                        <input type="hidden" asp-for="GrupoID" />
+                        <button type="button" id="btnConfirmDelete" class="btn btn-danger me-2">Sí, Eliminar Grupo</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteButton = document.getElementById('btnConfirmDelete');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', function (event) {
+                    event.preventDefault();
+
+                    Swal.fire({
+                        title: '¿Estás realmente seguro?',
+                        html: "¡No podrás revertir la eliminación de este grupo comunitario!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, ¡elimínalo!',
+                        cancelButtonText: 'No, cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('deleteForm').submit();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+}

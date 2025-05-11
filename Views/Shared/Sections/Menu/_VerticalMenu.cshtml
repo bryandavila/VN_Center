@@ -45,6 +45,13 @@
             </a>
         </li>
 
+        <li class='menu-item@(currentPage.StartsWith("/GruposComunitarios") ? " active" : "")'>
+            <a asp-controller="GruposComunitarios" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-group"></i> @* Icono para Grupos Comunitarios *@
+                <div>Grupos Comunitarios</div>
+            </a>
+        </li>
+
         <li class='menu-item@(currentPage.StartsWith("/ProgramasProyectosONG") ? " active" : "")'>
             <a asp-controller="ProgramasProyectosONG" asp-action="Index" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-briefcase-alt-2"></i> @* Icono para Programas/Proyectos *@
@@ -54,7 +61,7 @@
 
         <li class='menu-item@(currentPage.StartsWith("/Beneficiarios") ? " active" : "")'>
             <a asp-controller="Beneficiarios" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-group"></i> @* Icono para Beneficiarios *@
+                <i class="menu-icon tf-icons bx bx-male-female"></i> @* Icono para Beneficiarios *@
                 <div>Beneficiarios</div>
             </a>
         </li>

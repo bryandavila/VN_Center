@@ -11,35 +11,42 @@ namespace VN_Center.Models.Entities
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int GrupoID { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "El nombre del grupo es obligatorio.")]
     [StringLength(200)]
+    [Display(Name = "Nombre del Grupo")]
     public string NombreGrupo { get; set; } = null!;
 
     [Column(TypeName = "NVARCHAR(MAX)")]
+    [Display(Name = "Descripción del Grupo")]
+    [DataType(DataType.MultilineText)]
     public string? DescripcionGrupo { get; set; }
 
-    public int? ComunidadID { get; set; } // FK, puede ser nulo
+    [Display(Name = "Comunidad Asociada")]
+    public int? ComunidadID { get; set; } // FK, puede ser nulo si el grupo es inter-comunitario
 
     [StringLength(100)]
-    public string? TipoGrupo { get; set; }
+    [Display(Name = "Tipo de Grupo")]
+    public string? TipoGrupo { get; set; } // Ej: Mujeres, Jóvenes, Agricultores, etc.
 
     [StringLength(200)]
+    [Display(Name = "Persona de Contacto Principal")]
     public string? PersonaContactoPrincipal { get; set; }
 
     [StringLength(30)]
+    [Display(Name = "Teléfono de Contacto del Grupo")]
     public string? TelefonoContactoGrupo { get; set; }
 
+    [EmailAddress(ErrorMessage = "Formato de correo no válido.")]
     [StringLength(254)]
+    [Display(Name = "Email de Contacto del Grupo")]
     public string? EmailContactoGrupo { get; set; }
 
     // --- Propiedades de Navegación ---
     [ForeignKey("ComunidadID")]
-    public virtual Comunidades? Comunidad { get; set; } // Puede no pertenecer a una comunidad específica
+    [Display(Name = "Comunidad")]
+    public virtual Comunidades? Comunidad { get; set; }
 
-    // Relación muchos-a-muchos con Beneficiarios (a través de BeneficiarioGrupos)
     public virtual ICollection<BeneficiarioGrupos> BeneficiarioGrupos { get; set; } = new List<BeneficiarioGrupos>();
-
-    // Relación muchos-a-muchos con ProgramasProyectosONG (a través de ProgramaProyectoGrupos)
     public virtual ICollection<ProgramaProyectoGrupos> ProgramaProyectoGrupos { get; set; } = new List<ProgramaProyectoGrupos>();
   }
 }

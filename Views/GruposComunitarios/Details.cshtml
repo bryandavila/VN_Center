@@ -1,0 +1,54 @@
+@model VN_Center.Models.Entities.GruposComunitarios
+
+@{
+    ViewData["Title"] = "Detalles del Grupo Comunitario";
+    Func<string?, string> DisplayString = s => string.IsNullOrWhiteSpace(s) ? "No especificado" : s;
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos / Grupos Comunitarios /</span> Detalles
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Grupo: @Model.NombreGrupo</h5>
+                    <div>
+                        <a asp-action="Edit" asp-route-id="@Model.GrupoID" class="btn btn-primary me-2"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bx bx-list-ul me-1"></i> Volver a la Lista</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.NombreGrupo)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.NombreGrupo)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.DescripcionGrupo)</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.DescripcionGrupo) ? "Sin descripción" : Html.Raw(Model.DescripcionGrupo.Replace("\n", "<br />")))</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Comunidad.NombreComunidad)</dt>
+                        <dd class="col-sm-8">@(Model.Comunidad?.NombreComunidad ?? "N/A (Inter-comunitario)")</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.TipoGrupo)</dt>
+                        <dd class="col-sm-8">@DisplayString(Model.TipoGrupo)</dd>
+                    </dl>
+                    <hr />
+                    <h6 class="mt-3 mb-2 text-primary">Información de Contacto del Grupo</h6>
+                    <dl class="row">
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.PersonaContactoPrincipal)</dt>
+                        <dd class="col-sm-8">@DisplayString(Model.PersonaContactoPrincipal)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.TelefonoContactoGrupo)</dt>
+                        <dd class="col-sm-8">@DisplayString(Model.TelefonoContactoGrupo)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.EmailContactoGrupo)</dt>
+                        <dd class="col-sm-8">@DisplayString(Model.EmailContactoGrupo)</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

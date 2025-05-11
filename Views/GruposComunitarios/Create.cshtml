@@ -1,0 +1,87 @@
+@model VN_Center.Models.Entities.GruposComunitarios
+
+@{
+    ViewData["Title"] = "Crear Nuevo Grupo Comunitario";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos / Grupos Comunitarios /</span> Registrar Nuevo Grupo
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Información del Grupo Comunitario</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="NombreGrupo" class="form-label"></label>
+                            <input asp-for="NombreGrupo" class="form-control" placeholder="Nombre oficial del grupo" />
+                            <span asp-validation-for="NombreGrupo" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DescripcionGrupo" class="form-label"></label>
+                            <textarea asp-for="DescripcionGrupo" class="form-control" rows="4" placeholder="Objetivos, actividades principales, etc."></textarea>
+                            <span asp-validation-for="DescripcionGrupo" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ComunidadID" class="form-label"></label>
+                                <select asp-for="ComunidadID" class="form-select" asp-items="ViewBag.ComunidadID">
+                                    <option value="">(Opcional) Seleccione comunidad...</option>
+                                </select>
+                                <span asp-validation-for="ComunidadID" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TipoGrupo" class="form-label"></label>
+                                <input asp-for="TipoGrupo" class="form-control" placeholder="Ej: Mujeres, Jóvenes, Productores" />
+                                <span asp-validation-for="TipoGrupo" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+                        <h6 class="mb-3 text-primary">Información de Contacto del Grupo (Opcional)</h6>
+
+                        <div class="mb-3">
+                            <label asp-for="PersonaContactoPrincipal" class="form-label"></label>
+                            <input asp-for="PersonaContactoPrincipal" class="form-control" placeholder="Nombre del líder o contacto" />
+                            <span asp-validation-for="PersonaContactoPrincipal" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TelefonoContactoGrupo" class="form-label"></label>
+                                <input asp-for="TelefonoContactoGrupo" class="form-control" placeholder="Teléfono del grupo o contacto" />
+                                <span asp-validation-for="TelefonoContactoGrupo" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="EmailContactoGrupo" class="form-label"></label>
+                                <input asp-for="EmailContactoGrupo" type="email" class="form-control" placeholder="correo@ejemplo.com" />
+                                <span asp-validation-for="EmailContactoGrupo" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Crear Grupo</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
