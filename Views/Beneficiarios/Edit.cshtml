@@ -1,0 +1,471 @@
+@model VN_Center.Models.Entities.Beneficiarios
+
+@{
+    ViewData["Title"] = "Editar Beneficiario";
+
+    // Opciones para dropdowns (exactamente las mismas que en Create.cshtml)
+    var opcionesSiNo = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione..." },
+        new SelectListItem { Value = "Sí", Text = "Sí" },
+        new SelectListItem { Value = "No", Text = "No" }
+    };
+
+    var opcionesSiNoNoSe = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione..." },
+        new SelectListItem { Value = "Sí", Text = "Sí" },
+        new SelectListItem { Value = "No", Text = "No" },
+        new SelectListItem { Value = "No sé", Text = "No sé" }
+    };
+
+    var opcionesRangoEdad = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione rango..." },
+        new SelectListItem { Value = "0-5", Text = "0-5 años" },
+        new SelectListItem { Value = "6-12", Text = "6-12 años" },
+        new SelectListItem { Value = "13-17", Text = "13-17 años" },
+        new SelectListItem { Value = "18-25", Text = "18-25 años" },
+        new SelectListItem { Value = "26-35", Text = "26-35 años" },
+        new SelectListItem { Value = "36-47", Text = "36-47 años" },
+        new SelectListItem { Value = "48-59", Text = "48-59 años" },
+        new SelectListItem { Value = "60+", Text = "60+ años" }
+    };
+
+    var opcionesGenero = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione género..." },
+        new SelectListItem { Value = "Femenino", Text = "Femenino" },
+        new SelectListItem { Value = "Masculino", Text = "Masculino" },
+        new SelectListItem { Value = "Otro", Text = "Otro" }
+    };
+
+    var opcionesEstadoMigratorio = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione estado..." },
+        new SelectListItem { Value = "Nacional", Text = "Nacional" },
+        new SelectListItem { Value = "Residente", Text = "Residente" },
+        new SelectListItem { Value = "Solicitante de Refugio", Text = "Solicitante de Refugio" },
+        new SelectListItem { Value = "Refugiado", Text = "Refugiado" },
+        new SelectListItem { Value = "Migrante Irregular", Text = "Migrante Irregular" },
+        new SelectListItem { Value = "Otro", Text = "Otro" }
+    };
+
+    var opcionesVivienda = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione..." },
+        new SelectListItem { Value = "Alquilo", Text = "Alquilo" },
+        new SelectListItem { Value = "Propietario", Text = "Propietario" },
+        new SelectListItem { Value = "Prestada", Text = "Prestada/Familiar" },
+        new SelectListItem { Value = "Otro", Text = "Otro" }
+    };
+
+    var opcionesSituacionLaboral = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione situación..." },
+        new SelectListItem { Value = "Empleado Fijo", Text = "Empleado Fijo" },
+        new SelectListItem { Value = "Trabajador Independiente", Text = "Trabajador Independiente (Cuenta Propia)" },
+        new SelectListItem { Value = "Trabajo por Día/Contratos Cortos", Text = "Trabajo por Día/Contratos Cortos" },
+        new SelectListItem { Value = "Desempleado", Text = "Desempleado" },
+        new SelectListItem { Value = "Estudiante", Text = "Estudiante" },
+        new SelectListItem { Value = "Labores del Hogar", Text = "Labores del Hogar" },
+        new SelectListItem { Value = "Jubilado/Pensionado", Text = "Jubilado/Pensionado" },
+        new SelectListItem { Value = "Otro", Text = "Otro" }
+    };
+
+    var opcionesTipoTrabajo = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione tipo..." },
+        new SelectListItem { Value = "Agricultura", Text = "Agricultura" },
+        new SelectListItem { Value = "Construcción", Text = "Construcción" },
+        new SelectListItem { Value = "Servicios (Doméstico, Comercio, Turismo, etc.)", Text = "Servicios (Doméstico, Comercio, Turismo, etc.)" },
+        new SelectListItem { Value = "Informal (Ventas ambulantes, etc.)", Text = "Informal (Ventas ambulantes, etc.)" },
+        new SelectListItem { Value = "Profesional/Técnico", Text = "Profesional/Técnico" },
+        new SelectListItem { Value = "Otro", Text = "Otro" }
+    };
+
+    var opcionesEstadoCivil = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione estado..." },
+        new SelectListItem { Value = "Soltero(a)", Text = "Soltero(a)" },
+        new SelectListItem { Value = "Casado(a)", Text = "Casado(a)" },
+        new SelectListItem { Value = "Unión Libre / Juntado(a)", Text = "Unión Libre / Juntado(a)" },
+        new SelectListItem { Value = "Divorciado(a)", Text = "Divorciado(a)" },
+        new SelectListItem { Value = "Viudo(a)", Text = "Viudo(a)" }
+    };
+
+    var opcionesNivelEducacion = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione nivel..." },
+        new SelectListItem { Value = "Ninguno", Text = "Ninguno" },
+        new SelectListItem { Value = "Primaria Incompleta", Text = "Primaria Incompleta" },
+        new SelectListItem { Value = "Primaria Completa", Text = "Primaria Completa" },
+        new SelectListItem { Value = "Secundaria Incompleta", Text = "Secundaria Incompleta" },
+        new SelectListItem { Value = "Secundaria Completa", Text = "Secundaria Completa (Bachillerato)" },
+        new SelectListItem { Value = "Técnico", Text = "Técnico" },
+        new SelectListItem { Value = "Universidad Incompleta", Text = "Universidad Incompleta" },
+        new SelectListItem { Value = "Universidad Completa (Licenciatura o más)", Text = "Universidad Completa (Licenciatura o más)" },
+        new SelectListItem { Value = "Otro", Text = "Otro" }
+    };
+
+    var opcionesAsistenciaEscolarNinos = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione..." },
+        new SelectListItem { Value = "Sí", Text = "Sí, todos asisten" },
+        new SelectListItem { Value = "No", Text = "No, algunos o ninguno asiste" },
+        new SelectListItem { Value = "No hay niños en el hogar", Text = "No hay niños en el hogar" }
+    };
+
+    var opcionesAcceso = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione..." },
+        new SelectListItem { Value = "Sí", Text = "Sí, regularmente" },
+        new SelectListItem { Value = "A veces", Text = "A veces / Ocasionalmente" },
+        new SelectListItem { Value = "No", Text = "No, nunca" }
+    };
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Beneficiarios /</span> Editar Beneficiario: @(Model.Nombres) @(Model.Apellidos)
+    </h4>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="BeneficiarioID" />
+        <input type="hidden" asp-for="FechaRegistroBeneficiario" /> @* Preservar la fecha de registro original *@
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Por favor, corrija los siguientes errores:</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="accordion mt-3" id="accordionBeneficiarioEdit">
+
+            <div class="card accordion-item active">
+                <h2 class="accordion-header" id="headingPersonalBeneficiarioEdit">
+                    <button type="button" class="accordion-button" data-bs-toggle="collapse" data-bs-target="#collapsePersonalBeneficiarioEdit" aria-expanded="true" aria-controls="collapsePersonalBeneficiarioEdit">
+                        Información Personal y Demográfica
+                    </button>
+                </h2>
+                <div id="collapsePersonalBeneficiarioEdit" class="accordion-collapse collapse show" aria-labelledby="headingPersonalBeneficiarioEdit" data-bs-parent="#accordionBeneficiarioEdit">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Nombres" class="form-label"></label>
+                                <input asp-for="Nombres" class="form-control" />
+                                <span asp-validation-for="Nombres" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Apellidos" class="form-label"></label>
+                                <input asp-for="Apellidos" class="form-control" />
+                                <span asp-validation-for="Apellidos" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="RangoEdad" class="form-label"></label>
+                                <select asp-for="RangoEdad" class="form-select" asp-items="opcionesRangoEdad"></select>
+                                <span asp-validation-for="RangoEdad" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Genero" class="form-label"></label>
+                                <select asp-for="Genero" class="form-select" asp-items="opcionesGenero"></select>
+                                <span asp-validation-for="Genero" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PaisOrigen" class="form-label"></label>
+                                <input asp-for="PaisOrigen" class="form-control" />
+                                <span asp-validation-for="PaisOrigen" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="OtroPaisOrigen" class="form-label"></label>
+                                <input asp-for="OtroPaisOrigen" class="form-control" />
+                                <span asp-validation-for="OtroPaisOrigen" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="EstadoMigratorio" class="form-label"></label>
+                                <select asp-for="EstadoMigratorio" class="form-select" asp-items="opcionesEstadoMigratorio"></select>
+                                <span asp-validation-for="EstadoMigratorio" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="OtroEstadoMigratorio" class="form-label"></label>
+                                <input asp-for="OtroEstadoMigratorio" class="form-control" />
+                                <span asp-validation-for="OtroEstadoMigratorio" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="EstadoCivil" class="form-label"></label>
+                            <select asp-for="EstadoCivil" class="form-select" asp-items="opcionesEstadoCivil"></select>
+                            <span asp-validation-for="EstadoCivil" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card accordion-item">
+                <h2 class="accordion-header" id="headingViviendaEdit">
+                    <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseViviendaEdit" aria-expanded="false" aria-controls="collapseViviendaEdit">
+                        Vivienda y Hogar
+                    </button>
+                </h2>
+                <div id="collapseViviendaEdit" class="accordion-collapse collapse" aria-labelledby="headingViviendaEdit" data-bs-parent="#accordionBeneficiarioEdit">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ComunidadID" class="form-label"></label>
+                                <select asp-for="ComunidadID" class="form-select" asp-items="ViewBag.ComunidadID">
+                                    <option value="">Seleccione comunidad...</option>
+                                </select>
+                                <span asp-validation-for="ComunidadID" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TiempoViviendoEnComunidadActual" class="form-label"></label>
+                                <input asp-for="TiempoViviendoEnComunidadActual" class="form-control" />
+                                <span asp-validation-for="TiempoViviendoEnComunidadActual" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="NumeroPersonasHogar" class="form-label"></label>
+                                <input asp-for="NumeroPersonasHogar" type="number" min="1" class="form-control" />
+                                <span asp-validation-for="NumeroPersonasHogar" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ViviendaAlquiladaOPropia" class="form-label"></label>
+                                <select asp-for="ViviendaAlquiladaOPropia" class="form-select" asp-items="opcionesVivienda"></select>
+                                <span asp-validation-for="ViviendaAlquiladaOPropia" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="TiempoEnCostaRicaSiMigrante" class="form-label"></label>
+                            <input asp-for="TiempoEnCostaRicaSiMigrante" class="form-control" />
+                            <span asp-validation-for="TiempoEnCostaRicaSiMigrante" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card accordion-item">
+                <h2 class="accordion-header" id="headingEmpleoEdit">
+                    <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseEmpleoEdit" aria-expanded="false" aria-controls="collapseEmpleoEdit">
+                        Empleo e Ingresos
+                    </button>
+                </h2>
+                <div id="collapseEmpleoEdit" class="accordion-collapse collapse" aria-labelledby="headingEmpleoEdit" data-bs-parent="#accordionBeneficiarioEdit">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="MiembrosHogarEmpleados" class="form-label"></label>
+                                <input asp-for="MiembrosHogarEmpleados" type="number" min="0" class="form-control" />
+                                <span asp-validation-for="MiembrosHogarEmpleados" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="EstaEmpleadoPersonalmente" class="form-label"></label>
+                                <select asp-for="EstaEmpleadoPersonalmente" class="form-select" asp-items="opcionesSiNo"></select>
+                                <span asp-validation-for="EstaEmpleadoPersonalmente" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="TipoSituacionLaboral" class="form-label"></label>
+                            <select asp-for="TipoSituacionLaboral" class="form-select" asp-items="opcionesSituacionLaboral"></select>
+                            <span asp-validation-for="TipoSituacionLaboral" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="OtroTipoSituacionLaboral" class="form-label"></label>
+                            <input asp-for="OtroTipoSituacionLaboral" class="form-control" />
+                            <span asp-validation-for="OtroTipoSituacionLaboral" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="TipoTrabajoRealizadoSiEmpleado" class="form-label"></label>
+                            <select asp-for="TipoTrabajoRealizadoSiEmpleado" class="form-select" asp-items="opcionesTipoTrabajo"></select>
+                            <span asp-validation-for="TipoTrabajoRealizadoSiEmpleado" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="OtroTipoTrabajoRealizado" class="form-label"></label>
+                            <input asp-for="OtroTipoTrabajoRealizado" class="form-control" />
+                            <span asp-validation-for="OtroTipoTrabajoRealizado" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="IngresosSuficientesNecesidades" class="form-label"></label>
+                            <select asp-for="IngresosSuficientesNecesidades" class="form-select" asp-items="opcionesSiNo"></select>
+                            <span asp-validation-for="IngresosSuficientesNecesidades" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card accordion-item">
+                <h2 class="accordion-header" id="headingEducacionEdit">
+                    <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseEducacionEdit" aria-expanded="false" aria-controls="collapseEducacionEdit">
+                        Educación
+                    </button>
+                </h2>
+                <div id="collapseEducacionEdit" class="accordion-collapse collapse" aria-labelledby="headingEducacionEdit" data-bs-parent="#accordionBeneficiarioEdit">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <label asp-for="NivelEducacionCompletado" class="form-label"></label>
+                            <select asp-for="NivelEducacionCompletado" class="form-select" asp-items="opcionesNivelEducacion"></select>
+                            <span asp-validation-for="NivelEducacionCompletado" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="OtroNivelEducacion" class="form-label"></label>
+                            <input asp-for="OtroNivelEducacion" class="form-control" />
+                            <span asp-validation-for="OtroNivelEducacion" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="InscritoProgramaEducacionCapacitacionActual" class="form-label"></label>
+                            <select asp-for="InscritoProgramaEducacionCapacitacionActual" class="form-select" asp-items="opcionesSiNo"></select>
+                            <span asp-validation-for="InscritoProgramaEducacionCapacitacionActual" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="NinosHogarAsistenEscuela" class="form-label"></label>
+                            <select asp-for="NinosHogarAsistenEscuela" class="form-select" asp-items="opcionesAsistenciaEscolarNinos"></select>
+                            <span asp-validation-for="NinosHogarAsistenEscuela" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="BarrerasAsistenciaEscolarNinos" class="form-label"></label>
+                            <textarea asp-for="BarrerasAsistenciaEscolarNinos" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="BarrerasAsistenciaEscolarNinos" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="OtroBarrerasAsistenciaEscolar" class="form-label"></label>
+                            <input asp-for="OtroBarrerasAsistenciaEscolar" class="form-control" />
+                            <span asp-validation-for="OtroBarrerasAsistenciaEscolar" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card accordion-item">
+                <h2 class="accordion-header" id="headingServiciosEdit">
+                    <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseServiciosEdit" aria-expanded="false" aria-controls="collapseServiciosEdit">
+                        Acceso a Servicios y Percepciones Comunitarias
+                    </button>
+                </h2>
+                <div id="collapseServiciosEdit" class="accordion-collapse collapse" aria-labelledby="headingServiciosEdit" data-bs-parent="#accordionBeneficiarioEdit">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <label asp-for="PercepcionAccesoIgualOportunidadesLaboralesMujeres" class="form-label"></label>
+                            <select asp-for="PercepcionAccesoIgualOportunidadesLaboralesMujeres" class="form-select" asp-items="opcionesSiNo"></select>
+                            <span asp-validation-for="PercepcionAccesoIgualOportunidadesLaboralesMujeres" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="DisponibilidadServiciosMujeresVictimasViolencia" class="form-label"></label>
+                            <select asp-for="DisponibilidadServiciosMujeresVictimasViolencia" class="form-select" asp-items="opcionesSiNoNoSe"></select>
+                            <span asp-validation-for="DisponibilidadServiciosMujeresVictimasViolencia" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="DisponibilidadServiciosSaludMujer" class="form-label"></label>
+                            <select asp-for="DisponibilidadServiciosSaludMujer" class="form-select" asp-items="opcionesSiNoNoSe"></select>
+                            <span asp-validation-for="DisponibilidadServiciosSaludMujer" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="DisponibilidadServiciosApoyoAdultosMayores" class="form-label"></label>
+                            <select asp-for="DisponibilidadServiciosApoyoAdultosMayores" class="form-select" asp-items="opcionesSiNoNoSe"></select>
+                            <span asp-validation-for="DisponibilidadServiciosApoyoAdultosMayores" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="AccesibilidadServiciosTransporteComunidad" class="form-label"></label>
+                            <select asp-for="AccesibilidadServiciosTransporteComunidad" class="form-select" asp-items="opcionesSiNo"></select>
+                            <span asp-validation-for="AccesibilidadServiciosTransporteComunidad" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card accordion-item">
+                <h2 class="accordion-header" id="headingTecnologiaEdit">
+                    <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseTecnologiaEdit" aria-expanded="false" aria-controls="collapseTecnologiaEdit">
+                        Acceso a Tecnología
+                    </button>
+                </h2>
+                <div id="collapseTecnologiaEdit" class="accordion-collapse collapse" aria-labelledby="headingTecnologiaEdit" data-bs-parent="#accordionBeneficiarioEdit">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <label asp-for="AccesoComputadora" class="form-label"></label>
+                            <select asp-for="AccesoComputadora" class="form-select" asp-items="opcionesAcceso"></select>
+                            <span asp-validation-for="AccesoComputadora" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="AccesoInternet" class="form-label"></label>
+                            <select asp-for="AccesoInternet" class="form-select" asp-items="opcionesAcceso"></select>
+                            <span asp-validation-for="AccesoInternet" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div> <div class="card mt-4">
+            <div class="card-body text-center">
+                <button type="submit" class="btn btn-primary btn-lg me-2">Guardar Cambios</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Script para manejar la visibilidad de campos "Otro" (exactamente el mismo que en Create.cshtml)
+        document.addEventListener('DOMContentLoaded', function () {
+            function setupOtroFieldToggle(triggerInputId, otroFieldContainerId, triggerValue = 'otro') {
+                const triggerInput = document.getElementById(triggerInputId);
+                const otroFieldDiv = document.getElementById(otroFieldContainerId)?.closest('.mb-3');
+
+                function toggleVisibility() {
+                    if (triggerInput && otroFieldDiv) {
+                        let show = false;
+                        if (triggerInput.tagName.toLowerCase() === 'select') {
+                            const selectedOptionText = triggerInput.options[triggerInput.selectedIndex]?.text;
+                            if (selectedOptionText && selectedOptionText.trim().toLowerCase().includes(triggerValue.toLowerCase())) { // includes para "Otro (especificar)"
+                                show = true;
+                            }
+                        } else {
+                            if (triggerInput.value.trim().toLowerCase() === triggerValue.toLowerCase()) {
+                                show = true;
+                            }
+                        }
+                        otroFieldDiv.style.display = show ? 'block' : 'none';
+                    }
+                }
+
+                if (triggerInput) {
+                    const eventType = triggerInput.tagName.toLowerCase() === 'select' ? 'change' : 'input';
+                    triggerInput.addEventListener(eventType, toggleVisibility);
+                    toggleVisibility();
+                }
+            }
+
+            setupOtroFieldToggle('PaisOrigen', 'OtroPaisOrigen');
+            setupOtroFieldToggle('EstadoMigratorio', 'OtroEstadoMigratorio');
+            setupOtroFieldToggle('TipoSituacionLaboral', 'OtroTipoSituacionLaboral');
+            setupOtroFieldToggle('TipoTrabajoRealizadoSiEmpleado', 'OtroTipoTrabajoRealizado');
+            setupOtroFieldToggle('NivelEducacionCompletado', 'OtroNivelEducacion');
+
+            const barrerasInput = document.getElementById('BarrerasAsistenciaEscolarNinos');
+            const otroBarrerasDiv = document.getElementById('OtroBarrerasAsistenciaEscolar')?.closest('.mb-3');
+
+            function toggleOtroBarreras() {
+                if (barrerasInput && otroBarrerasDiv) {
+                    if (barrerasInput.value.toLowerCase().includes('otro') || barrerasInput.value.toLowerCase().includes('others')) {
+                         otroBarrerasDiv.style.display = 'block';
+                    } else {
+                         otroBarrerasDiv.style.display = 'none';
+                    }
+                }
+            }
+            if (barrerasInput) {
+                barrerasInput.addEventListener('input', toggleOtroBarreras);
+                toggleOtroBarreras();
+            }
+        });
+    </script>
+}

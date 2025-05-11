@@ -1,0 +1,79 @@
+@model VN_Center.Models.Entities.Beneficiarios
+
+@{
+    ViewData["Title"] = "Eliminar Beneficiario";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Beneficiarios /</span> Eliminar Beneficiario
+    </h4>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0 text-danger">Confirmar Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">¿Estás seguro de que quieres eliminar al beneficiario "<strong>@Model.Nombres @Model.Apellidos</strong>"?</p>
+                    <p class="text-danger small">Esta acción no se puede deshacer.</p>
+                    <hr />
+                    <h6 class="mt-3 mb-2">Detalles del Beneficiario a Eliminar:</h6>
+                    <dl class="row">
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Nombres)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.Nombres)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Apellidos)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.Apellidos)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Comunidad.NombreComunidad)</dt>
+                        <dd class="col-sm-8">@(Model.Comunidad?.NombreComunidad ?? "N/A")</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.RangoEdad)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.RangoEdad)</dd>
+                    </dl>
+
+                    <form asp-action="Delete" method="post" id="deleteForm" class="mt-4">
+                        <input type="hidden" asp-for="BeneficiarioID" />
+                        <button type="button" id="btnConfirmDelete" class="btn btn-danger me-2">Sí, Eliminar Beneficiario</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteButton = document.getElementById('btnConfirmDelete');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', function (event) {
+                    event.preventDefault();
+
+                    Swal.fire({
+                        title: '¿Estás realmente seguro?',
+                        text: "¡No podrás revertir la eliminación de este beneficiario!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, ¡elimínalo!',
+                        cancelButtonText: 'No, cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('deleteForm').submit();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+}
