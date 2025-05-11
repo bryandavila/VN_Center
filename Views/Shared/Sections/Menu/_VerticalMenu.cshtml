@@ -66,6 +66,13 @@
             </a>
         </li>
 
+        <li class='menu-item@(currentPage.StartsWith("/SolicitudesInformacionGeneral") ? " active" : "")'>
+            <a asp-controller="SolicitudesInformacionGeneral" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-help-circle"></i> @* Icono para Solicitudes de Info *@
+                <div>Solicitudes de Información</div>
+            </a>
+        </li>
+
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Administración del Sistema</span>
         </li>

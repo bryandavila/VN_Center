@@ -1,0 +1,144 @@
+@model VN_Center.Models.Entities.SolicitudesInformacionGeneral
+
+@{
+    ViewData["Title"] = "Registrar Nueva Solicitud de Información";
+    var opcionesSiNo = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione..." },
+        new SelectListItem { Value = "true", Text = "Sí" },
+        new SelectListItem { Value = "false", Text = "No" }
+    };
+
+    // Puedes definir una lista de estados si son fijos, o dejarlo como input si es más flexible
+    var opcionesEstadoSolicitud = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Nueva", Text = "Nueva" },
+        new SelectListItem { Value = "En Proceso", Text = "En Proceso" },
+        new SelectListItem { Value = "Respondida", Text = "Respondida" },
+        new SelectListItem { Value = "Cerrada", Text = "Cerrada" }
+    };
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos / Solicitudes de Información /</span> Registrar Nueva
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Información de la Solicitud</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        @* FechaRecepcion se establece en el controlador, no es necesario un campo aquí si es automático *@
+                        @* <input type="hidden" asp-for="FechaRecepcion" /> *@
+
+                        <div class="mb-3">
+                            <label asp-for="NombreContacto" class="form-label"></label>
+                            <input asp-for="NombreContacto" class="form-control" placeholder="Nombre completo de la persona" />
+                            <span asp-validation-for="NombreContacto" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="EmailContacto" class="form-label"></label>
+                                <input asp-for="EmailContacto" type="email" class="form-control" placeholder="ejemplo@correo.com" />
+                                <span asp-validation-for="EmailContacto" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TelefonoContacto" class="form-label"></label>
+                                <input asp-for="TelefonoContacto" class="form-control" placeholder="Número de teléfono (opcional)" />
+                                <span asp-validation-for="TelefonoContacto" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PermiteContactoWhatsApp" class="form-label"></label>
+                            <select asp-for="PermiteContactoWhatsApp" class="form-select" asp-items="opcionesSiNo">
+                                <option value="">No especificado</option>
+                            </select>
+                            <span asp-validation-for="PermiteContactoWhatsApp" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ProgramaDeInteres" class="form-label"></label>
+                            <input asp-for="ProgramaDeInteres" class="form-control" placeholder="Ej: Voluntariado, Pasantía específica, etc." />
+                            <span asp-validation-for="ProgramaDeInteres" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3" id="divOtroPrograma" style="display: none;">
+                            @* Oculto por defecto *@
+                            <label asp-for="ProgramaDeInteresOtro" class="form-label"></label>
+                            <input asp-for="ProgramaDeInteresOtro" class="form-control" placeholder="Especifique el otro programa" />
+                            <span asp-validation-for="ProgramaDeInteresOtro" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PreguntasEspecificas" class="form-label"></label>
+                            <textarea asp-for="PreguntasEspecificas" class="form-control" rows="4" placeholder="Detalle aquí las preguntas o la información que solicita..."></textarea>
+                            <span asp-validation-for="PreguntasEspecificas" class="text-danger"></span>
+                        </div>
+                        <hr />
+                        <h6 class="mt-4 mb-3 text-primary">Gestión Interna (ONG)</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="EstadoSolicitudInfo" class="form-label"></label>
+                                <select asp-for="EstadoSolicitudInfo" class="form-select" asp-items="opcionesEstadoSolicitud"></select>
+                                <span asp-validation-for="EstadoSolicitudInfo" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="UsuarioAsignadoID" class="form-label"></label>
+                                <select asp-for="UsuarioAsignadoID" class="form-select" asp-items="ViewBag.UsuarioAsignadoID">
+                                    <option value="">Sin asignar</option>
+                                </select>
+                                <span asp-validation-for="UsuarioAsignadoID" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="NotasSeguimiento" class="form-label"></label>
+                            <textarea asp-for="NotasSeguimiento" class="form-control" rows="3" placeholder="Notas internas sobre el seguimiento de esta solicitud..."></textarea>
+                            <span asp-validation-for="NotasSeguimiento" class="text-danger"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Guardar Solicitud</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const programaInteresInput = document.getElementById('ProgramaDeInteres');
+            const otroProgramaDiv = document.getElementById('divOtroPrograma');
+
+            function toggleOtroPrograma() {
+                if (programaInteresInput && otroProgramaDiv) {
+                    if (programaInteresInput.value.trim().toLowerCase() === 'otro' || programaInteresInput.value.trim().toLowerCase() === 'other') {
+                        otroProgramaDiv.style.display = 'block';
+                    } else {
+                        otroProgramaDiv.style.display = 'none';
+                    }
+                }
+            }
+
+            if (programaInteresInput) {
+                programaInteresInput.addEventListener('input', toggleOtroPrograma);
+                toggleOtroPrograma(); // Initial check
+            }
+        });
+    </script>
+}

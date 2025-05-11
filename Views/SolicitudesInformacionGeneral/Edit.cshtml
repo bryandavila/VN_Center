@@ -1,0 +1,139 @@
+@model VN_Center.Models.Entities.SolicitudesInformacionGeneral
+
+@{
+    ViewData["Title"] = "Editar Solicitud de Información";
+    var opcionesSiNo = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione..." },
+        new SelectListItem { Value = "true", Text = "Sí" },
+        new SelectListItem { Value = "false", Text = "No" }
+    };
+    var opcionesEstadoSolicitud = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Nueva", Text = "Nueva" },
+        new SelectListItem { Value = "En Proceso", Text = "En Proceso" },
+        new SelectListItem { Value = "Respondida", Text = "Respondida" },
+        new SelectListItem { Value = "Cerrada", Text = "Cerrada" }
+    };
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Solicitudes de Información /</span> Editar Solicitud No. @Model.SolicitudInfoID
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Editando Solicitud de: @Model.NombreContacto</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <input type="hidden" asp-for="SolicitudInfoID" />
+                        <input type="hidden" asp-for="FechaRecepcion" /> @* Preservar fecha original *@
+
+                        <div class="mb-3">
+                            <label asp-for="NombreContacto" class="form-label"></label>
+                            <input asp-for="NombreContacto" class="form-control" />
+                            <span asp-validation-for="NombreContacto" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="EmailContacto" class="form-label"></label>
+                                <input asp-for="EmailContacto" type="email" class="form-control" />
+                                <span asp-validation-for="EmailContacto" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TelefonoContacto" class="form-label"></label>
+                                <input asp-for="TelefonoContacto" class="form-control" />
+                                <span asp-validation-for="TelefonoContacto" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PermiteContactoWhatsApp" class="form-label"></label>
+                            <select asp-for="PermiteContactoWhatsApp" class="form-select" asp-items="opcionesSiNo">
+                                <option value="">No especificado</option>
+                            </select>
+                            <span asp-validation-for="PermiteContactoWhatsApp" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ProgramaDeInteres" class="form-label"></label>
+                            <input asp-for="ProgramaDeInteres" class="form-control" />
+                            <span asp-validation-for="ProgramaDeInteres" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3" id="divOtroProgramaEdit" style="display: none;">
+                            <label asp-for="ProgramaDeInteresOtro" class="form-label"></label>
+                            <input asp-for="ProgramaDeInteresOtro" class="form-control" />
+                            <span asp-validation-for="ProgramaDeInteresOtro" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PreguntasEspecificas" class="form-label"></label>
+                            <textarea asp-for="PreguntasEspecificas" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="PreguntasEspecificas" class="text-danger"></span>
+                        </div>
+                        <hr />
+                        <h6 class="mt-4 mb-3 text-primary">Gestión Interna (ONG)</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="EstadoSolicitudInfo" class="form-label"></label>
+                                <select asp-for="EstadoSolicitudInfo" class="form-select" asp-items="opcionesEstadoSolicitud"></select>
+                                <span asp-validation-for="EstadoSolicitudInfo" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="UsuarioAsignadoID" class="form-label"></label>
+                                <select asp-for="UsuarioAsignadoID" class="form-select" asp-items="ViewBag.UsuarioAsignadoID">
+                                    <option value="">Sin asignar</option>
+                                </select>
+                                <span asp-validation-for="UsuarioAsignadoID" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="NotasSeguimiento" class="form-label"></label>
+                            <textarea asp-for="NotasSeguimiento" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="NotasSeguimiento" class="text-danger"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Guardar Cambios</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const programaInteresInputEdit = document.getElementById('ProgramaDeInteres');
+            const otroProgramaDivEdit = document.getElementById('divOtroProgramaEdit');
+
+            function toggleOtroProgramaEdit() {
+                if (programaInteresInputEdit && otroProgramaDivEdit) {
+                    if (programaInteresInputEdit.value.trim().toLowerCase() === 'otro' || programaInteresInputEdit.value.trim().toLowerCase() === 'other') {
+                        otroProgramaDivEdit.style.display = 'block';
+                    } else {
+                        otroProgramaDivEdit.style.display = 'none';
+                    }
+                }
+            }
+
+            if (programaInteresInputEdit) {
+                programaInteresInputEdit.addEventListener('input', toggleOtroProgramaEdit);
+                toggleOtroProgramaEdit(); // Initial check
+            }
+        });
+    </script>
+}

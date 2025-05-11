@@ -1,0 +1,83 @@
+@model VN_Center.Models.Entities.SolicitudesInformacionGeneral
+
+@{
+    ViewData["Title"] = "Detalles de Solicitud de Información";
+    Func<string?, string> DisplayString = s => string.IsNullOrWhiteSpace(s) ? "No especificado" : s;
+    Func<bool?, string> FormatBoolean = b => b.HasValue ? (b.Value ? "Sí" : "No") : "No especificado";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Solicitudes de Información /</span> Detalles Sol. No. @Model.SolicitudInfoID
+    </h4>
+
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Solicitud de: @Model.NombreContacto</h5>
+                    <div>
+                        <a asp-action="Edit" asp-route-id="@Model.SolicitudInfoID" class="btn btn-primary me-2"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bx bx-list-ul me-1"></i> Volver a la Lista</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.FechaRecepcion)</dt>
+                        <dd class="col-sm-8">@Model.FechaRecepcion.ToString("dd/MM/yyyy HH:mm:ss")</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.NombreContacto)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.NombreContacto)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.EmailContacto)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.EmailContacto)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.TelefonoContacto)</dt>
+                        <dd class="col-sm-8">@DisplayString(Model.TelefonoContacto)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.PermiteContactoWhatsApp)</dt>
+                        <dd class="col-sm-8">@FormatBoolean(Model.PermiteContactoWhatsApp)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.ProgramaDeInteres)</dt>
+                        <dd class="col-sm-8">@DisplayString(Model.ProgramaDeInteres)</dd>
+
+                        @if (!string.IsNullOrWhiteSpace(Model.ProgramaDeInteresOtro))
+                        {
+                            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.ProgramaDeInteresOtro)</dt>
+                            <dd class="col-sm-8">@Html.DisplayFor(model => model.ProgramaDeInteresOtro)</dd>
+                        }
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.PreguntasEspecificas)</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.PreguntasEspecificas) ? "Ninguna" : Html.Raw(Model.PreguntasEspecificas.Replace("\n", "<br />")))</dd>
+                    </dl>
+                    <hr />
+                    <h6 class="mt-3 mb-2 text-primary">Gestión Interna</h6>
+                    <dl class="row">
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.EstadoSolicitudInfo)</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.EstadoSolicitudInfo == "Respondida" || Model.EstadoSolicitudInfo == "Cerrada")
+                            {
+                                <span class="badge bg-label-success">@Model.EstadoSolicitudInfo</span>
+                            }
+                            else if (Model.EstadoSolicitudInfo == "En Proceso")
+                            {
+                                <span class="badge bg-label-info">@Model.EstadoSolicitudInfo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-label-warning">@Model.EstadoSolicitudInfo</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.UsuarioAsignado)</dt>
+                        <dd class="col-sm-8">@(Model.UsuarioAsignado?.NombreCompleto ?? "Sin asignar")</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.NotasSeguimiento)</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.NotasSeguimiento) ? "Sin notas" : Html.Raw(Model.NotasSeguimiento.Replace("\n", "<br />")))</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
