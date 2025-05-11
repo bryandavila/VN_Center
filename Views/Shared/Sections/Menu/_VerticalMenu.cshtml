@@ -103,6 +103,13 @@
                 <div>Permisos del Sistema</div>
             </a>
         </li>
+
+        <li class='menu-item@(currentPage.StartsWith("/NivelesIdioma") ? " active" : "")'>
+            <a asp-controller="NivelesIdioma" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-font-color"></i> @* Icono para Niveles de Idioma *@
+                <div>Niveles de Idioma</div>
+            </a>
+        </li>
         @* Aquí puedes añadir más enlaces para otras entidades (Beneficiarios, Solicitudes, etc.) cuando las generes *@
 
 
