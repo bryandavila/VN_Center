@@ -110,6 +110,13 @@
                 <div>Niveles de Idioma</div>
             </a>
         </li>
+
+        <li class='menu-item@(currentPage.StartsWith("/FuentesConocimiento") ? " active" : "")'>
+            <a asp-controller="FuentesConocimiento" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-bulb"></i> @* Icono para Fuentes de Conocimiento *@
+                <div>Fuentes de Conocimiento</div>
+            </a>
+        </li>
         @* Aquí puedes añadir más enlaces para otras entidades (Beneficiarios, Solicitudes, etc.) cuando las generes *@
 
 
