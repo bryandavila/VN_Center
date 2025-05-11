@@ -89,6 +89,13 @@
                 <div>Roles del Sistema</div>
             </a>
         </li>
+
+        <li class='menu-item@(currentPage.StartsWith("/Permisos") ? " active" : "")'>
+            <a asp-controller="Permisos" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-key"></i> @* Icono para Permisos *@
+                <div>Permisos del Sistema</div>
+            </a>
+        </li>
         @* Aquí puedes añadir más enlaces para otras entidades (Beneficiarios, Solicitudes, etc.) cuando las generes *@
 
 
