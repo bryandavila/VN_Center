@@ -16,6 +16,13 @@ namespace VN_Center.Models.Entities
     [StringLength(100)]
     public string NombreUsuario { get; set; } = null!;
 
+    [NotMapped] // Para que EF Core no intente mapearla a la BD
+    [Display(Name = "Nombre Completo")]
+    public string NombreCompleto
+    {
+      get { return $"{Nombres} {Apellidos}"; }
+    }
+
     [Required]
     [StringLength(255)] // Ajusta la longitud según cómo almacenes el hash
     public string HashContrasena { get; set; } = null!;

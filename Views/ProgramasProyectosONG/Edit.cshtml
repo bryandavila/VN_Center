@@ -1,0 +1,109 @@
+@model VN_Center.Models.Entities.ProgramasProyectosONG
+
+@{
+    ViewData["Title"] = "Editar Programa o Proyecto";
+    // Opciones para el estado del programa/proyecto (ejemplo)
+    var estadosPrograma = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione un estado..." },
+        new SelectListItem { Value = "Planificación", Text = "Planificación" },
+        new SelectListItem { Value = "En Curso", Text = "En Curso" },
+        new SelectListItem { Value = "Completado", Text = "Completado" },
+        new SelectListItem { Value = "Suspendido", Text = "Suspendido" },
+        new SelectListItem { Value = "Cancelado", Text = "Cancelado" }
+    };
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Programas y Proyectos /</span> Editar
+    </h4>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Editando: @Model.NombreProgramaProyecto</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <input type="hidden" asp-for="ProgramaProyectoID" />
+
+                        <div class="mb-3">
+                            <label asp-for="NombreProgramaProyecto" class="form-label"></label>
+                            <input asp-for="NombreProgramaProyecto" class="form-control" />
+                            <span asp-validation-for="NombreProgramaProyecto" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Descripcion" class="form-label"></label>
+                            <textarea asp-for="Descripcion" class="form-control" rows="5"></textarea>
+                            <span asp-validation-for="Descripcion" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TipoIniciativa" class="form-label"></label>
+                                <input asp-for="TipoIniciativa" class="form-control" />
+                                <span asp-validation-for="TipoIniciativa" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="EstadoProgramaProyecto" class="form-label"></label>
+                                <select asp-for="EstadoProgramaProyecto" class="form-select" asp-items="estadosPrograma">
+                                </select>
+                                <span asp-validation-for="EstadoProgramaProyecto" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaInicioEstimada" class="form-label"></label>
+                                <input asp-for="FechaInicioEstimada" class="form-control" type="date" />
+                                <span asp-validation-for="FechaInicioEstimada" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaFinEstimada" class="form-label"></label>
+                                <input asp-for="FechaFinEstimada" class="form-control" type="date" />
+                                <span asp-validation-for="FechaFinEstimada" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaInicioReal" class="form-label"></label>
+                                <input asp-for="FechaInicioReal" class="form-control" type="date" />
+                                <span asp-validation-for="FechaInicioReal" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaFinReal" class="form-label"></label>
+                                <input asp-for="FechaFinReal" class="form-control" type="date" />
+                                <span asp-validation-for="FechaFinReal" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ResponsablePrincipalONGUsuarioID" class="form-label"></label>
+                            <select asp-for="ResponsablePrincipalONGUsuarioID" class="form-select" asp-items="ViewBag.ResponsablePrincipalONGUsuarioID">
+                                <option value="">Seleccione un responsable...</option>
+                            </select>
+                            <span asp-validation-for="ResponsablePrincipalONGUsuarioID" class="text-danger"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Guardar Cambios</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

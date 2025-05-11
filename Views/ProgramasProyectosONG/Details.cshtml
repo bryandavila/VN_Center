@@ -1,0 +1,77 @@
+@model VN_Center.Models.Entities.ProgramasProyectosONG
+
+@{
+    ViewData["Title"] = "Detalles del Programa o Proyecto";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Programas y Proyectos /</span> Detalles
+    </h4>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">@Model.NombreProgramaProyecto</h5>
+                    <div>
+                        <a asp-action="Edit" asp-route-id="@Model.ProgramaProyectoID" class="btn btn-primary me-2"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bx bx-list-ul me-1"></i> Volver a la Lista</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3 text-md-end">@Html.DisplayNameFor(model => model.NombreProgramaProyecto)</dt>
+                        <dd class="col-sm-9">@Html.DisplayFor(model => model.NombreProgramaProyecto)</dd>
+
+                        <dt class="col-sm-3 text-md-end">@Html.DisplayNameFor(model => model.Descripcion)</dt>
+                        <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.Descripcion) ? "No especificada" : Html.Raw(Model.Descripcion.Replace("\n", "<br />")))</dd>
+
+                        <dt class="col-sm-3 text-md-end">@Html.DisplayNameFor(model => model.TipoIniciativa)</dt>
+                        <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.TipoIniciativa) ? "No especificado" : Model.TipoIniciativa)</dd>
+
+                        <dt class="col-sm-3 text-md-end">@Html.DisplayNameFor(model => model.EstadoProgramaProyecto)</dt>
+                        <dd class="col-sm-9">
+                            @if (Model.EstadoProgramaProyecto == "Completado")
+                            {
+                                <span class="badge bg-label-success">@Model.EstadoProgramaProyecto</span>
+                            }
+                            else if (Model.EstadoProgramaProyecto == "Cancelado" || Model.EstadoProgramaProyecto == "Suspendido")
+                            {
+                                <span class="badge bg-label-danger">@Model.EstadoProgramaProyecto</span>
+                            }
+                            else if (Model.EstadoProgramaProyecto == "En Curso")
+                            {
+                                <span class="badge bg-label-info">@Model.EstadoProgramaProyecto</span>
+                            }
+                            else if (Model.EstadoProgramaProyecto == "Planificación")
+                            {
+                                <span class="badge bg-label-warning">@Model.EstadoProgramaProyecto</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-label-secondary">@(string.IsNullOrEmpty(Model.EstadoProgramaProyecto) ? "No especificado" : Model.EstadoProgramaProyecto)</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3 text-md-end">@Html.DisplayNameFor(model => model.FechaInicioEstimada)</dt>
+                        <dd class="col-sm-9">@(Model.FechaInicioEstimada.HasValue ? Model.FechaInicioEstimada.Value.ToString("dd/MM/yyyy") : "No especificada")</dd>
+
+                        <dt class="col-sm-3 text-md-end">@Html.DisplayNameFor(model => model.FechaFinEstimada)</dt>
+                        <dd class="col-sm-9">@(Model.FechaFinEstimada.HasValue ? Model.FechaFinEstimada.Value.ToString("dd/MM/yyyy") : "No especificada")</dd>
+
+                        <dt class="col-sm-3 text-md-end">@Html.DisplayNameFor(model => model.FechaInicioReal)</dt>
+                        <dd class="col-sm-9">@(Model.FechaInicioReal.HasValue ? Model.FechaInicioReal.Value.ToString("dd/MM/yyyy") : "No especificada")</dd>
+
+                        <dt class="col-sm-3 text-md-end">@Html.DisplayNameFor(model => model.FechaFinReal)</dt>
+                        <dd class="col-sm-9">@(Model.FechaFinReal.HasValue ? Model.FechaFinReal.Value.ToString("dd/MM/yyyy") : "No especificada")</dd>
+
+                        <dt class="col-sm-3 text-md-end">@Html.DisplayNameFor(model => model.ResponsablePrincipalONG)</dt>
+                        <dd class="col-sm-9">@(Model.ResponsablePrincipalONG?.NombreCompleto ?? "No asignado")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
