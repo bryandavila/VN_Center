@@ -104,6 +104,9 @@
             </a>
         </li>
 
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Catálogos</span>
+        </li>
         <li class='menu-item@(currentPage.StartsWith("/NivelesIdioma") ? " active" : "")'>
             <a asp-controller="NivelesIdioma" asp-action="Index" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-font-color"></i> @* Icono para Niveles de Idioma *@
@@ -115,6 +118,13 @@
             <a asp-controller="FuentesConocimiento" asp-action="Index" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-bulb"></i> @* Icono para Fuentes de Conocimiento *@
                 <div>Fuentes de Conocimiento</div>
+            </a>
+        </li>
+
+        <li class='menu-item@(currentPage.StartsWith("/TiposAsistencia") ? " active" : "")'>
+            <a asp-controller="TiposAsistencia" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-heart-circle"></i> @* Icono para Tipos de Asistencia *@
+                <div>Tipos de Asistencia</div>
             </a>
         </li>
         @* Aquí puedes añadir más enlaces para otras entidades (Beneficiarios, Solicitudes, etc.) cuando las generes *@

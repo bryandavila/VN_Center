@@ -11,8 +11,9 @@ namespace VN_Center.Models.Entities
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int TipoAsistenciaID { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "El nombre del tipo de asistencia es obligatorio.")]
     [StringLength(100)]
+    [Display(Name = "Nombre del Tipo de Asistencia")]
     public string NombreAsistencia { get; set; } = null!;
 
     // Propiedad de navegación para la tabla de cruce BeneficiarioAsistenciaRecibida
