@@ -1,0 +1,227 @@
+@model VN_Center.Models.Entities.EvaluacionesPrograma
+
+@{
+    ViewData["Title"] = "Registrar Nueva Evaluación de Programa";
+    // Opciones para dropdowns (ejemplos)
+    var opcionesEscala1a5 = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione (1-5)..." },
+        new SelectListItem { Value = "1", Text = "1 (Muy Bajo/Totalmente en Desacuerdo)" },
+        new SelectListItem { Value = "2", Text = "2" },
+        new SelectListItem { Value = "3", Text = "3 (Neutral/De Acuerdo)" },
+        new SelectListItem { Value = "4", Text = "4" },
+        new SelectListItem { Value = "5", Text = "5 (Muy Alto/Totalmente de Acuerdo)" }
+    };
+    var opcionesSiNoTalVez = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione..." },
+        new SelectListItem { Value = "Sí", Text = "Sí" },
+        new SelectListItem { Value = "No", Text = "No" },
+        new SelectListItem { Value = "Tal vez", Text = "Tal vez" }
+    };
+    var opcionesSiNo = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione..." },
+        new SelectListItem { Value = "true", Text = "Sí" },
+        new SelectListItem { Value = "false", Text = "No" }
+    };
+    var opcionesEsfuerzo = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione esfuerzo..." },
+        new SelectListItem { Value = "Excellent effort", Text = "Excelente Esfuerzo" },
+        new SelectListItem { Value = "Some effort", Text = "Algo de Esfuerzo" },
+        new SelectListItem { Value = "I could have done more", Text = "Pude Haber Hecho Más" },
+        new SelectListItem { Value = "I didn't try", Text = "No Intenté" }
+    };
+    var opcionesAcuerdoDesacuerdo = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione..." },
+        new SelectListItem { Value = "Agree", Text = "De Acuerdo" },
+        new SelectListItem { Value = "Disagree", Text = "En Desacuerdo" }
+    };
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos / Evaluaciones de Programa /</span> Registrar Nueva Evaluación
+    </h4>
+
+    <form asp-action="Create" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Por favor, corrija los siguientes errores:</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        @* FechaEvaluacion se establece en el controlador, no es necesario un campo aquí si es automático *@
+        @* <input type="hidden" asp-for="FechaEvaluacion" /> *@
+
+
+        <div class="accordion mt-3" id="accordionEvaluacion">
+
+            <div class="card accordion-item active">
+                <h2 class="accordion-header" id="headingGeneralEval">
+                    <button type="button" class="accordion-button" data-bs-toggle="collapse" data-bs-target="#collapseGeneralEval" aria-expanded="true" aria-controls="collapseGeneralEval">
+                        Información General y Participación
+                    </button>
+                </h2>
+                <div id="collapseGeneralEval" class="accordion-collapse collapse show" aria-labelledby="headingGeneralEval" data-bs-parent="#accordionEvaluacion">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <label asp-for="ParticipacionID" class="form-label"></label>
+                            <select asp-for="ParticipacionID" class="form-select" asp-items="ViewBag.ParticipacionID">
+                                <option value="">Seleccione la participación a evaluar...</option>
+                            </select>
+                            <span asp-validation-for="ParticipacionID" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="NombreProgramaUniversidadEvaluador" class="form-label"></label>
+                            <input asp-for="NombreProgramaUniversidadEvaluador" class="form-control" placeholder="Nombre del programa o universidad del evaluador" />
+                            <span asp-validation-for="NombreProgramaUniversidadEvaluador" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card accordion-item">
+                <h2 class="accordion-header" id="headingSobrePrograma">
+                    <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseSobrePrograma" aria-expanded="false" aria-controls="collapseSobrePrograma">
+                        Sobre el Programa
+                    </button>
+                </h2>
+                <div id="collapseSobrePrograma" class="accordion-collapse collapse" aria-labelledby="headingSobrePrograma" data-bs-parent="#accordionEvaluacion">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <label asp-for="ParteMasGratificante" class="form-label"></label>
+                            <textarea asp-for="ParteMasGratificante" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="ParteMasGratificante" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="ParteMasDificil" class="form-label"></label>
+                            <textarea asp-for="ParteMasDificil" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="ParteMasDificil" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="RazonesOriginalesParticipacion" class="form-label"></label>
+                            <textarea asp-for="RazonesOriginalesParticipacion" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="RazonesOriginalesParticipacion" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="ExpectativasOriginalesCumplidas" class="form-label"></label>
+                            <input asp-for="ExpectativasOriginalesCumplidas" class="form-control" placeholder="Ej: Sí, No, Parcialmente" /> @* O usar un dropdown *@
+                            <span asp-validation-for="ExpectativasOriginalesCumplidas" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="InformacionPreviaUtil" class="form-label"></label>
+                            <select asp-for="InformacionPreviaUtil" class="form-select" asp-items="opcionesEscala1a5"></select>
+                            <span asp-validation-for="InformacionPreviaUtil" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card accordion-item">
+                <h2 class="accordion-header" id="headingExperienciaCultural">
+                    <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseExperienciaCultural" aria-expanded="false" aria-controls="collapseExperienciaCultural">
+                        Experiencia Cultural y Actividades
+                    </button>
+                </h2>
+                <div id="collapseExperienciaCultural" class="accordion-collapse collapse" aria-labelledby="headingExperienciaCultural" data-bs-parent="#accordionEvaluacion">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <label asp-for="EsfuerzoIntegracionComunidades" class="form-label"></label>
+                            <select asp-for="EsfuerzoIntegracionComunidades" class="form-select" asp-items="opcionesEsfuerzo"></select>
+                            <span asp-validation-for="EsfuerzoIntegracionComunidades" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="ComentariosAlojamientoHotel" class="form-label"></label>
+                            <textarea asp-for="ComentariosAlojamientoHotel" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="ComentariosAlojamientoHotel" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="ProgramaInmersionCulturalAyudoHumildad" class="form-label"></label>
+                            <select asp-for="ProgramaInmersionCulturalAyudoHumildad" class="form-select" asp-items="opcionesEscala1a5"></select>
+                            <span asp-validation-for="ProgramaInmersionCulturalAyudoHumildad" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="ActividadesRecreativasCulturalesInteresantes" class="form-label"></label>
+                            <select asp-for="ActividadesRecreativasCulturalesInteresantes" class="form-select" asp-items="opcionesAcuerdoDesacuerdo"></select>
+                            <span asp-validation-for="ActividadesRecreativasCulturalesInteresantes" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="VisitaSitioComunidadFavoritaYPorQue" class="form-label"></label>
+                            <textarea asp-for="VisitaSitioComunidadFavoritaYPorQue" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="VisitaSitioComunidadFavoritaYPorQue" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card accordion-item">
+                <h2 class="accordion-header" id="headingAprendizaje">
+                    <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseAprendizaje" aria-expanded="false" aria-controls="collapseAprendizaje">
+                        Aprendizaje y Recomendaciones
+                    </button>
+                </h2>
+                <div id="collapseAprendizaje" class="accordion-collapse collapse" aria-labelledby="headingAprendizaje" data-bs-parent="#accordionEvaluacion">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <label asp-for="AspectoMasValiosoExperiencia" class="form-label"></label>
+                            <textarea asp-for="AspectoMasValiosoExperiencia" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="AspectoMasValiosoExperiencia" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="AplicaraLoAprendidoFuturo" class="form-label"></label>
+                            <select asp-for="AplicaraLoAprendidoFuturo" class="form-select" asp-items="opcionesEscala1a5"></select>
+                            <span asp-validation-for="AplicaraLoAprendidoFuturo" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="TresCosasAprendidasSobreSiMismo" class="form-label"></label>
+                            <textarea asp-for="TresCosasAprendidasSobreSiMismo" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="TresCosasAprendidasSobreSiMismo" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="ComoCompartiraAprendidoUniversidad" class="form-label"></label>
+                            <textarea asp-for="ComoCompartiraAprendidoUniversidad" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="ComoCompartiraAprendidoUniversidad" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="RecomendariaProgramaOtros" class="form-label"></label>
+                            <select asp-for="RecomendariaProgramaOtros" class="form-select" asp-items="opcionesSiNoTalVez"></select>
+                            <span asp-validation-for="RecomendariaProgramaOtros" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="QueDiraOtrosSobrePrograma" class="form-label"></label>
+                            <textarea asp-for="QueDiraOtrosSobrePrograma" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="QueDiraOtrosSobrePrograma" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="PermiteSerUsadoComoReferencia" class="form-label"></label>
+                            <select asp-for="PermiteSerUsadoComoReferencia" class="form-select" asp-items="opcionesSiNo">
+                                <option value="">Seleccione...</option>
+                            </select>
+                            <span asp-validation-for="PermiteSerUsadoComoReferencia" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="ComentariosAdicionalesEvaluacion" class="form-label"></label>
+                            <textarea asp-for="ComentariosAdicionalesEvaluacion" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="ComentariosAdicionalesEvaluacion" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div> <div class="card mt-4">
+            <div class="card-body text-center">
+                <button type="submit" class="btn btn-primary btn-lg me-2">Guardar Evaluación</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

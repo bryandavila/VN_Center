@@ -1,0 +1,76 @@
+@model VN_Center.Models.Entities.EvaluacionesPrograma
+
+@{
+    ViewData["Title"] = "Eliminar Evaluación de Programa";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Evaluaciones de Programa /</span> Eliminar
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0 text-danger">Confirmar Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">¿Estás seguro de que quieres eliminar la evaluación para la participación de "<strong>@(Model.ParticipacionActiva?.Solicitud?.Nombres) @(Model.ParticipacionActiva?.Solicitud?.Apellidos)</strong>" en el programa "<strong>@(Model.ParticipacionActiva?.ProgramaProyecto?.NombreProgramaProyecto)</strong>"?</p>
+                    <p class="text-danger small">Esta acción no se puede deshacer.</p>
+                    <hr />
+                    <h6 class="mt-3 mb-2">Detalles de la Evaluación a Eliminar:</h6>
+                    <dl class="row">
+                        <dt class="col-sm-4">Participante</dt>
+                        <dd class="col-sm-8">@(Model.ParticipacionActiva?.Solicitud?.Nombres) @(Model.ParticipacionActiva?.Solicitud?.Apellidos)</dd>
+
+                        <dt class="col-sm-4">Programa/Proyecto</dt>
+                        <dd class="col-sm-8">@(Model.ParticipacionActiva?.ProgramaProyecto?.NombreProgramaProyecto)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.FechaEvaluacion)</dt>
+                        <dd class="col-sm-8">@Model.FechaEvaluacion.ToString("dd/MM/yyyy")</dd>
+                    </dl>
+
+                    <form asp-action="Delete" method="post" id="deleteForm" class="mt-4">
+                        <input type="hidden" asp-for="EvaluacionID" />
+                        <button type="button" id="btnConfirmDelete" class="btn btn-danger me-2">Sí, Eliminar Evaluación</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteButton = document.getElementById('btnConfirmDelete');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', function (event) {
+                    event.preventDefault();
+
+                    Swal.fire({
+                        title: '¿Estás realmente seguro?',
+                        html: "¡No podrás revertir la eliminación de esta evaluación!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, ¡elimínala!',
+                        cancelButtonText: 'No, cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('deleteForm').submit();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+}

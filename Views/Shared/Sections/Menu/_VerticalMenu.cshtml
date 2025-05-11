@@ -87,6 +87,13 @@
             </a>
         </li>
 
+        <li class='menu-item@(currentPage.StartsWith("/EvaluacionesPrograma") ? " active" : "")'>
+            <a asp-controller="EvaluacionesPrograma" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-comment-detail"></i> @* Icono para Evaluaciones *@
+                <div>Evaluaciones de Programa</div>
+            </a>
+        </li>
+
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Administración del Sistema</span>
         </li>

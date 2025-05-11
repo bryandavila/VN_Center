@@ -1,0 +1,142 @@
+@model VN_Center.Models.Entities.EvaluacionesPrograma
+
+@{
+    ViewData["Title"] = "Detalles de la Evaluación";
+    Func<string?, string> DisplayString = s => string.IsNullOrWhiteSpace(s) ? "No especificado" : s;
+    Func<int?, string> DisplayInt = i => i.HasValue ? i.Value.ToString() : "No especificado";
+    Func<bool?, string> FormatBoolean = b => b.HasValue ? (b.Value ? "Sí" : "No") : "No especificado";
+
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Evaluaciones de Programa /</span> Detalles Evaluación ID: @Model.EvaluacionID
+    </h4>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                Evaluación de: @(Model.ParticipacionActiva?.Solicitud?.Nombres) @(Model.ParticipacionActiva?.Solicitud?.Apellidos) <br />
+                <small class="text-muted">Programa: @(Model.ParticipacionActiva?.ProgramaProyecto?.NombreProgramaProyecto ?? "N/A")</small>
+            </h5>
+            <div>
+                <a asp-action="Edit" asp-route-id="@Model.EvaluacionID" class="btn btn-primary me-2"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bx bx-list-ul me-1"></i> Volver a la Lista</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <p><strong>Fecha de Evaluación:</strong> @Model.FechaEvaluacion.ToString("dd/MM/yyyy HH:mm")</p>
+            <p><strong>Nombre Programa/Universidad Evaluador:</strong> @DisplayString(Model.NombreProgramaUniversidadEvaluador)</p>
+            <hr />
+            <div class="accordion mt-1" id="accordionEvaluacionDetails">
+
+                <div class="card accordion-item active">
+                    <h2 class="accordion-header" id="headingDetallesSobrePrograma">
+                        <button type="button" class="accordion-button" data-bs-toggle="collapse" data-bs-target="#collapseDetallesSobrePrograma" aria-expanded="true" aria-controls="collapseDetallesSobrePrograma">
+                            Sobre el Programa
+                        </button>
+                    </h2>
+                    <div id="collapseDetallesSobrePrograma" class="accordion-collapse collapse show" aria-labelledby="headingDetallesSobrePrograma" data-bs-parent="#accordionEvaluacionDetails">
+                        <div class="accordion-body">
+                            <dl class="row">
+                                <dt class="col-sm-12">@Html.DisplayNameFor(model => model.ParteMasGratificante)</dt>
+                                <dd class="col-sm-12">@Html.Raw(DisplayString(Model.ParteMasGratificante).Replace("\n", "<br />"))</dd>
+
+                                <dt class="col-sm-12 mt-3">@Html.DisplayNameFor(model => model.ParteMasDificil)</dt>
+                                <dd class="col-sm-12">@Html.Raw(DisplayString(Model.ParteMasDificil).Replace("\n", "<br />"))</dd>
+
+                                <dt class="col-sm-12 mt-3">@Html.DisplayNameFor(model => model.RazonesOriginalesParticipacion)</dt>
+                                <dd class="col-sm-12">@Html.Raw(DisplayString(Model.RazonesOriginalesParticipacion).Replace("\n", "<br />"))</dd>
+
+                                <dt class="col-sm-4 mt-3">@Html.DisplayNameFor(model => model.ExpectativasOriginalesCumplidas)</dt>
+                                <dd class="col-sm-8 mt-3">@DisplayString(Model.ExpectativasOriginalesCumplidas)</dd>
+
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.InformacionPreviaUtil)</dt>
+                                <dd class="col-sm-8">@DisplayInt(Model.InformacionPreviaUtil) / 5</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card accordion-item">
+                    <h2 class="accordion-header" id="headingDetallesExperienciaCultural">
+                        <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseDetallesExperienciaCultural" aria-expanded="false" aria-controls="collapseDetallesExperienciaCultural">
+                            Experiencia Cultural y Actividades
+                        </button>
+                    </h2>
+                    <div id="collapseDetallesExperienciaCultural" class="accordion-collapse collapse" aria-labelledby="headingDetallesExperienciaCultural" data-bs-parent="#accordionEvaluacionDetails">
+                        <div class="accordion-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.EsfuerzoIntegracionComunidades)</dt>
+                                <dd class="col-sm-8">@DisplayString(Model.EsfuerzoIntegracionComunidades)</dd>
+
+                                <dt class="col-sm-12 mt-3">@Html.DisplayNameFor(model => model.ComentariosAlojamientoHotel)</dt>
+                                <dd class="col-sm-12">@Html.Raw(DisplayString(Model.ComentariosAlojamientoHotel).Replace("\n", "<br />"))</dd>
+
+                                <dt class="col-sm-4 mt-3">@Html.DisplayNameFor(model => model.ProgramaInmersionCulturalAyudoHumildad)</dt>
+                                <dd class="col-sm-8 mt-3">@DisplayInt(Model.ProgramaInmersionCulturalAyudoHumildad) / 5</dd>
+
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.ActividadesRecreativasCulturalesInteresantes)</dt>
+                                <dd class="col-sm-8">@DisplayString(Model.ActividadesRecreativasCulturalesInteresantes)</dd>
+
+                                <dt class="col-sm-12 mt-3">@Html.DisplayNameFor(model => model.VisitaSitioComunidadFavoritaYPorQue)</dt>
+                                <dd class="col-sm-12">@Html.Raw(DisplayString(Model.VisitaSitioComunidadFavoritaYPorQue).Replace("\n", "<br />"))</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card accordion-item">
+                    <h2 class="accordion-header" id="headingDetallesAprendizaje">
+                        <button type="button" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collapseDetallesAprendizaje" aria-expanded="false" aria-controls="collapseDetallesAprendizaje">
+                            Aprendizaje y Recomendaciones
+                        </button>
+                    </h2>
+                    <div id="collapseDetallesAprendizaje" class="accordion-collapse collapse" aria-labelledby="headingDetallesAprendizaje" data-bs-parent="#accordionEvaluacionDetails">
+                        <div class="accordion-body">
+                            <dl class="row">
+                                <dt class="col-sm-12">@Html.DisplayNameFor(model => model.AspectoMasValiosoExperiencia)</dt>
+                                <dd class="col-sm-12">@Html.Raw(DisplayString(Model.AspectoMasValiosoExperiencia).Replace("\n", "<br />"))</dd>
+
+                                <dt class="col-sm-4 mt-3">@Html.DisplayNameFor(model => model.AplicaraLoAprendidoFuturo)</dt>
+                                <dd class="col-sm-8 mt-3">@DisplayInt(Model.AplicaraLoAprendidoFuturo) / 5</dd>
+
+                                <dt class="col-sm-12 mt-3">@Html.DisplayNameFor(model => model.TresCosasAprendidasSobreSiMismo)</dt>
+                                <dd class="col-sm-12">@Html.Raw(DisplayString(Model.TresCosasAprendidasSobreSiMismo).Replace("\n", "<br />"))</dd>
+
+                                <dt class="col-sm-12 mt-3">@Html.DisplayNameFor(model => model.ComoCompartiraAprendidoUniversidad)</dt>
+                                <dd class="col-sm-12">@Html.Raw(DisplayString(Model.ComoCompartiraAprendidoUniversidad).Replace("\n", "<br />"))</dd>
+
+                                <dt class="col-sm-4 mt-3">@Html.DisplayNameFor(model => model.RecomendariaProgramaOtros)</dt>
+                                <dd class="col-sm-8 mt-3">@DisplayString(Model.RecomendariaProgramaOtros)</dd>
+
+                                <dt class="col-sm-12 mt-3">@Html.DisplayNameFor(model => model.QueDiraOtrosSobrePrograma)</dt>
+                                <dd class="col-sm-12">@Html.Raw(DisplayString(Model.QueDiraOtrosSobrePrograma).Replace("\n", "<br />"))</dd>
+
+                                <dt class="col-sm-4 mt-3">@Html.DisplayNameFor(model => model.PermiteSerUsadoComoReferencia)</dt>
+                                <dd class="col-sm-8 mt-3">@FormatBoolean(Model.PermiteSerUsadoComoReferencia)</dd>
+
+                                <dt class="col-sm-12 mt-3">@Html.DisplayNameFor(model => model.ComentariosAdicionalesEvaluacion)</dt>
+                                <dd class="col-sm-12">@Html.Raw(DisplayString(Model.ComentariosAdicionalesEvaluacion).Replace("\n", "<br />"))</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div> @* Fin Card Body *@
+    </div> @* Fin Card *@
+</div>
+
+@section Scripts {
+    <script>
+        // Opcional: Script para abrir todas las secciones del acordeón por defecto en la página de detalles
+        document.addEventListener('DOMContentLoaded', function () {
+            var accordionItems = document.querySelectorAll('#accordionEvaluacionDetails .accordion-collapse');
+            accordionItems.forEach(function (item) {
+                // new bootstrap.Collapse(item, { toggle: false }).show(); // Descomentar si quieres que todas estén abiertas
+            });
+        });
+    </script>
+}
