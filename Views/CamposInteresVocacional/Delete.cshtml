@@ -1,0 +1,72 @@
+@model VN_Center.Models.Entities.CamposInteresVocacional
+
+@{
+    ViewData["Title"] = "Eliminar Campo de Interés";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Administración / Campos de Interés /</span> Eliminar
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0 text-danger">Confirmar Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">¿Estás seguro de que quieres eliminar el campo de interés "<strong>@Model.NombreCampo</strong>"?</p>
+                    <p class="text-warning small">Advertencia: Eliminar este campo puede afectar a las solicitudes que lo tengan asignado.</p>
+                    <hr />
+                    <dl class="row">
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.NombreCampo)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.NombreCampo)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.DescripcionCampo)</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.DescripcionCampo) ? "Sin descripción" : Model.DescripcionCampo)</dd>
+                    </dl>
+
+                    <form asp-action="Delete" method="post" id="deleteForm" class="mt-4">
+                        <input type="hidden" asp-for="CampoInteresID" />
+                        <button type="button" id="btnConfirmDelete" class="btn btn-danger me-2">Sí, Eliminar Campo</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteButton = document.getElementById('btnConfirmDelete');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', function (event) {
+                    event.preventDefault();
+
+                    Swal.fire({
+                        title: '¿Estás realmente seguro?',
+                        html: "¡No podrás revertir la eliminación de este campo de interés!<br><strong class='text-warning'>Verifica que no esté en uso en solicitudes importantes.</strong>",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, ¡elimínalo!',
+                        cancelButtonText: 'No, cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('deleteForm').submit();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+}

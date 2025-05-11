@@ -1,0 +1,50 @@
+@model VN_Center.Models.Entities.CamposInteresVocacional
+
+@{
+    ViewData["Title"] = "Crear Nuevo Campo de Interés";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Administración / Campos de Interés /</span> Crear Nuevo Campo
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Información del Campo de Interés</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="NombreCampo" class="form-label"></label>
+                            <input asp-for="NombreCampo" class="form-control" placeholder="Ej: Trabajo con Niños, Conservación Ambiental" />
+                            <span asp-validation-for="NombreCampo" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DescripcionCampo" class="form-label"></label>
+                            <textarea asp-for="DescripcionCampo" class="form-control" rows="3" placeholder="Breve descripción del campo de interés (opcional)"></textarea>
+                            <span asp-validation-for="DescripcionCampo" class="text-danger"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Crear Campo</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

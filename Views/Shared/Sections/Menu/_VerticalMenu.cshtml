@@ -127,6 +127,13 @@
                 <div>Tipos de Asistencia</div>
             </a>
         </li>
+
+        <li class='menu-item@(currentPage.StartsWith("/CamposInteresVocacional") ? " active" : "")'>
+            <a asp-controller="CamposInteresVocacional" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-purchase-tag-alt"></i> @* Icono para Campos de Interés *@
+                <div>Campos de Interés</div>
+            </a>
+        </li>
         @* Aquí puedes añadir más enlaces para otras entidades (Beneficiarios, Solicitudes, etc.) cuando las generes *@
 
 
