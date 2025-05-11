@@ -82,6 +82,13 @@
                 <div>Usuarios del Sistema</div>
             </a>
         </li>
+
+        <li class='menu-item@(currentPage.StartsWith("/RolesSistema") ? " active" : "")'>
+            <a asp-controller="RolesSistema" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-shield-quarter"></i> @* Icono para Roles *@
+                <div>Roles del Sistema</div>
+            </a>
+        </li>
         @* Aquí puedes añadir más enlaces para otras entidades (Beneficiarios, Solicitudes, etc.) cuando las generes *@
 
 
