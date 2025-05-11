@@ -118,6 +118,13 @@
             </a>
         </li>
 
+        <li class='menu-item@(currentPage.StartsWith("/RolPermisos") ? " active" : "")'>
+            <a asp-controller="RolPermisos" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-shield-plus"></i> @* Icono para Asignación de Permisos *@
+                <div>Asignar Permisos a Roles</div>
+            </a>
+        </li>
+
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Catálogos</span>
         </li>

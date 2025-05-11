@@ -1,0 +1,89 @@
+@model IEnumerable<VN_Center.Models.Entities.RolPermisos>
+
+@{
+    ViewData["Title"] = "Permisos Asignados a Roles";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Administración /</span> Permisos Asignados a Roles
+    </h4>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Asignaciones Registradas</h5>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i> Asignar Nuevo Permiso a Rol
+            </a>
+        </div>
+        <div class="table-responsive text-nowrap">
+            @if (Model.Any())
+            {
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>
+                                @Html.DisplayNameFor(model => model.First().RolesSistema.NombreRol)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.First().Permisos.NombrePermiso)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.First().Permisos.DescripcionPermiso)
+                            </th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@Html.DisplayFor(modelItem => item.RolesSistema.NombreRol)</strong>
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Permisos.NombrePermiso)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Permisos.DescripcionPermiso)
+                                </td>
+                                <td class="text-center">
+                                    @* Edit no está implementado por defecto para PK compuestas de esta forma simple.
+                                       La acción principal aquí es Delete. Details también es útil. *@
+                                    <a class="btn btn-sm btn-outline-info me-1" asp-action="Details" asp-route-rolId="@item.RolUsuarioID" asp-route-permisoId="@item.PermisoID" title="Detalles">
+                                        <i class="bx bx-detail"></i>
+                                    </a>
+                                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-rolId="@item.RolUsuarioID" asp-route-permisoId="@item.PermisoID" title="Eliminar Asignación">
+                                        <i class="bx bx-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="card-body">
+                    <p class="text-center">No hay permisos asignados a roles todavía. <a asp-action="Create">Asigna el primero</a>.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

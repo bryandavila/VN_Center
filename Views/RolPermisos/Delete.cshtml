@@ -1,0 +1,73 @@
+@model VN_Center.Models.Entities.RolPermisos
+
+@{
+    ViewData["Title"] = "Eliminar Asignación de Permiso";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Administración / Asignar Permisos a Roles /</span> Eliminar Asignación
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0 text-danger">Confirmar Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">¿Estás seguro de que quieres eliminar la asignación del permiso "<strong>@Model.Permisos.NombrePermiso</strong>" al rol "<strong>@Model.RolesSistema.NombreRol</strong>"?</p>
+                    <hr />
+                    <dl class="row">
+                        <dt class="col-sm-4">Rol</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.RolesSistema.NombreRol)</dd>
+                        <dt class="col-sm-4">Permiso</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.Permisos.NombrePermiso)</dd>
+                    </dl>
+
+                    <form asp-action="Delete" method="post" id="deleteForm" class="mt-4">
+                        @* Necesitamos enviar ambos IDs para la acción DeleteConfirmed *@
+                        <input type="hidden" name="RolUsuarioID" value="@Model.RolUsuarioID" />
+                        <input type="hidden" name="PermisoID" value="@Model.PermisoID" />
+
+                        <button type="button" id="btnConfirmDelete" class="btn btn-danger me-2">Sí, Eliminar Asignación</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteButton = document.getElementById('btnConfirmDelete');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', function (event) {
+                    event.preventDefault();
+
+                    Swal.fire({
+                        title: '¿Estás realmente seguro?',
+                        text: "¡No podrás revertir la eliminación de esta asignación de permiso!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, ¡elimínala!',
+                        cancelButtonText: 'No, cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('deleteForm').submit();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+}

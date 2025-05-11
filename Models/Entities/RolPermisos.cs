@@ -8,14 +8,16 @@ namespace VN_Center.Models.Entities
   {
     // Clave primaria compuesta
     [Key]
-    [Column(Order = 0)] // Define el orden de las columnas en la clave compuesta
+    [Column(Order = 0)]
+    [Display(Name = "Rol del Sistema")] // Para el dropdown
     public int RolUsuarioID { get; set; }
 
     [Key]
-    [Column(Order = 1)] // Define el orden de las columnas en la clave compuesta
+    [Column(Order = 1)]
+    [Display(Name = "Permiso Asignado")] // Para el dropdown
     public int PermisoID { get; set; }
 
-    // Propiedades de navegación a las entidades principales
+    // --- Propiedades de Navegación ---
     [ForeignKey("RolUsuarioID")]
     public virtual RolesSistema RolesSistema { get; set; } = null!;
 

@@ -1,0 +1,65 @@
+@model VN_Center.Models.Entities.RolPermisos
+
+@{
+    ViewData["Title"] = "Asignar Permiso a Rol";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Administración / Asignar Permisos a Roles /</span> Nueva Asignación
+    </h4>
+
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Seleccionar Rol y Permiso</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty] != null)
+                        {
+                            <div class="alert alert-danger">
+                                @foreach (var error in ViewData.ModelState[string.Empty].Errors)
+                                {
+                                    <span>@error.ErrorMessage</span>
+
+                                    <br />
+                                }
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="RolUsuarioID" class="form-label"></label>
+                            <select asp-for="RolUsuarioID" class="form-select" asp-items="ViewBag.RolUsuarioID">
+                                <option value="">-- Seleccione un Rol --</option>
+                            </select>
+                            <span asp-validation-for="RolUsuarioID" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PermisoID" class="form-label"></label>
+                            <select asp-for="PermisoID" class="form-select" asp-items="ViewBag.PermisoID">
+                                <option value="">-- Seleccione un Permiso --</option>
+                            </select>
+                            <span asp-validation-for="PermisoID" class="text-danger"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Asignar Permiso</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
