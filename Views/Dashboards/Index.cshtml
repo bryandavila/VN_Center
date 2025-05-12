@@ -1,11 +1,11 @@
-    @model VN_Center.Models.ViewModels.DashboardViewModel
-    @inject VN_Center.Data.VNCenterDbContext Context // Inyectar DbContext para otros datos si es necesario directamente
+@model VN_Center.Models.ViewModels.DashboardViewModel
+@using System.Text.Json;
 
 @{
     ViewData["title"] = "Dashboard Principal";
-    ViewData["pageTitle"] = "Dashboard";
+    ViewData["pageTitle"] = "Dashboard"; // Opcional, para el breadcrumb si tu layout lo usa
 
-    // Puedes definir variables para los iconos aquí si quieres
+    // Iconos para las tarjetas de KPI
     string iconSolicitudes = "bx bx-file-blank";
     string iconBeneficiarios = "bx bx-user-heart";
     string iconProgramas = "bx bx-briefcase-alt-2";
@@ -19,7 +19,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div class="card-info">
-                            <p class="card-text">@Html.DisplayNameFor(model => model.TotalSolicitudes)</p>
+                            <p class="card-text text-muted">@Html.DisplayNameFor(model => model.TotalSolicitudes)</p>
                             <div class="d-flex align-items-end mb-2">
                                 <h4 class="card-title mb-0 me-2">@Model.TotalSolicitudes</h4>
                                 @* <small class="text-success">(+29%)</small> *@ @* Ejemplo de cambio porcentual *@
@@ -41,7 +41,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div class="card-info">
-                            <p class="card-text">@Html.DisplayNameFor(model => model.TotalBeneficiarios)</p>
+                            <p class="card-text text-muted">@Html.DisplayNameFor(model => model.TotalBeneficiarios)</p>
                             <div class="d-flex align-items-end mb-2">
                                 <h4 class="card-title mb-0 me-2">@Model.TotalBeneficiarios</h4>
                             </div>
@@ -62,7 +62,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div class="card-info">
-                            <p class="card-text">@Html.DisplayNameFor(model => model.TotalProgramasActivos)</p>
+                            <p class="card-text text-muted">@Html.DisplayNameFor(model => model.TotalProgramasActivos)</p>
                             <div class="d-flex align-items-end mb-2">
                                 <h4 class="card-title mb-0 me-2">@Model.TotalProgramasActivos</h4>
                             </div>
@@ -83,7 +83,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div class="card-info">
-                            <p class="card-text">@Html.DisplayNameFor(model => model.TotalComunidades)</p>
+                            <p class="card-text text-muted">@Html.DisplayNameFor(model => model.TotalComunidades)</p>
                             <div class="d-flex align-items-end mb-2">
                                 <h4 class="card-title mb-0 me-2">@Model.TotalComunidades</h4>
                             </div>
@@ -100,26 +100,188 @@
         </div>
     </div>
 
-    @* Aquí podrías añadir más filas de tarjetas o gráficos en el futuro *@
-    @* Ejemplo de una fila para una tabla de "Actividad Reciente" o "Próximos Eventos" *@
     <div class="row">
-        <div class="col-md-12 mb-4">
+        <div class="col-lg-8 col-md-12 mb-4">
             <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Actividad Reciente (Ejemplo)</h5>
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="card-title mb-0">@Html.DisplayNameFor(model => model.SolicitudesPorMes) (Últimos 12 Meses)</h5>
                 </div>
                 <div class="card-body">
-                    <p>Aquí podrías listar las últimas 5 solicitudes recibidas, o los próximos inicios de programas, etc.</p>
-                    @* <ul>
-                        @foreach(var solicitud in await Context.Solicitudes.OrderByDescending(s => s.FechaEnvioSolicitud).Take(5).ToListAsync())
-                        {
-                            <li>@solicitud.Nombres @solicitud.Apellidos - @solicitud.FechaEnvioSolicitud.ToShortDateString()</li>
-                        }
+                    @if (Model.SolicitudesPorMes != null && Model.SolicitudesPorMes.Any())
+                    {
+                        <div id="chartSolicitudesPorMes"></div>
+                    }
+                    else
+                    {
+                        <p class="text-center text-muted">No hay suficientes datos para mostrar el gráfico de solicitudes por mes.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">@Html.DisplayNameFor(model => model.UltimasSolicitudesRecibidas)</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.UltimasSolicitudesRecibidas != null && Model.UltimasSolicitudesRecibidas.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var solicitud in Model.UltimasSolicitudesRecibidas)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <div>
+                                        <a asp-controller="Solicitudes" asp-action="Details" asp-route-id="@solicitud.SolicitudID" class="fw-semibold">
+                                            @solicitud.Nombres @solicitud.Apellidos
+                                        </a>
+                                        <small class="d-block text-muted">@solicitud.TipoSolicitud - @solicitud.EstadoSolicitud</small>
+                                    </div>
+                                    <small class="text-muted">@solicitud.FechaEnvioSolicitud.ToString("dd MMM yyyy")</small>
+                                </li>
+                            }
                         </ul>
-                        *@
+                    }
+                    else
+                    {
+                        <p class="text-center text-muted">No hay solicitudes recientes.</p>
+                    }
+                    <div class="text-center mt-3">
+                        <a asp-controller="Solicitudes" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Todas las Solicitudes</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    @* Aquí podrías añadir más filas con otros gráficos o información *@
+
 </div>
+
+@* Scripts específicos para esta página *@
+@section VendorScripts {
+    <script src="~/vendor/libs/apex-charts/apexcharts.js"></script>
+}
+
+@section PageScripts {
+    <script>
+        // Esperar a que el DOM esté completamente cargado
+        document.addEventListener('DOMContentLoaded', function () {
+            // Opciones y renderizado del gráfico de Solicitudes por Mes
+            const chartElement = document.querySelector("#chartSolicitudesPorMes");
+
+            // Verificar si ApexCharts está definido y el elemento del gráfico existe
+            if (typeof ApexCharts !== 'undefined' && chartElement && @Model.SolicitudesPorMes.Count > 0) {
+                // Estas variables de color deben estar definidas globalmente por la plantilla Sneat (config.js o helpers.js)
+                const cardColor = config.colors.cardColor;
+                const headingColor = config.colors.headingColor;
+                const axisColor = config.colors.axisColor;
+                const borderColor = config.colors.borderColor;
+                const primaryColor = config.colors.primary;
+
+                var optionsSolicitudesMes = {
+                    series: [{
+                        name: 'Nº Solicitudes',
+                        data: @Html.Raw(JsonSerializer.Serialize(Model.SolicitudesPorMes.Select(s => s.Cantidad).ToList()))
+                    }],
+                    chart: {
+                        height: 335,
+                        type: 'bar',
+                        toolbar: { show: false }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%', // Un poco más ancho
+                            borderRadius: 5,   // Bordes más redondeados
+                            startingShape: 'rounded',
+                            endingShape: 'rounded'
+                        }
+                    },
+                    colors: [primaryColor],
+                    dataLabels: {
+                        enabled: false // Se pueden habilitar si hay pocos datos: true, offsetY: -20, style: { fontSize: '12px', colors: [headingColor] }
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ['transparent']
+                    },
+                    xaxis: {
+                        categories: @Html.Raw(JsonSerializer.Serialize(Model.SolicitudesPorMes.Select(s => s.MesNombre).ToList())),
+                        axisBorder: { show: true, color: borderColor }, // Mostrar borde del eje X
+                        axisTicks: { show: true, color: borderColor },  // Mostrar ticks del eje X
+                        labels: {
+                            style: {
+                                colors: axisColor,
+                                fontSize: '13px'
+                            }
+                        }
+                    },
+                    yaxis: {
+                        labels: {
+                            style: {
+                                colors: axisColor,
+                                fontSize: '13px'
+                            },
+                            formatter: function (val) { // Para asegurar que solo muestre enteros
+                                return parseInt(val);
+                            }
+                        },
+                        title: {
+                            // text: 'Cantidad de Solicitudes', // Opcional
+                            style: {
+                                color: headingColor,
+                                fontSize: '13px',
+                                fontWeight: 'normal'
+                            }
+                        },
+                         min: 0, // Asegurar que el eje Y comience en 0
+                         tickAmount: 5 // Sugerir 5 ticks en el eje Y, ApexCharts ajustará
+                    },
+                    fill: { opacity: 1 },
+                    grid: {
+                        borderColor: borderColor,
+                        strokeDashArray: 3,
+                        padding: {
+                            top: -10,
+                            bottom: -10,
+                            right: 0,
+                            left: -10 // Ajuste para el eje Y
+                        }
+                    },
+                    tooltip: {
+                         y: {
+                            formatter: function (val) {
+                                return val + " solicitudes"
+                            }
+                        }
+                    },
+                    responsive: [{ // Hacer el gráfico responsive
+                        breakpoint: 768,
+                        options: {
+                            chart: {
+                                height: 280
+                            },
+                            plotOptions: {
+                                bar: {
+                                    columnWidth: '70%'
+                                }
+                            }
+                        }
+                    }]
+                };
+                var chartSolicitudesMes = new ApexCharts(chartElement, optionsSolicitudesMes);
+                chartSolicitudesMes.render();
+            } else {
+                if (chartElement && @Model.SolicitudesPorMes.Count == 0) {
+                    // No hacer nada si no hay datos, el mensaje ya se muestra en el HTML
+                } else if (!chartElement) {
+                     console.warn("Elemento #chartSolicitudesPorMes no se encontró para el gráfico.");
+                } else {
+                    console.error("ApexCharts no está definido.");
+                }
+            }
+        });
+    </script>
+}
