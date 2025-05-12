@@ -59,6 +59,13 @@
             </a>
         </li>
 
+        <li class='menu-item@(currentPage.StartsWith("/ProgramaProyectoComunidades") ? " active" : "")'>
+            <a asp-controller="ProgramaProyectoComunidades" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-map-pin"></i> @* Icono para Programas en Comunidades *@
+                <div>Programas en Comunidades</div>
+            </a>
+        </li>
+
         <li class='menu-item@(currentPage.StartsWith("/Beneficiarios") ? " active" : "")'>
             <a asp-controller="Beneficiarios" asp-action="Index" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-male-female"></i> @* Icono para Beneficiarios *@
