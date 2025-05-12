@@ -1,0 +1,79 @@
+@model VN_Center.Models.Entities.BeneficiariosProgramasProyectos
+
+@{
+    ViewData["Title"] = "Editar Inscripción de Beneficiario";
+    var estadosParticipacion = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "Seleccione estado..." },
+        new SelectListItem { Value = "Activo", Text = "Activo" },
+        new SelectListItem { Value = "Completado", Text = "Completado" },
+        new SelectListItem { Value = "Retirado", Text = "Retirado" },
+        new SelectListItem { Value = "En Espera", Text = "En Espera" }
+    };
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Beneficiarios en Programas /</span> Editar Inscripción
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Editando Inscripción: @(Model.Beneficiario?.NombreCompleto) en @(Model.ProgramaProyecto?.NombreProgramaProyecto)</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <input type="hidden" asp-for="BeneficiarioID" />
+                        <input type="hidden" asp-for="ProgramaProyectoID" />
+
+                        <div class="mb-3">
+                            <label asp-for="BeneficiarioID" class="form-label"></label>
+                            <select asp-for="BeneficiarioID" class="form-select" asp-items="ViewBag.BeneficiarioID" disabled>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ProgramaProyectoID" class="form-label"></label>
+                            <select asp-for="ProgramaProyectoID" class="form-select" asp-items="ViewBag.ProgramaProyectoID" disabled>
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaInscripcionBeneficiario" class="form-label"></label>
+                                <input asp-for="FechaInscripcionBeneficiario" class="form-control" type="date" />
+                                <span asp-validation-for="FechaInscripcionBeneficiario" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="EstadoParticipacionBeneficiario" class="form-label"></label>
+                                <select asp-for="EstadoParticipacionBeneficiario" class="form-select" asp-items="estadosParticipacion"></select>
+                                <span asp-validation-for="EstadoParticipacionBeneficiario" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="NotasAdicionales" class="form-label"></label>
+                            <textarea asp-for="NotasAdicionales" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="NotasAdicionales" class="text-danger"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Guardar Cambios</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

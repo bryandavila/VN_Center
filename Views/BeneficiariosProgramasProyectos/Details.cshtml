@@ -1,0 +1,66 @@
+@model VN_Center.Models.Entities.BeneficiariosProgramasProyectos
+
+@{
+    ViewData["Title"] = "Detalles de Inscripción";
+    Func<DateTime?, string> DisplayDate = d => d.HasValue ? d.Value.ToString("dd/MM/yyyy") : "No especificada";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Beneficiarios en Programas /</span> Detalles
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Inscripción: @(Model.Beneficiario?.NombreCompleto) en @(Model.ProgramaProyecto?.NombreProgramaProyecto)</h5>
+                    <div>
+                        <a asp-action="Edit" asp-route-beneficiarioId="@Model.BeneficiarioID" asp-route-programaProyectoId="@Model.ProgramaProyectoID" class="btn btn-primary me-2"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bx bx-list-ul me-1"></i> Volver a la Lista</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Beneficiario)</dt>
+                        <dd class="col-sm-8">@(Model.Beneficiario?.Apellidos), @(Model.Beneficiario?.Nombres) (ID: @Model.BeneficiarioID)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.ProgramaProyecto)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.ProgramaProyecto.NombreProgramaProyecto)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.FechaInscripcionBeneficiario)</dt>
+                        <dd class="col-sm-8">@Model.FechaInscripcionBeneficiario.ToString("dd/MM/yyyy")</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.EstadoParticipacionBeneficiario)</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.EstadoParticipacionBeneficiario == "Completado")
+                            {
+                                <span class="badge bg-label-success">@Model.EstadoParticipacionBeneficiario</span>
+                            }
+                            else if (Model.EstadoParticipacionBeneficiario == "Retirado")
+                            {
+                                <span class="badge bg-label-danger">@Model.EstadoParticipacionBeneficiario</span>
+                            }
+                            else if (Model.EstadoParticipacionBeneficiario == "Activo")
+                            {
+                                <span class="badge bg-label-info">@Model.EstadoParticipacionBeneficiario</span>
+                            }
+                            else if (Model.EstadoParticipacionBeneficiario == "En Espera")
+                            {
+                                <span class="badge bg-label-warning">@Model.EstadoParticipacionBeneficiario</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-label-secondary">@(string.IsNullOrWhiteSpace(Model.EstadoParticipacionBeneficiario) ? "No especificado" : Model.EstadoParticipacionBeneficiario)</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.NotasAdicionales)</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.NotasAdicionales) ? "Sin notas" : Html.Raw(Model.NotasAdicionales.Replace("\n", "<br />")))</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

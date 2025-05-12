@@ -1,0 +1,109 @@
+@model IEnumerable<VN_Center.Models.Entities.BeneficiariosProgramasProyectos>
+
+@{
+    ViewData["Title"] = "Beneficiarios en Programas/Proyectos";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos /</span> Beneficiarios en Programas/Proyectos
+    </h4>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Inscripciones Registradas</h5>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i> Inscribir Beneficiario a Programa
+            </a>
+        </div>
+        <div class="table-responsive text-nowrap">
+            @if (Model.Any())
+            {
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Beneficiario</th>
+                            <th>Programa/Proyecto</th>
+                            <th>@Html.DisplayNameFor(model => model.First().FechaInscripcionBeneficiario)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().EstadoParticipacionBeneficiario)</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@(item.Beneficiario?.Apellidos), @(item.Beneficiario?.Nombres)</strong>
+                                    <div class="text-muted small">ID: @item.BeneficiarioID</div>
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.ProgramaProyecto.NombreProgramaProyecto)
+                                </td>
+                                <td>
+                                    @item.FechaInscripcionBeneficiario.ToString("dd/MM/yyyy")
+                                </td>
+                                <td>
+                                    @if (item.EstadoParticipacionBeneficiario == "Completado")
+                                    {
+                                        <span class="badge bg-label-success me-1">@item.EstadoParticipacionBeneficiario</span>
+                                    }
+                                    else if (item.EstadoParticipacionBeneficiario == "Retirado")
+                                    {
+                                        <span class="badge bg-label-danger me-1">@item.EstadoParticipacionBeneficiario</span>
+                                    }
+                                    else if (item.EstadoParticipacionBeneficiario == "Activo")
+                                    {
+                                        <span class="badge bg-label-info me-1">@item.EstadoParticipacionBeneficiario</span>
+                                    }
+                                    else if (item.EstadoParticipacionBeneficiario == "En Espera")
+                                    {
+                                        <span class="badge bg-label-warning me-1">@item.EstadoParticipacionBeneficiario</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-label-secondary me-1">@item.EstadoParticipacionBeneficiario</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="dropdown">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item" asp-action="Edit" asp-route-beneficiarioId="@item.BeneficiarioID" asp-route-programaProyectoId="@item.ProgramaProyectoID"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                                            <a class="dropdown-item" asp-action="Details" asp-route-beneficiarioId="@item.BeneficiarioID" asp-route-programaProyectoId="@item.ProgramaProyectoID"><i class="bx bx-detail me-1"></i> Detalles</a>
+                                            <a class="dropdown-item" asp-action="Delete" asp-route-beneficiarioId="@item.BeneficiarioID" asp-route-programaProyectoId="@item.ProgramaProyectoID"><i class="bx bx-trash me-1"></i> Eliminar</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="card-body">
+                    <p class="text-center">No hay beneficiarios inscritos en programas todavía. <a asp-action="Create">Inscribe el primero</a>.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

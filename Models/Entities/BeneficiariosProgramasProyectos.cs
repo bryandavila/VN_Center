@@ -10,19 +10,27 @@ namespace VN_Center.Models.Entities
     // Clave primaria compuesta
     [Key]
     [Column(Order = 0)]
+    [Display(Name = "Beneficiario")]
     public int BeneficiarioID { get; set; }
 
     [Key]
     [Column(Order = 1)]
+    [Display(Name = "Programa/Proyecto")]
     public int ProgramaProyectoID { get; set; }
 
+    [Required(ErrorMessage = "La fecha de inscripción es obligatoria.")]
     [Column(TypeName = "DATE")]
+    [Display(Name = "Fecha de Inscripción")]
+    [DataType(DataType.Date)]
     public DateTime FechaInscripcionBeneficiario { get; set; } = DateTime.Today;
 
     [StringLength(50)]
-    public string? EstadoParticipacionBeneficiario { get; set; } // "Activo", "Completado", "Retirado"
+    [Display(Name = "Estado de Participación")]
+    public string? EstadoParticipacionBeneficiario { get; set; } // Ej: 'Activo', 'Completado', 'Retirado'
 
     [Column(TypeName = "NVARCHAR(MAX)")]
+    [Display(Name = "Notas Adicionales")]
+    [DataType(DataType.MultilineText)]
     public string? NotasAdicionales { get; set; }
 
     // --- Propiedades de Navegación ---
