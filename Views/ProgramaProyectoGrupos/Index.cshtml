@@ -1,0 +1,77 @@
+@model IEnumerable<VN_Center.Models.Entities.ProgramaProyectoGrupos>
+
+@{
+    ViewData["Title"] = "Grupos en Programas/Proyectos";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos /</span> Grupos en Programas/Proyectos
+    </h4>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Asignaciones Registradas</h5>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i> Asignar Grupo a Programa
+            </a>
+        </div>
+        <div class="table-responsive text-nowrap">
+            @if (Model.Any())
+            {
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.First().ProgramaProyecto.NombreProgramaProyecto)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().GrupoComunitario.NombreGrupo)</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@Html.DisplayFor(modelItem => item.ProgramaProyecto.NombreProgramaProyecto)</strong>
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.GrupoComunitario.NombreGrupo)
+                                </td>
+                                <td class="text-center">
+                                    <a class="btn btn-sm btn-outline-info me-1" asp-action="Details" asp-route-programaProyectoId="@item.ProgramaProyectoID" asp-route-grupoId="@item.GrupoID" title="Detalles">
+                                        <i class="bx bx-detail"></i>
+                                    </a>
+                                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-programaProyectoId="@item.ProgramaProyectoID" asp-route-grupoId="@item.GrupoID" title="Eliminar Asignación">
+                                        <i class="bx bx-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="card-body">
+                    <p class="text-center">No hay grupos asignados a programas/proyectos todavía. <a asp-action="Create">Asigna el primero</a>.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

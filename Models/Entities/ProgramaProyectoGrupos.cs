@@ -9,10 +9,12 @@ namespace VN_Center.Models.Entities
     // Clave primaria compuesta
     [Key]
     [Column(Order = 0)]
+    [Display(Name = "Programa/Proyecto")]
     public int ProgramaProyectoID { get; set; }
 
     [Key]
     [Column(Order = 1)]
+    [Display(Name = "Grupo Comunitario")]
     public int GrupoID { get; set; }
 
     // --- Propiedades de Navegación ---
