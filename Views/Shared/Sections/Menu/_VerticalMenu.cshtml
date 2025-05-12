@@ -80,6 +80,13 @@
             </a>
         </li>
 
+        <li class='menu-item@(currentPage.StartsWith("/SolicitudCamposInteres") ? " active" : "")'>
+            <a asp-controller="SolicitudCamposInteres" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-task"></i> @* Icono para Asignación de Intereses *@
+                <div>Asignar Intereses a Solicitudes</div>
+            </a>
+        </li>
+
         <li class='menu-item@(currentPage.StartsWith("/ParticipacionesActivas") ? " active" : "")'>
             <a asp-controller="ParticipacionesActivas" asp-action="Index" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-link-alt"></i> @* Icono para Participaciones *@

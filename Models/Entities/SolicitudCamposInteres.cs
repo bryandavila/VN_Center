@@ -9,10 +9,12 @@ namespace VN_Center.Models.Entities
     // Clave primaria compuesta
     [Key]
     [Column(Order = 0)]
+    [Display(Name = "Solicitud (Voluntario/Pasante)")]
     public int SolicitudID { get; set; }
 
     [Key]
     [Column(Order = 1)]
+    [Display(Name = "Campo de Interés")]
     public int CampoInteresID { get; set; }
 
     // --- Propiedades de Navegación ---

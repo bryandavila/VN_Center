@@ -1,0 +1,88 @@
+@model IEnumerable<VN_Center.Models.Entities.SolicitudCamposInteres>
+
+@{
+    ViewData["Title"] = "Intereses Asignados a Solicitudes";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos /</span> Intereses Asignados a Solicitudes
+    </h4>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Asignaciones Registradas</h5>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i> Asignar Nuevo Interés a Solicitud
+            </a>
+        </div>
+        <div class="table-responsive text-nowrap">
+            @if (Model.Any())
+            {
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>
+                                Solicitante
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.First().CampoInteresVocacional.NombreCampo)
+                            </th>
+                            <th>
+                                Descripción del Interés
+                            </th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@(item.Solicitud?.Apellidos), @(item.Solicitud?.Nombres)</strong>
+                                    <div class="text-muted small">ID Solicitud: @item.SolicitudID</div>
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.CampoInteresVocacional.NombreCampo)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.CampoInteresVocacional.DescripcionCampo)
+                                </td>
+                                <td class="text-center">
+                                    <a class="btn btn-sm btn-outline-info me-1" asp-action="Details" asp-route-solicitudId="@item.SolicitudID" asp-route-campoInteresId="@item.CampoInteresID" title="Detalles">
+                                        <i class="bx bx-detail"></i>
+                                    </a>
+                                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-solicitudId="@item.SolicitudID" asp-route-campoInteresId="@item.CampoInteresID" title="Eliminar Asignación">
+                                        <i class="bx bx-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="card-body">
+                    <p class="text-center">No hay intereses asignados a solicitudes todavía. <a asp-action="Create">Asigna el primero</a>.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

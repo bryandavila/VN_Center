@@ -1,0 +1,72 @@
+@model VN_Center.Models.Entities.SolicitudCamposInteres
+
+@{
+    ViewData["Title"] = "Eliminar Asignación de Interés";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos / Asignar Intereses a Solicitudes /</span> Eliminar Asignación
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0 text-danger">Confirmar Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">¿Estás seguro de que quieres eliminar la asignación del campo de interés "<strong>@Model.CampoInteresVocacional.NombreCampo</strong>" a la solicitud de "<strong>@(Model.Solicitud?.Apellidos), @(Model.Solicitud?.Nombres)</strong>"?</p>
+                    <hr />
+                    <dl class="row">
+                        <dt class="col-sm-4">Solicitante</dt>
+                        <dd class="col-sm-8">@(Model.Solicitud?.Apellidos), @(Model.Solicitud?.Nombres)</dd>
+                        <dt class="col-sm-4">Campo de Interés</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.CampoInteresVocacional.NombreCampo)</dd>
+                    </dl>
+
+                    <form asp-action="Delete" method="post" id="deleteForm" class="mt-4">
+                        <input type="hidden" name="SolicitudID" value="@Model.SolicitudID" />
+                        <input type="hidden" name="CampoInteresID" value="@Model.CampoInteresID" />
+
+                        <button type="button" id="btnConfirmDelete" class="btn btn-danger me-2">Sí, Eliminar Asignación</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteButton = document.getElementById('btnConfirmDelete');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', function (event) {
+                    event.preventDefault();
+
+                    Swal.fire({
+                        title: '¿Estás realmente seguro?',
+                        text: "¡No podrás revertir la eliminación de esta asignación!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, ¡elimínala!',
+                        cancelButtonText: 'No, cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('deleteForm').submit();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+}

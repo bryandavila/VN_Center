@@ -1,0 +1,65 @@
+@model VN_Center.Models.Entities.SolicitudCamposInteres
+
+@{
+    ViewData["Title"] = "Asignar Campo de Interés a Solicitud";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos / Asignar Intereses a Solicitudes /</span> Nueva Asignación
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Seleccionar Solicitud y Campo de Interés</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                        @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty] != null)
+                        {
+                            <div class="alert alert-danger">
+                                @foreach (var error in ViewData.ModelState[string.Empty].Errors)
+                                {
+                                    <span>@error.ErrorMessage</span>
+
+                                    <br />
+                                }
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="SolicitudID" class="form-label"></label>
+                            <select asp-for="SolicitudID" class="form-select" asp-items="ViewBag.SolicitudID">
+                                <option value="">-- Seleccione una Solicitud --</option>
+                            </select>
+                            <span asp-validation-for="SolicitudID" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CampoInteresID" class="form-label"></label>
+                            <select asp-for="CampoInteresID" class="form-select" asp-items="ViewBag.CampoInteresID">
+                                <option value="">-- Seleccione un Campo de Interés --</option>
+                            </select>
+                            <span asp-validation-for="CampoInteresID" class="text-danger"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Asignar Interés</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
