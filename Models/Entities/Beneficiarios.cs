@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema; // Necesario para [NotMapped]
 
 namespace VN_Center.Models.Entities
 {
@@ -29,11 +29,11 @@ namespace VN_Center.Models.Entities
 
     [StringLength(20)]
     [Display(Name = "Rango de Edad")]
-    public string? RangoEdad { get; set; } // Considerar un dropdown si los rangos son fijos
+    public string? RangoEdad { get; set; }
 
     [StringLength(20)]
     [Display(Name = "Género")]
-    public string? Genero { get; set; } // Considerar un dropdown
+    public string? Genero { get; set; }
 
     [StringLength(100)]
     [Display(Name = "País de Origen")]
@@ -45,7 +45,7 @@ namespace VN_Center.Models.Entities
 
     [StringLength(50)]
     [Display(Name = "Estado Migratorio")]
-    public string? EstadoMigratorio { get; set; } // Considerar un dropdown
+    public string? EstadoMigratorio { get; set; }
 
     [StringLength(100)]
     [Display(Name = "Otro Estado Migratorio (especificar)")]
@@ -56,18 +56,18 @@ namespace VN_Center.Models.Entities
 
     [StringLength(20)]
     [Display(Name = "Vivienda (Alquila/Propia)")]
-    public string? ViviendaAlquiladaOPropia { get; set; } // Considerar dropdown (Alquilo, Propietario)
+    public string? ViviendaAlquiladaOPropia { get; set; }
 
     [Display(Name = "Miembros del Hogar Empleados")]
     public int? MiembrosHogarEmpleados { get; set; }
 
     [StringLength(5)]
     [Display(Name = "¿Está Empleado Personalmente?")]
-    public string? EstaEmpleadoPersonalmente { get; set; } // Considerar dropdown (Sí, No)
+    public string? EstaEmpleadoPersonalmente { get; set; }
 
     [StringLength(100)]
     [Display(Name = "Tipo de Situación Laboral")]
-    public string? TipoSituacionLaboral { get; set; } // Considerar dropdown
+    public string? TipoSituacionLaboral { get; set; }
 
     [StringLength(100)]
     [Display(Name = "Otra Situación Laboral (especificar)")]
@@ -75,7 +75,7 @@ namespace VN_Center.Models.Entities
 
     [StringLength(100)]
     [Display(Name = "Tipo de Trabajo Realizado (si empleado)")]
-    public string? TipoTrabajoRealizadoSiEmpleado { get; set; } // Considerar dropdown
+    public string? TipoTrabajoRealizadoSiEmpleado { get; set; }
 
     [StringLength(100)]
     [Display(Name = "Otro Tipo de Trabajo (especificar)")]
@@ -83,7 +83,7 @@ namespace VN_Center.Models.Entities
 
     [StringLength(30)]
     [Display(Name = "Estado Civil")]
-    public string? EstadoCivil { get; set; } // Considerar dropdown
+    public string? EstadoCivil { get; set; }
 
     [StringLength(50)]
     [Display(Name = "Tiempo en Costa Rica (si migrante)")]
@@ -95,11 +95,11 @@ namespace VN_Center.Models.Entities
 
     [StringLength(5)]
     [Display(Name = "¿Ingresos Suficientes para Necesidades?")]
-    public string? IngresosSuficientesNecesidades { get; set; } // Considerar dropdown (Sí, No)
+    public string? IngresosSuficientesNecesidades { get; set; }
 
     [StringLength(100)]
     [Display(Name = "Nivel Máximo de Educación Completado")]
-    public string? NivelEducacionCompletado { get; set; } // Considerar dropdown
+    public string? NivelEducacionCompletado { get; set; }
 
     [StringLength(100)]
     [Display(Name = "Otro Nivel de Educación (especificar)")]
@@ -107,11 +107,11 @@ namespace VN_Center.Models.Entities
 
     [StringLength(5)]
     [Display(Name = "¿Inscrito en Programa de Educación/Capacitación?")]
-    public string? InscritoProgramaEducacionCapacitacionActual { get; set; } // Considerar dropdown (Sí, No)
+    public string? InscritoProgramaEducacionCapacitacionActual { get; set; }
 
     [StringLength(30)]
     [Display(Name = "¿Niños del Hogar Asisten a Escuela?")]
-    public string? NinosHogarAsistenEscuela { get; set; } // Considerar dropdown (Sí, No, No hay niños)
+    public string? NinosHogarAsistenEscuela { get; set; }
 
     [Column(TypeName = "NVARCHAR(MAX)")]
     [Display(Name = "Barreras Asistencia Escolar Niños", Prompt = "Si indicó 'No', ¿cuáles son las barreras? (Costo, Documentación, Distancia, Otros)")]
@@ -124,31 +124,31 @@ namespace VN_Center.Models.Entities
 
     [StringLength(5)]
     [Display(Name = "¿Mujeres con Acceso Igual a Oportunidades Laborales?")]
-    public string? PercepcionAccesoIgualOportunidadesLaboralesMujeres { get; set; } // Considerar dropdown (Sí, No)
+    public string? PercepcionAccesoIgualOportunidadesLaboralesMujeres { get; set; }
 
     [StringLength(10)]
     [Display(Name = "¿Servicios Disponibles para Mujeres Víctimas de Violencia?")]
-    public string? DisponibilidadServiciosMujeresVictimasViolencia { get; set; } // Considerar dropdown (Sí, No, No sé)
+    public string? DisponibilidadServiciosMujeresVictimasViolencia { get; set; }
 
     [StringLength(10)]
     [Display(Name = "¿Servicios de Salud para la Mujer Disponibles?")]
-    public string? DisponibilidadServiciosSaludMujer { get; set; } // Considerar dropdown (Sí, No, No sé)
+    public string? DisponibilidadServiciosSaludMujer { get; set; }
 
     [StringLength(10)]
     [Display(Name = "¿Servicios de Apoyo para Adultos Mayores Disponibles?")]
-    public string? DisponibilidadServiciosApoyoAdultosMayores { get; set; } // Considerar dropdown (Sí, No, No sé)
+    public string? DisponibilidadServiciosApoyoAdultosMayores { get; set; }
 
     [StringLength(5)]
     [Display(Name = "¿Servicios de Transporte Accesibles?")]
-    public string? AccesibilidadServiciosTransporteComunidad { get; set; } // Considerar dropdown (Sí, No)
+    public string? AccesibilidadServiciosTransporteComunidad { get; set; }
 
     [StringLength(20)]
     [Display(Name = "Acceso a Computadora")]
-    public string? AccesoComputadora { get; set; } // Considerar dropdown (Sí, No, A veces)
+    public string? AccesoComputadora { get; set; }
 
     [StringLength(20)]
     [Display(Name = "Acceso a Internet")]
-    public string? AccesoInternet { get; set; } // Considerar dropdown (Sí, No, A veces)
+    public string? AccesoInternet { get; set; }
 
     // --- Propiedades de Navegación ---
     [ForeignKey("ComunidadID")]
@@ -158,5 +158,21 @@ namespace VN_Center.Models.Entities
     public virtual ICollection<BeneficiarioAsistenciaRecibida> BeneficiarioAsistenciaRecibida { get; set; } = new List<BeneficiarioAsistenciaRecibida>();
     public virtual ICollection<BeneficiarioGrupos> BeneficiarioGrupos { get; set; } = new List<BeneficiarioGrupos>();
     public virtual ICollection<BeneficiariosProgramasProyectos> BeneficiariosProgramasProyectos { get; set; } = new List<BeneficiariosProgramasProyectos>();
+
+    // --- Propiedad Calculada (No Mapeada) ---
+    [NotMapped] // Importante: Para que EF Core no intente mapearla a una columna en la BD
+    [Display(Name = "Nombre Completo del Beneficiario")]
+    public string NombreCompleto
+    {
+      get
+      {
+        // Manejar casos donde Nombres o Apellidos puedan ser nulos o vacíos
+        if (string.IsNullOrWhiteSpace(Nombres) && string.IsNullOrWhiteSpace(Apellidos))
+        {
+          return "Beneficiario (ID: " + BeneficiarioID + ")"; // O un texto más genérico
+        }
+        return $"{Nombres} {Apellidos}".Trim();
+      }
+    }
   }
 }

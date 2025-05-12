@@ -9,13 +9,17 @@ namespace VN_Center.Models.Entities
     // Clave primaria compuesta
     [Key]
     [Column(Order = 0)]
+    [Display(Name = "Beneficiario")]
     public int BeneficiarioID { get; set; }
 
     [Key]
     [Column(Order = 1)]
+    [Display(Name = "Tipo de Asistencia")]
     public int TipoAsistenciaID { get; set; }
 
     [Column(TypeName = "NVARCHAR(MAX)")]
+    [Display(Name = "Notas Adicionales")]
+    [DataType(DataType.MultilineText)]
     public string? NotasAdicionales { get; set; }
 
     // --- Propiedades de Navegación ---

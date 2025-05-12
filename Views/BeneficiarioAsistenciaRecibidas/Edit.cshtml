@@ -1,0 +1,61 @@
+@model VN_Center.Models.Entities.BeneficiarioAsistenciaRecibida
+
+@{
+    ViewData["Title"] = "Editar Registro de Asistencia";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Asistencia a Beneficiarios /</span> Editar Registro
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Editando Asistencia para: @(Model.Beneficiario?.NombreCompleto ?? "Beneficiario Desconocido")</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        @* Las claves primarias no se editan, se envían como ocultas *@
+                        <input type="hidden" asp-for="BeneficiarioID" />
+                        <input type="hidden" asp-for="TipoAsistenciaID" />
+
+                        <div class="mb-3">
+                            <label asp-for="BeneficiarioID" class="form-label"></label>
+                            <select asp-for="BeneficiarioID" class="form-select" asp-items="ViewBag.BeneficiarioID" disabled>
+                            </select>
+                            <span asp-validation-for="BeneficiarioID" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TipoAsistenciaID" class="form-label"></label>
+                            <select asp-for="TipoAsistenciaID" class="form-select" asp-items="ViewBag.TipoAsistenciaID" disabled>
+                            </select>
+                            <span asp-validation-for="TipoAsistenciaID" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="NotasAdicionales" class="form-label"></label>
+                            <textarea asp-for="NotasAdicionales" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="NotasAdicionales" class="text-danger"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Guardar Cambios</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
