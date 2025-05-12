@@ -1,11 +1,16 @@
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor
 @{
-    TempData.Keep();
+    TempData.Keep(); // Asegura que los TempData como appName persistan
     string? currentPage = ViewContext.HttpContext.Request.Path;
+    // Determinar si el usuario está autenticado (esto es un placeholder, se implementará con Identity)
+    bool isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    // Determinar si el usuario es administrador (esto es un placeholder)
+    // bool isAdmin = isAuthenticated && User.IsInRole("Administrador"); // Descomentar y ajustar cuando Identity esté configurado
 }
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
 
-    <div class='app-brand demo @((@ViewData["navbarFull"] != null && Convert.ToBoolean(@ViewData["navbarFull"])) ? "d-xl-none" : "")'>
+    <div class='app-brand demo'>
         <a asp-controller="Dashboards" asp-action="Index" class="app-brand-link">
             <span class="app-brand-logo demo">
                 @await Html.PartialAsync("../_Partials/_Macros")
@@ -21,302 +26,195 @@
     <div class="menu-inner-shadow"></div>
 
     <ul class="menu-inner py-1">
-        <li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards") ? " active open" : "")'>
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-home-smile"></i>
-                <div class="text-truncate" data-i18n="Dashboards">Dashboards</div>
+        <li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards") ? " active" : "")'>
+            <a asp-controller="Dashboards" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                <div data-i18n="Dashboards">Dashboard</div>
             </a>
-            <ul class="menu-sub">
-                <li class='menu-item@( (currentPage == "/") || (currentPage == "/Dashboards/Index") ? " active" : "")'>
-                    <a asp-controller="Dashboards" asp-action="Index" class="menu-link">
-                        <div>Analytics</div>
-                    </a>
-                </li>
-            </ul>
         </li>
 
         <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Gestión de Datos</span>
+            <span class="menu-header-text">Gestión Principal</span>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/Solicitudes") && !currentPage.StartsWith("/SolicitudesInformacionGeneral") ? " active" : "")'>
+            <a asp-controller="Solicitudes" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-file-blank"></i>
+                <div>Solicitudes (Vol/Pas)</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/Beneficiarios") ? " active" : "")'>
+            <a asp-controller="Beneficiarios" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-male-female"></i>
+                <div>Beneficiarios</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/ProgramasProyectosONG") ? " active" : "")'>
+            <a asp-controller="ProgramasProyectosONG" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-briefcase-alt-2"></i>
+                <div>Programas y Proyectos</div>
+            </a>
         </li>
         <li class='menu-item@(currentPage.StartsWith("/Comunidades") ? " active" : "")'>
             <a asp-controller="Comunidades" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-arch"></i> @* Icono para Comunidades *@
+                <i class="menu-icon tf-icons bx bx-arch"></i>
                 <div>Comunidades</div>
             </a>
         </li>
-
         <li class='menu-item@(currentPage.StartsWith("/GruposComunitarios") ? " active" : "")'>
             <a asp-controller="GruposComunitarios" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-group"></i> @* Icono para Grupos Comunitarios *@
+                <i class="menu-icon tf-icons bx bx-group"></i>
                 <div>Grupos Comunitarios</div>
             </a>
         </li>
 
-        <li class='menu-item@(currentPage.StartsWith("/ProgramasProyectosONG") ? " active" : "")'>
-            <a asp-controller="ProgramasProyectosONG" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-briefcase-alt-2"></i> @* Icono para Programas/Proyectos *@
-                <div>Programas y Proyectos</div>
-            </a>
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Vinculaciones y Seguimiento</span>
         </li>
-
-        <li class='menu-item@(currentPage.StartsWith("/ProgramaProyectoGrupos") ? " active" : "")'>
-            <a asp-controller="ProgramaProyectoGrupos" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-sitemap"></i> @* Icono para Grupos en Programas *@
-                <div>Grupos en Programas</div>
-            </a>
-        </li>
-
-        <li class='menu-item@(currentPage.StartsWith("/ProgramaProyectoComunidades") ? " active" : "")'>
-            <a asp-controller="ProgramaProyectoComunidades" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-map-pin"></i> @* Icono para Programas en Comunidades *@
-                <div>Programas en Comunidades</div>
-            </a>
-        </li>
-
-        <li class='menu-item@(currentPage.StartsWith("/Beneficiarios") ? " active" : "")'>
-            <a asp-controller="Beneficiarios" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-male-female"></i> @* Icono para Beneficiarios *@
-                <div>Beneficiarios</div>
-            </a>
-        </li>
-
-        <li class='menu-item@(currentPage.StartsWith("/BeneficiarioGrupos") ? " active" : "")'>
-            <a asp-controller="BeneficiarioGrupos" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-user-plus"></i> @* Icono para Beneficiarios en Grupos *@
-                <div>Beneficiarios en Grupos</div>
-            </a>
-        </li>
-
-        <li class='menu-item@(currentPage.StartsWith("/BeneficiariosProgramasProyectos") ? " active" : "")'>
-            <a asp-controller="BeneficiariosProgramasProyectos" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-user-pin"></i> @* Icono para Beneficiarios en Programas *@
-                <div>Beneficiarios en Programas</div>
-            </a>
-        </li>
-
-        <li class='menu-item@(currentPage.StartsWith("/BeneficiarioAsistenciaRecibida") ? " active" : "")'>
-            <a asp-controller="BeneficiarioAsistenciaRecibida" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-user-check"></i> @* Icono para Asistencia a Beneficiarios *@
-                <div>Asistencia a Beneficiarios</div>
-            </a>
-        </li>
-
-        <li class='menu-item@(currentPage.StartsWith("/Solicitudes") ? " active" : "")'>
-            <a asp-controller="Solicitudes" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-file-blank"></i> @* Icono para Solicitudes *@
-                <div>Solicitudes</div>
-            </a>
-        </li>
-
-        <li class='menu-item@(currentPage.StartsWith("/SolicitudesInformacionGeneral") ? " active" : "")'>
-            <a asp-controller="SolicitudesInformacionGeneral" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-help-circle"></i> @* Icono para Solicitudes de Info *@
-                <div>Solicitudes de Información</div>
-            </a>
-        </li>
-
-        <li class='menu-item@(currentPage.StartsWith("/SolicitudCamposInteres") ? " active" : "")'>
-            <a asp-controller="SolicitudCamposInteres" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-task"></i> @* Icono para Asignación de Intereses *@
-                <div>Asignar Intereses a Solicitudes</div>
-            </a>
-        </li>
-
         <li class='menu-item@(currentPage.StartsWith("/ParticipacionesActivas") ? " active" : "")'>
             <a asp-controller="ParticipacionesActivas" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-link-alt"></i> @* Icono para Participaciones *@
+                <i class="menu-icon tf-icons bx bx-link-alt"></i>
                 <div>Participaciones Activas</div>
             </a>
         </li>
-
         <li class='menu-item@(currentPage.StartsWith("/EvaluacionesPrograma") ? " active" : "")'>
             <a asp-controller="EvaluacionesPrograma" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-comment-detail"></i> @* Icono para Evaluaciones *@
+                <i class="menu-icon tf-icons bx bx-comment-detail"></i>
                 <div>Evaluaciones de Programa</div>
             </a>
         </li>
+        <li class='menu-item@(currentPage.StartsWith("/BeneficiariosProgramasProyectos") ? " active" : "")'>
+            <a asp-controller="BeneficiariosProgramasProyectos" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-user-pin"></i>
+                <div>Beneficiarios en Programas</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/BeneficiarioGrupos") ? " active" : "")'>
+            <a asp-controller="BeneficiarioGrupos" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-user-plus"></i>
+                <div>Beneficiarios en Grupos</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/BeneficiarioAsistenciaRecibida") ? " active" : "")'>
+            <a asp-controller="BeneficiarioAsistenciaRecibida" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-user-check"></i>
+                <div>Asistencia a Beneficiarios</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/ProgramaProyectoComunidades") ? " active" : "")'>
+            <a asp-controller="ProgramaProyectoComunidades" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-map-pin"></i>
+                <div>Programas en Comunidades</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/ProgramaProyectoGrupos") ? " active" : "")'>
+            <a asp-controller="ProgramaProyectoGrupos" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-sitemap"></i>
+                <div>Grupos en Programas</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/SolicitudCamposInteres") ? " active" : "")'>
+            <a asp-controller="SolicitudCamposInteres" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-task"></i>
+                <div>Intereses de Solicitudes</div>
+            </a>
+        </li>
 
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Consultas y Catálogos</span>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/SolicitudesInformacionGeneral") ? " active" : "")'>
+            <a asp-controller="SolicitudesInformacionGeneral" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-help-circle"></i>
+                <div>Consultas Generales</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/NivelesIdioma") ? " active" : "")'>
+            <a asp-controller="NivelesIdioma" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-font-color"></i>
+                <div>Niveles de Idioma</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/FuentesConocimiento") ? " active" : "")'>
+            <a asp-controller="FuentesConocimiento" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-bulb"></i>
+                <div>Fuentes Conocimiento</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/TiposAsistencia") ? " active" : "")'>
+            <a asp-controller="TiposAsistencia" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-heart-circle"></i>
+                <div>Tipos de Asistencia</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage.StartsWith("/CamposInteresVocacional") ? " active" : "")'>
+            <a asp-controller="CamposInteresVocacional" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-purchase-tag-alt"></i>
+                <div>Campos de Interés</div>
+            </a>
+        </li>
+
+
+        @* @if (isAdmin) // Descomentar cuando Identity esté configurado *@
+        @* { *@
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Administración del Sistema</span>
         </li>
         <li class='menu-item@(currentPage.StartsWith("/UsuariosSistema") ? " active" : "")'>
             <a asp-controller="UsuariosSistema" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-user-circle"></i> @* Icono para Usuarios *@
+                <i class="menu-icon tf-icons bx bx-user-circle"></i>
                 <div>Usuarios del Sistema</div>
             </a>
         </li>
-
         <li class='menu-item@(currentPage.StartsWith("/RolesSistema") ? " active" : "")'>
             <a asp-controller="RolesSistema" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-shield-quarter"></i> @* Icono para Roles *@
+                <i class="menu-icon tf-icons bx bx-shield-quarter"></i>
                 <div>Roles del Sistema</div>
             </a>
         </li>
-
         <li class='menu-item@(currentPage.StartsWith("/Permisos") ? " active" : "")'>
             <a asp-controller="Permisos" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-key"></i> @* Icono para Permisos *@
+                <i class="menu-icon tf-icons bx bx-key"></i>
                 <div>Permisos del Sistema</div>
             </a>
         </li>
-
         <li class='menu-item@(currentPage.StartsWith("/RolPermisos") ? " active" : "")'>
             <a asp-controller="RolPermisos" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-shield-plus"></i> @* Icono para Asignación de Permisos *@
+                <i class="menu-icon tf-icons bx bx-shield-plus"></i>
                 <div>Asignar Permisos a Roles</div>
             </a>
         </li>
+        @* Aquí iría el enlace al módulo de Auditoría/Log de Cambios en el futuro *@
+        @* } *@
 
+
+        @* @if (!isAuthenticated) // Descomentar cuando Identity esté configurado
+        { *@
         <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Catálogos</span>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/NivelesIdioma") ? " active" : "")'>
-            <a asp-controller="NivelesIdioma" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-font-color"></i> @* Icono para Niveles de Idioma *@
-                <div>Niveles de Idioma</div>
-            </a>
-        </li>
-
-        <li class='menu-item@(currentPage.StartsWith("/FuentesConocimiento") ? " active" : "")'>
-            <a asp-controller="FuentesConocimiento" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-bulb"></i> @* Icono para Fuentes de Conocimiento *@
-                <div>Fuentes de Conocimiento</div>
-            </a>
-        </li>
-
-        <li class='menu-item@(currentPage.StartsWith("/TiposAsistencia") ? " active" : "")'>
-            <a asp-controller="TiposAsistencia" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-heart-circle"></i> @* Icono para Tipos de Asistencia *@
-                <div>Tipos de Asistencia</div>
-            </a>
-        </li>
-
-        <li class='menu-item@(currentPage.StartsWith("/CamposInteresVocacional") ? " active" : "")'>
-            <a asp-controller="CamposInteresVocacional" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-purchase-tag-alt"></i> @* Icono para Campos de Interés *@
-                <div>Campos de Interés</div>
-            </a>
-        </li>
-        @* Aquí puedes añadir más enlaces para otras entidades (Beneficiarios, Solicitudes, etc.) cuando las generes *@
-
-
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Apps &amp; Pages</span>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/Pages/Account") ? " active open" : "")'>
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-dock-top"></i>
-                <div>Account Settings</div>
-            </a>
-            <ul class="menu-sub">
-                <li class='menu-item@(currentPage == "/Pages/AccountSettings" ? " active" : "")'>
-                    <a asp-controller="Pages" asp-action="AccountSettings" class="menu-link">
-                        <div>Account</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/Pages/AccountSettingsNotifications" ? " active" : "")'>
-                    <a asp-controller="Pages" asp-action="AccountSettingsNotifications" class="menu-link">
-                        <div>Notifications</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/Pages/AccountSettingsConnections" ? " active" : "")'>
-                    <a asp-controller="Pages" asp-action="AccountSettingsConnections" class="menu-link">
-                        <div>Connections</div>
-                    </a>
-                </li>
-            </ul>
+            <span class="menu-header-text">Acceso</span>
         </li>
         <li class='menu-item@(currentPage.StartsWith("/Auth") ? " active open" : "")'>
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-lock-open-alt"></i>
-                <div>Authentications</div>
+                <div>Autenticación</div>
             </a>
             <ul class="menu-sub">
                 <li class='menu-item@(currentPage == "/Auth/LoginBasic" ? " active" : "")'>
                     <a asp-controller="Auth" asp-action="LoginBasic" class="menu-link" target="_blank">
-                        <div>Login</div>
+                        <div>Iniciar Sesión</div>
                     </a>
                 </li>
                 <li class='menu-item@(currentPage == "/Auth/RegisterBasic" ? " active" : "")'>
                     <a asp-controller="Auth" asp-action="RegisterBasic" class="menu-link" target="_blank">
-                        <div>Register</div>
+                        <div>Registrarse</div>
                     </a>
                 </li>
                 <li class='menu-item@(currentPage == "/Auth/ForgotPasswordBasic" ? " active" : "")'>
                     <a asp-controller="Auth" asp-action="ForgotPasswordBasic" class="menu-link" target="_blank">
-                        <div>Forgot Password</div>
+                        <div>Olvidé Contraseña</div>
                     </a>
                 </li>
             </ul>
         </li>
-        <li class='menu-item@(currentPage.StartsWith("/Pages/Misc") ? " active open" : "")'>
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-cube-alt"></i>
-                <div>Misc</div>
-            </a>
-            <ul class="menu-sub">
-                <li class='menu-item@(currentPage == "/Pages/MiscError" ? " active" : "")'>
-                    <a asp-controller="Pages" asp-action="MiscError" class="menu-link" target="_blank">
-                        <div>Error</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/Pages/MiscUnderMaintenance" ? " active" : "")'>
-                    <a asp-controller="Pages" asp-action="MiscUnderMaintenance" class="menu-link" target="_blank">
-                        <div>Under Maintenance</div>
-                    </a>
-                </li>
-            </ul>
-        </li>
-
-        <li class="menu-header small text-uppercase"><span class="menu-header-text">Forms &amp; Tables</span></li>
-        <li class='menu-item@(currentPage.StartsWith("/Forms") || currentPage.StartsWith("/FormLayouts") ? " active open" : "")'>
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-detail"></i>
-                <div>Forms</div>
-            </a>
-            <ul class="menu-sub">
-                <li class='menu-item@(currentPage == "/Forms/BasicInputs" ? " active" : "")'>
-                    <a asp-controller="Forms" asp-action="BasicInputs" class="menu-link">
-                        <div>Basic Inputs</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/Forms/InputGroups" ? " active" : "")'>
-                    <a asp-controller="Forms" asp-action="InputGroups" class="menu-link">
-                        <div>Input groups</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/FormLayouts/Vertical" ? " active" : "")'>
-                    <a asp-controller="FormLayouts" asp-action="Vertical" class="menu-link">
-                        <div>Vertical Form</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/FormLayouts/Horizontal" ? " active" : "")'>
-                    <a asp-controller="FormLayouts" asp-action="Horizontal" class="menu-link">
-                        <div>Horizontal Form</div>
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li class='menu-item@(currentPage == "/Tables/Basic" ? " active" : "")'>
-            <a asp-controller="Tables" asp-action="Basic" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-table"></i>
-                <div>Tables</div>
-            </a>
-        </li>
-
-        <li class="menu-header small text-uppercase"><span class="menu-header-text">Misc</span></li>
-        <li class="menu-item">
-            <a href='@TempData.Peek("support")' target="_blank" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-support"></i>
-                <div>Support</div>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a href='@TempData.Peek("documentation")' target="_blank" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-file"></i>
-                <div>Documentation</div>
-            </a>
-        </li>
+        @* } *@
     </ul>
-
 </aside>
