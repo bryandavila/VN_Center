@@ -1,0 +1,77 @@
+@model VN_Center.Models.Entities.BeneficiarioGrupos
+
+@{
+    ViewData["Title"] = "Asignar Beneficiario a Grupo";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestión de Datos / Beneficiarios en Grupos /</span> Nueva Asignación
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Seleccionar Beneficiario y Grupo</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty] != null)
+                        {
+                            <div class="alert alert-danger">
+                                @foreach (var error in ViewData.ModelState[string.Empty].Errors)
+                                {
+                                    <span>@error.ErrorMessage</span>
+
+                                    <br />
+                                }
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="BeneficiarioID" class="form-label"></label>
+                            <select asp-for="BeneficiarioID" class="form-select" asp-items="ViewBag.BeneficiarioID">
+                                <option value="">-- Seleccione un Beneficiario --</option>
+                            </select>
+                            <span asp-validation-for="BeneficiarioID" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="GrupoID" class="form-label"></label>
+                            <select asp-for="GrupoID" class="form-select" asp-items="ViewBag.GrupoID">
+                                <option value="">-- Seleccione un Grupo Comunitario --</option>
+                            </select>
+                            <span asp-validation-for="GrupoID" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="FechaUnionGrupo" class="form-label"></label>
+                            <input asp-for="FechaUnionGrupo" class="form-control" type="date" />
+                            <span asp-validation-for="FechaUnionGrupo" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="RolEnGrupo" class="form-label"></label>
+                            <input asp-for="RolEnGrupo" class="form-control" placeholder="Ej: Miembro, Tesorero, Coordinador" />
+                            <span asp-validation-for="RolEnGrupo" class="text-danger"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">Asignar a Grupo</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

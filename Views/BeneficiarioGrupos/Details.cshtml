@@ -1,0 +1,42 @@
+@model VN_Center.Models.Entities.BeneficiarioGrupos
+
+@{
+    ViewData["Title"] = "Detalles de Asignación a Grupo";
+    Func<DateTime?, string> DisplayDate = d => d.HasValue ? d.Value.ToString("dd/MM/yyyy") : "No especificada";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Beneficiarios en Grupos /</span> Detalles
+    </h4>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Asignación: @(Model.Beneficiario?.NombreCompleto) en @(Model.GrupoComunitario?.NombreGrupo)</h5>
+                    <div>
+                        <a asp-action="Edit" asp-route-beneficiarioId="@Model.BeneficiarioID" asp-route-grupoId="@Model.GrupoID" class="btn btn-primary me-2"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bx bx-list-ul me-1"></i> Volver a la Lista</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Beneficiario)</dt>
+                        <dd class="col-sm-8">@(Model.Beneficiario?.Apellidos), @(Model.Beneficiario?.Nombres) (ID: @Model.BeneficiarioID)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.GrupoComunitario)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.GrupoComunitario.NombreGrupo)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.FechaUnionGrupo)</dt>
+                        <dd class="col-sm-8">@DisplayDate(Model.FechaUnionGrupo)</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.RolEnGrupo)</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.RolEnGrupo) ? "No especificado" : Model.RolEnGrupo)</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

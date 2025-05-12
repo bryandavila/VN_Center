@@ -66,6 +66,13 @@
             </a>
         </li>
 
+        <li class='menu-item@(currentPage.StartsWith("/BeneficiarioGrupos") ? " active" : "")'>
+            <a asp-controller="BeneficiarioGrupos" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-user-plus"></i> @* Icono para Beneficiarios en Grupos *@
+                <div>Beneficiarios en Grupos</div>
+            </a>
+        </li>
+
         <li class='menu-item@(currentPage.StartsWith("/BeneficiarioAsistenciaRecibida") ? " active" : "")'>
             <a asp-controller="BeneficiarioAsistenciaRecibida" asp-action="Index" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-user-check"></i> @* Icono para Asistencia a Beneficiarios *@
