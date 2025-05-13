@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using VN_Center.Data;
 using Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore;
 using VN_Center.Models.Entities;
+using VN_Center.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,9 @@ builder.Services.AddIdentity<UsuariosSistema, RolesSistema>(options => {
     .AddEntityFrameworkStores<VNCenterDbContext>()
     .AddDefaultTokenProviders(); // Necesario para reseteo de contraseña, etc.
                                  //.AddDefaultUI(); // Si usas la UI por defecto de Identity (Razor Pages)
+builder.Services.AddTransient<IEmailSender, ConsoleEmailSender>();
+
+builder.Services.AddControllersWithViews();
 
 builder.Services.AddControllersWithViews();
 

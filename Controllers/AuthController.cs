@@ -5,9 +5,10 @@ using VN_Center.Models.Entities;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
-using System.Text.Encodings.Web; // Para UrlEncoder
-using Microsoft.AspNetCore.WebUtilities; // Para WebEncoders
-using System.Text; // Para Encoding
+using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
+using VN_Center.Services;
 
 namespace VN_Center.Controllers
 {
@@ -17,24 +18,23 @@ namespace VN_Center.Controllers
     private readonly SignInManager<UsuariosSistema> _signInManager;
     private readonly RoleManager<RolesSistema> _roleManager;
     private readonly ILogger<AuthController> _logger;
-    // private readonly IEmailSender _emailSender; // Descomentar si tienes un servicio de email
+    private readonly IEmailSender _emailSender;
 
     public AuthController(
         UserManager<UsuariosSistema> userManager,
         SignInManager<UsuariosSistema> signInManager,
         RoleManager<RolesSistema> roleManager,
-        ILogger<AuthController> logger
-        // IEmailSender emailSender // Descomentar si tienes un servicio de email
-        )
+        ILogger<AuthController> logger,
+        IEmailSender emailSender)
     {
       _userManager = userManager;
       _signInManager = signInManager;
       _roleManager = roleManager;
       _logger = logger;
-      // _emailSender = emailSender; // Descomentar si tienes un servicio de email
+      _emailSender = emailSender; // *** ASIGNAR IEmailSender ***
     }
 
-    // ... (Acciones LoginBasic, RegisterBasic, Logout, AccessDenied existentes) ...
+    // ... (LoginBasic, RegisterBasic, Logout, AccessDenied sin cambios) ...
 
     // GET: /Auth/LoginBasic
     [AllowAnonymous]
@@ -120,7 +120,7 @@ namespace VN_Center.Controllers
           Apellidos = model.Apellidos,
           PhoneNumber = model.PhoneNumber,
           Activo = true,
-          EmailConfirmed = true // Opcional: Cambiar a false y enviar email de confirmación
+          EmailConfirmed = true
         };
 
         var result = await _userManager.CreateAsync(user, model.Password);
@@ -170,7 +170,7 @@ namespace VN_Center.Controllers
     [AllowAnonymous]
     public IActionResult ForgotPasswordBasic()
     {
-      return View(); // Devuelve la vista Views/Auth/ForgotPasswordBasic.cshtml
+      return View();
     }
 
     // POST: /Auth/ForgotPasswordBasic
@@ -182,31 +182,27 @@ namespace VN_Center.Controllers
       if (ModelState.IsValid)
       {
         var user = await _userManager.FindByEmailAsync(model.Email);
-        if (user == null /* || !(await _userManager.IsEmailConfirmedAsync(user)) */) // Descomentar IsEmailConfirmed si es necesario
+        if (user == null /* || !(await _userManager.IsEmailConfirmedAsync(user)) */)
         {
-          // No revelar que el usuario no existe o no está confirmado
           _logger.LogWarning($"Intento de reseteo de contraseña para email no existente o no confirmado: {model.Email}");
           return RedirectToAction(nameof(ForgotPasswordConfirmation));
         }
 
-        // Generar el token de reseteo de contraseña
         var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code)); // Codificar para URL
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
         var callbackUrl = Url.Action("ResetPassword", "Auth", new { email = user.Email, code = code }, protocol: Request.Scheme);
 
-        _logger.LogInformation($"Token de reseteo de contraseña generado para {user.Email}. Enlace de reseteo (simulado): {callbackUrl}");
+        _logger.LogInformation($"Token de reseteo de contraseña generado para {user.Email}.");
 
-        // *** SIMULACIÓN DE ENVÍO DE CORREO ***
-        // En una aplicación real, aquí enviarías el 'callbackUrl' por correo electrónico al usuario.
-        // await _emailSender.SendEmailAsync(
-        //     model.Email,
-        //     "Restablecer Contraseña - VN Center",
-        //     $"Por favor, restablece tu contraseña haciendo clic aquí: <a href='{HtmlEncoder.Default.Encode(callbackUrl!)}'>enlace</a>");
+        // *** USAR EL SERVICIO DE CORREO REAL ***
+        await _emailSender.SendEmailAsync(
+            model.Email,
+            "Restablecer Contraseña - VN Center",
+            $"Por favor, restablece tu contraseña haciendo clic aquí: <a href='{HtmlEncoder.Default.Encode(callbackUrl!)}'>enlace de restablecimiento</a>");
 
-        // Guardar el enlace en TempData para mostrarlo en la página de confirmación (solo para demostración)
-        TempData["ResetPasswordLink"] = callbackUrl;
-
+        // Ya no necesitamos TempData para el enlace si se envía por correo
+        // TempData["ResetPasswordLink"] = callbackUrl; 
 
         return RedirectToAction(nameof(ForgotPasswordConfirmation));
       }
@@ -218,7 +214,7 @@ namespace VN_Center.Controllers
     [AllowAnonymous]
     public IActionResult ForgotPasswordConfirmation()
     {
-      // Esta vista simplemente informa al usuario que revise su correo (o muestra el enlace si es para demo)
+      // Ya no se muestra el enlace aquí, se asume que se envió por correo.
       return View();
     }
 
@@ -228,11 +224,10 @@ namespace VN_Center.Controllers
     {
       if (code == null || email == null)
       {
-        // Si no hay código o email, es un error o un acceso incorrecto.
         return BadRequest("Se requiere un código y un correo electrónico para restablecer la contraseña.");
       }
       var model = new ResetPasswordViewModel { Token = code, Email = email };
-      return View(model); // Devuelve la vista Views/Auth/ResetPassword.cshtml
+      return View(model);
     }
 
     // POST: /Auth/ResetPassword
@@ -249,7 +244,6 @@ namespace VN_Center.Controllers
       var user = await _userManager.FindByEmailAsync(model.Email);
       if (user == null)
       {
-        // No revelar que el usuario no existe
         _logger.LogWarning($"Intento de reseteo de contraseña para usuario no existente: {model.Email}");
         return RedirectToAction(nameof(ResetPasswordConfirmation));
       }
@@ -272,7 +266,6 @@ namespace VN_Center.Controllers
       }
       catch (FormatException)
       {
-        // Esto puede ocurrir si el token está malformado
         _logger.LogWarning($"Token de reseteo de contraseña malformado para {model.Email}.");
         ModelState.AddModelError(string.Empty, "El token de reseteo de contraseña no es válido.");
       }
@@ -284,7 +277,6 @@ namespace VN_Center.Controllers
     [AllowAnonymous]
     public IActionResult ResetPasswordConfirmation()
     {
-      // Esta vista informa al usuario que su contraseña ha sido restablecida.
       return View();
     }
   }
