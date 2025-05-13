@@ -1,8 +1,139 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@using Microsoft.AspNetCore.Identity
+@using VN_Center.Models.Entities
+
+@inject SignInManager<UsuariosSistema> SignInManager
+@inject UserManager<UsuariosSistema> UserManager
+
+@{
+    ViewData["Title"] = "Bienvenido a VN Center";
+    // Usar _BlankLayout para una página de inicio sin el menú lateral principal
+    Layout = "_BlankLayout";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@* Estilos personalizados para la página de inicio (puedes moverlos a un archivo .css si prefieres) *@
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('/img/backgrounds/hero-bg.jpg'); /* Reemplaza con una imagen tuya si tienes */
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 100px 20px;
+        text-align: center;
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .hero-section h1 {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+
+        .hero-section p {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            max-width: 700px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+        }
+
+    .hero-buttons .btn {
+        font-size: 1.1rem;
+        padding: 12px 30px;
+        margin: 0 10px;
+        border-radius: 25px;
+        transition: transform 0.2s ease-out;
+    }
+
+        .hero-buttons .btn:hover {
+            transform: translateY(-3px);
+        }
+
+    .features-section {
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+        .features-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: #566a7f; /* Color del tema */
+        }
+
+    .feature-item {
+        margin-bottom: 30px;
+    }
+
+        .feature-item i {
+            font-size: 3rem;
+            color: #696cff; /* Color primario del tema */
+            margin-bottom: 15px;
+        }
+
+        .feature-item h5 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #566a7f;
+            margin-bottom: 10px;
+        }
+
+    .footer-simple {
+        text-align: center;
+        padding: 20px;
+        background-color: #f5f5f9;
+        color: #6c757d;
+        border-top: 1px solid #dee2e6;
+    }
+</style>
+
+<div class="hero-section">
+    @if (TempData.Peek("appName") != null)
+    {
+        <h1>Bienvenido a @TempData.Peek("appName")</h1>
+    }
+    else
+    {
+        <h1>Bienvenido a VN Center</h1>
+    }
+    <p>Gestionando el impacto social con eficiencia y transparencia. Tu plataforma para el cambio.</p>
+    <div class="hero-buttons">
+        @if (SignInManager.IsSignedIn(User))
+        {
+            <a asp-controller="Dashboards" asp-action="Index" class="btn btn-primary">Ir al Dashboard</a>
+        }
+        else
+        {
+            <a asp-controller="Auth" asp-action="LoginBasic" class="btn btn-primary">Iniciar Sesión</a>
+            <a asp-controller="Auth" asp-action="RegisterBasic" class="btn btn-outline-light">Registrarse</a>
+        }
+    </div>
 </div>
+
+<div class="features-section container">
+    <h2>¿Qué puedes hacer con VN Center?</h2>
+    <div class="row">
+        <div class="col-md-4 feature-item">
+            <i class='bx bxs-group bx-lg'></i>
+            <h5>Gestión de Voluntarios</h5>
+            <p>Administra solicitudes, asignaciones y seguimiento de voluntarios y pasantes.</p>
+        </div>
+        <div class="col-md-4 feature-item">
+            <i class='bx bxs-heart bx-lg'></i>
+            <h5>Registro de Beneficiarios</h5>
+            <p>Lleva un control detallado de los beneficiarios y el impacto de los programas.</p>
+        </div>
+        <div class="col-md-4 feature-item">
+            <i class='bx bxs-bar-chart-alt-2 bx-lg'></i>
+            <h5>Programas y Proyectos</h5>
+            <p>Organiza y monitorea la ejecución de los diversos programas y proyectos de la ONG.</p>
+        </div>
+    </div>
+</div>
+
+<footer class="footer-simple">
+    <p>&copy; @DateTime.Now.Year - VN Center for Social Justice Costa Rica. Todos los derechos reservados.</p>
+</footer>
+
