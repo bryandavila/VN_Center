@@ -15,13 +15,15 @@
                 <div class="card-body">
                     <div class="app-brand justify-content-center mb-5">
                         <a asp-controller="Home" asp-action="Index" class="app-brand-link gap-2">
-                            @* CORREGIR RUTA AQUÍ *@
                             <span class="app-brand-logo demo">@await Html.PartialAsync("../_Partials/_Macros")</span>
                             <span class="app-brand-text demo text-heading fw-bold">@TempData.Peek("appName")</span>
                         </a>
                     </div>
-                    <h4 class="mb-1">¡La aventura comienza aquí! 🚀</h4>
-                    <p class="mb-6">Haz que la gestión de tu aplicación sea fácil y divertida.</p>
+                    @* CENTRADO AÑADIDO AQUÍ *@
+                    <div class="text-center">
+                        <h4 class="mb-1">¡La aventura comienza aquí! 🚀</h4>
+                        <p class="mb-6">Haz que la gestión de tu aplicación sea fácil y divertida.</p>
+                    </div>
 
                     <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
