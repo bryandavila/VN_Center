@@ -66,6 +66,12 @@
                 <div>Grupos Comunitarios</div>
             </a>
         </li>
+        <li class='menu-item@(currentPage.StartsWith("/SolicitudesInformacionGeneral") ? " active" : "")'>
+            <a asp-controller="SolicitudesInformacionGeneral" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-help-circle"></i>
+                <div>Consultas Generales</div>
+            </a>
+        </li>
 
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Vinculaciones y Seguimiento</span>
@@ -121,12 +127,6 @@
 
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Consultas y Catálogos</span>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/SolicitudesInformacionGeneral") ? " active" : "")'>
-            <a asp-controller="SolicitudesInformacionGeneral" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-help-circle"></i>
-                <div>Consultas Generales</div>
-            </a>
         </li>
         <li class='menu-item@(currentPage.StartsWith("/NivelesIdioma") ? " active" : "")'>
             <a asp-controller="NivelesIdioma" asp-action="Index" class="menu-link">
