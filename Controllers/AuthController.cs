@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
-using VN_Center.Models.ViewModels; // Para LoginViewModel y RegisterViewModel
+using VN_Center.Models.ViewModels;
 using Microsoft.AspNetCore.Identity;
-using VN_Center.Models.Entities; // Para UsuariosSistema
+using VN_Center.Models.Entities;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization; // Para [AllowAnonymous]
-using Microsoft.Extensions.Logging; // Para ILogger
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using System.Text.Encodings.Web; // Para UrlEncoder
+using Microsoft.AspNetCore.WebUtilities; // Para WebEncoders
+using System.Text; // Para Encoding
 
 namespace VN_Center.Controllers
 {
@@ -12,20 +15,26 @@ namespace VN_Center.Controllers
   {
     private readonly UserManager<UsuariosSistema> _userManager;
     private readonly SignInManager<UsuariosSistema> _signInManager;
-    private readonly RoleManager<RolesSistema> _roleManager; // *** AÑADIDO CAMPO PARA RoleManager ***
+    private readonly RoleManager<RolesSistema> _roleManager;
     private readonly ILogger<AuthController> _logger;
+    // private readonly IEmailSender _emailSender; // Descomentar si tienes un servicio de email
 
     public AuthController(
         UserManager<UsuariosSistema> userManager,
         SignInManager<UsuariosSistema> signInManager,
-        RoleManager<RolesSistema> roleManager, // *** AÑADIDA INYECCIÓN DE RoleManager ***
-        ILogger<AuthController> logger)
+        RoleManager<RolesSistema> roleManager,
+        ILogger<AuthController> logger
+        // IEmailSender emailSender // Descomentar si tienes un servicio de email
+        )
     {
       _userManager = userManager;
       _signInManager = signInManager;
-      _roleManager = roleManager; // *** ASIGNAR RoleManager INYECTADO ***
+      _roleManager = roleManager;
       _logger = logger;
+      // _emailSender = emailSender; // Descomentar si tienes un servicio de email
     }
+
+    // ... (Acciones LoginBasic, RegisterBasic, Logout, AccessDenied existentes) ...
 
     // GET: /Auth/LoginBasic
     [AllowAnonymous]
@@ -111,7 +120,7 @@ namespace VN_Center.Controllers
           Apellidos = model.Apellidos,
           PhoneNumber = model.PhoneNumber,
           Activo = true,
-          EmailConfirmed = true
+          EmailConfirmed = true // Opcional: Cambiar a false y enviar email de confirmación
         };
 
         var result = await _userManager.CreateAsync(user, model.Password);
@@ -119,8 +128,6 @@ namespace VN_Center.Controllers
         {
           _logger.LogInformation($"Usuario '{user.UserName}' creó una nueva cuenta con contraseña.");
 
-          // Asignar el rol "Usuario" por defecto
-          // Ahora _roleManager está disponible
           if (await _roleManager.RoleExistsAsync("Usuario"))
           {
             await _userManager.AddToRoleAsync(user, "Usuario");
@@ -142,7 +149,6 @@ namespace VN_Center.Controllers
       return View(model);
     }
 
-
     // POST: /Auth/Logout
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -150,31 +156,136 @@ namespace VN_Center.Controllers
     {
       await _signInManager.SignOutAsync();
       _logger.LogInformation("Usuario cerró sesión.");
-      return RedirectToAction("LoginBasic", "Auth"); // Redirigir a la página de Login después de cerrar sesión
+      return RedirectToAction(nameof(LoginBasic), "Auth");
     }
 
     // GET: /Auth/AccessDenied
-    [AllowAnonymous] // Permitir acceso anónimo a la página de acceso denegado
+    [AllowAnonymous]
     public IActionResult AccessDenied()
     {
-      return View(); // Asegúrate de tener una vista Views/Auth/AccessDenied.cshtml
+      return View();
     }
 
-    // TODO: Implementar ForgotPassword y ResetPassword si es necesario
     // GET: /Auth/ForgotPasswordBasic
-    // [AllowAnonymous]
-    // public IActionResult ForgotPasswordBasic()
-    // {
-    //     return View();
-    // }
+    [AllowAnonymous]
+    public IActionResult ForgotPasswordBasic()
+    {
+      return View(); // Devuelve la vista Views/Auth/ForgotPasswordBasic.cshtml
+    }
 
     // POST: /Auth/ForgotPasswordBasic
-    // [HttpPost]
-    // [AllowAnonymous]
-    // [ValidateAntiForgeryToken]
-    // public async Task<IActionResult> ForgotPasswordBasic(ForgotPasswordViewModel model)
-    // {
-    //     // Lógica para enviar email de reseteo de contraseña
-    // }
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPasswordBasic(ForgotPasswordViewModel model)
+    {
+      if (ModelState.IsValid)
+      {
+        var user = await _userManager.FindByEmailAsync(model.Email);
+        if (user == null /* || !(await _userManager.IsEmailConfirmedAsync(user)) */) // Descomentar IsEmailConfirmed si es necesario
+        {
+          // No revelar que el usuario no existe o no está confirmado
+          _logger.LogWarning($"Intento de reseteo de contraseña para email no existente o no confirmado: {model.Email}");
+          return RedirectToAction(nameof(ForgotPasswordConfirmation));
+        }
+
+        // Generar el token de reseteo de contraseña
+        var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code)); // Codificar para URL
+
+        var callbackUrl = Url.Action("ResetPassword", "Auth", new { email = user.Email, code = code }, protocol: Request.Scheme);
+
+        _logger.LogInformation($"Token de reseteo de contraseña generado para {user.Email}. Enlace de reseteo (simulado): {callbackUrl}");
+
+        // *** SIMULACIÓN DE ENVÍO DE CORREO ***
+        // En una aplicación real, aquí enviarías el 'callbackUrl' por correo electrónico al usuario.
+        // await _emailSender.SendEmailAsync(
+        //     model.Email,
+        //     "Restablecer Contraseña - VN Center",
+        //     $"Por favor, restablece tu contraseña haciendo clic aquí: <a href='{HtmlEncoder.Default.Encode(callbackUrl!)}'>enlace</a>");
+
+        // Guardar el enlace en TempData para mostrarlo en la página de confirmación (solo para demostración)
+        TempData["ResetPasswordLink"] = callbackUrl;
+
+
+        return RedirectToAction(nameof(ForgotPasswordConfirmation));
+      }
+
+      return View(model);
+    }
+
+    // GET: /Auth/ForgotPasswordConfirmation
+    [AllowAnonymous]
+    public IActionResult ForgotPasswordConfirmation()
+    {
+      // Esta vista simplemente informa al usuario que revise su correo (o muestra el enlace si es para demo)
+      return View();
+    }
+
+    // GET: /Auth/ResetPassword
+    [AllowAnonymous]
+    public IActionResult ResetPassword(string? code = null, string? email = null)
+    {
+      if (code == null || email == null)
+      {
+        // Si no hay código o email, es un error o un acceso incorrecto.
+        return BadRequest("Se requiere un código y un correo electrónico para restablecer la contraseña.");
+      }
+      var model = new ResetPasswordViewModel { Token = code, Email = email };
+      return View(model); // Devuelve la vista Views/Auth/ResetPassword.cshtml
+    }
+
+    // POST: /Auth/ResetPassword
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+      if (!ModelState.IsValid)
+      {
+        return View(model);
+      }
+
+      var user = await _userManager.FindByEmailAsync(model.Email);
+      if (user == null)
+      {
+        // No revelar que el usuario no existe
+        _logger.LogWarning($"Intento de reseteo de contraseña para usuario no existente: {model.Email}");
+        return RedirectToAction(nameof(ResetPasswordConfirmation));
+      }
+
+      try
+      {
+        var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.Token));
+        var result = await _userManager.ResetPasswordAsync(user, code, model.Password);
+        if (result.Succeeded)
+        {
+          _logger.LogInformation($"Contraseña restablecida exitosamente para el usuario {user.Email}.");
+          return RedirectToAction(nameof(ResetPasswordConfirmation));
+        }
+
+        _logger.LogWarning($"Error al restablecer contraseña para {user.Email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        foreach (var error in result.Errors)
+        {
+          ModelState.AddModelError(string.Empty, error.Description);
+        }
+      }
+      catch (FormatException)
+      {
+        // Esto puede ocurrir si el token está malformado
+        _logger.LogWarning($"Token de reseteo de contraseña malformado para {model.Email}.");
+        ModelState.AddModelError(string.Empty, "El token de reseteo de contraseña no es válido.");
+      }
+
+      return View(model);
+    }
+
+    // GET: /Auth/ResetPasswordConfirmation
+    [AllowAnonymous]
+    public IActionResult ResetPasswordConfirmation()
+    {
+      // Esta vista informa al usuario que su contraseña ha sido restablecida.
+      return View();
+    }
   }
 }
