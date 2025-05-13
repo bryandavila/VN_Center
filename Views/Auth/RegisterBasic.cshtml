@@ -1,72 +1,86 @@
+@model VN_Center.Models.ViewModels.RegisterViewModel
 @{
-  Layout = "_BlankLayout";
-  ViewData["Title"] = "Register Basic - Pages";
+    Layout = "_BlankLayout";
+    ViewData["Title"] = "Registrarse";
 }
 
 @section PageStyles {
-<link rel="stylesheet" href="~/vendor/css/pages/page-auth.css">
+    <link rel="stylesheet" href="~/vendor/css/pages/page-auth.css">
 }
 
-@* ************** Content ************** *@
-
 <div class="container-xxl">
-  <div class="authentication-wrapper authentication-basic container-p-y">
-    <div class="authentication-inner">
+    <div class="authentication-wrapper authentication-basic container-p-y">
+        <div class="authentication-inner">
+            <div class="card px-sm-6 px-0">
+                <div class="card-body">
+                    <div class="app-brand justify-content-center mb-5">
+                        <a asp-controller="Home" asp-action="Index" class="app-brand-link gap-2">
+                            @* CORREGIR RUTA AQUÍ *@
+                            <span class="app-brand-logo demo">@await Html.PartialAsync("../_Partials/_Macros")</span>
+                            <span class="app-brand-text demo text-heading fw-bold">@TempData.Peek("appName")</span>
+                        </a>
+                    </div>
+                    <h4 class="mb-1">¡La aventura comienza aquí! 🚀</h4>
+                    <p class="mb-6">Haz que la gestión de tu aplicación sea fácil y divertida.</p>
 
-      <!-- Register Card -->
-      <div class="card px-sm-6 px-0">
-        <div class="card-body">
-          <!-- Logo -->
-          <div class="app-brand justify-content-center mb-6">
-            <a href="/" class="app-brand-link gap-2">
-              <span class="app-brand-logo demo">@await Html.PartialAsync("../_Partials/_Macros")</span>
-              <span class="app-brand-text demo text-heading fw-bold">@TempData.Peek("appName")</span>
-            </a>
-          </div>
-          <!-- /Logo -->
-          <h4 class="mb-1">Adventure starts here 🚀</h4>
-          <p class="mb-6">Make your app management easy and fun!</p>
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-          <form id="formAuthentication" class="mb-6" action="~/" method="POST">
-            <div class="mb-6">
-              <label for="username" class="form-label">Username</label>
-              <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" autofocus>
-            </div>
-            <div class="mb-6">
-              <label for="email" class="form-label">Email</label>
-              <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email">
-            </div>
-            <div class="mb-6 form-password-toggle">
-              <label class="form-label" for="password">Password</label>
-              <div class="input-group input-group-merge">
-                <input type="password" id="password" class="form-control" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" />
-                <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
-              </div>
-            </div>
+                    <form id="formAuthentication" class="mb-6" asp-controller="Auth" asp-action="RegisterBasic" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-6">
+                            <label asp-for="Nombres" class="form-label"></label>
+                            <input asp-for="Nombres" class="form-control" placeholder="Ingresa tus nombres" />
+                            <span asp-validation-for="Nombres" class="text-danger"></span>
+                        </div>
+                        <div class="mb-6">
+                            <label asp-for="Apellidos" class="form-label"></label>
+                            <input asp-for="Apellidos" class="form-control" placeholder="Ingresa tus apellidos" />
+                            <span asp-validation-for="Apellidos" class="text-danger"></span>
+                        </div>
+                        <div class="mb-6">
+                            <label asp-for="UserName" class="form-label"></label>
+                            <input asp-for="UserName" class="form-control" placeholder="Ingresa tu nombre de usuario" autofocus>
+                            <span asp-validation-for="UserName" class="text-danger"></span>
+                        </div>
+                        <div class="mb-6">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="Ingresa tu correo electrónico">
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div class="mb-6">
+                            <label asp-for="PhoneNumber" class="form-label"></label>
+                            <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="Ingresa tu número de teléfono" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+                        <div class="mb-6 form-password-toggle">
+                            <label class="form-label" asp-for="Password"></label>
+                            <div class="input-group input-group-merge">
+                                <input asp-for="Password" class="form-control" placeholder="············" aria-describedby="password" />
+                                <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        <div class="mb-6 form-password-toggle">
+                            <label class="form-label" asp-for="ConfirmPassword"></label>
+                            <div class="input-group input-group-merge">
+                                <input asp-for="ConfirmPassword" class="form-control" placeholder="············" />
+                                <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+                        <button class="btn btn-primary d-grid w-100">
+                            Registrarse
+                        </button>
+                    </form>
 
-            <div class="my-8">
-              <div class="form-check mb-0 ms-2">
-                <input class="form-check-input" type="checkbox" id="terms-conditions" name="terms">
-                <label class="form-check-label" for="terms-conditions">
-                  I agree to
-                  <a href="javascript:void(0);">privacy policy & terms</a>
-                </label>
-              </div>
+                    <p class="text-center">
+                        <span>¿Ya tienes una cuenta?</span>
+                        <a asp-controller="Auth" asp-action="LoginBasic">
+                            <span>Iniciar sesión</span>
+                        </a>
+                    </p>
+                </div>
             </div>
-            <button class="btn btn-primary d-grid w-100">
-              Sign up
-            </button>
-          </form>
-
-          <p class="text-center">
-            <span>Already have an account?</span>
-            <a href="/Auth/LoginBasic">
-              <span>Sign in instead</span>
-            </a>
-          </p>
         </div>
-      </div>
-      <!-- Register Card -->
     </div>
-  </div>
 </div>

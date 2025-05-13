@@ -8,9 +8,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic; // Para List
 using VN_Center.Models.ViewModels; // Necesitamos los ViewModels definidos antes
+using Microsoft.AspNetCore.Authorization;
 
 namespace VN_Center.Controllers
 {
+  [Authorize]
   // TODO: Considerar añadir autorización [Authorize(Roles = "Administrador")] si es necesario
   public class UsuariosSistemaController : Controller
   {

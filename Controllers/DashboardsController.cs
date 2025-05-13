@@ -7,9 +7,11 @@ using VN_Center.Data;
 using VN_Center.Models.ViewModels;
 using System.Globalization;
 using VN_Center.Models.Entities; // Necesario para acceder a las entidades directamente
+using Microsoft.AspNetCore.Authorization;
 
 namespace VN_Center.Controllers
 {
+  [Authorize]
   public class DashboardsController : Controller
   {
     private readonly VNCenterDbContext _context;

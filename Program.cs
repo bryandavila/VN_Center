@@ -39,6 +39,18 @@ builder.Services.AddIdentity<UsuariosSistema, RolesSistema>(options => {
 
 builder.Services.AddControllersWithViews();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+  // Cookie settings
+  options.Cookie.HttpOnly = true;
+  options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Duración de la cookie de sesión
+
+  options.LoginPath = "/Auth/LoginBasic"; // Tu página de inicio de sesión
+  options.LogoutPath = "/Auth/Logout";   // Tu acción de cierre de sesión
+  options.AccessDeniedPath = "/Auth/AccessDenied"; // Página para acceso denegado
+  options.SlidingExpiration = true;
+});
+
 // Si no usas la UI por defecto de Identity y tienes tu propio AuthController,
 // podrías necesitar configurar las rutas para login/logout aquí o en UseEndpoints.
 // builder.Services.AddRazorPages(); // Si usas Razor Pages para Identity UI

@@ -1,0 +1,17 @@
+@{
+    ViewData["Title"] = "Acceso Denegado";
+    Layout = "_BlankLayout"; // O el layout que prefieras para esta página
+}
+
+<div class="container-xxl container-p-y">
+    <div class="misc-wrapper">
+        <h2 class="mb-2 mx-2">Acceso Denegado :(</h2>
+        <p class="mb-4 mx-2">
+            No tienes permiso para acceder a esta página.
+        </p>
+        <a asp-controller="Dashboards" asp-action="Index" class="btn btn-primary">Volver al Inicio</a>
+        <div class="mt-4">
+            <img src="~/img/illustrations/girl-doing-yoga-light.png" alt="girl-doing-yoga-light" width="500" class="img-fluid">
+        </div>
+    </div>
+</div>

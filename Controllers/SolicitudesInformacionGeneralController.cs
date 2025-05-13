@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using VN_Center.Data;
 using VN_Center.Models.Entities; // Asegúrate que este using apunta al namespace correcto de tus entidades
 using Microsoft.AspNetCore.Identity; // Para UserManager
+using Microsoft.AspNetCore.Authorization;
 
 namespace VN_Center.Controllers
 {
+  [Authorize]
   public class SolicitudesInformacionGeneralController : Controller
   {
     private readonly VNCenterDbContext _context;

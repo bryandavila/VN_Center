@@ -6,9 +6,11 @@ using Microsoft.EntityFrameworkCore; // Aún necesario para DbUpdateConcurrencyE
 using VN_Center.Data;
 using VN_Center.Models.Entities;
 using Microsoft.AspNetCore.Identity; // Necesario para RoleManager
+using Microsoft.AspNetCore.Authorization;
 
 namespace VN_Center.Controllers
 {
+  [Authorize]
   // TODO: Considerar añadir autorización [Authorize(Roles = "Administrador")] si es necesario
   public class RolesSistemaController : Controller
   {

@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using VN_Center.Data;
 using VN_Center.Models.Entities;
 using Microsoft.AspNetCore.Identity; // Para UserManager
+using Microsoft.AspNetCore.Authorization;
 
 namespace VN_Center.Controllers
 {
+  [Authorize]
   public class ProgramasProyectosONGController : Controller
   {
     private readonly VNCenterDbContext _context;
