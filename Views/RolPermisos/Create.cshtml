@@ -25,14 +25,15 @@
                                 @foreach (var error in ViewData.ModelState[string.Empty].Errors)
                                 {
                                     <span>@error.ErrorMessage</span>
-
                                     <br />
                                 }
                             </div>
                         }
 
                         <div class="mb-3">
-                            <label asp-for="RolUsuarioID" class="form-label"></label>
+                            @* El asp-for="RolUsuarioID" es correcto porque la propiedad en RolPermisos se llama así.
+                               El SelectList en ViewData["RolUsuarioID"] ahora usa "Id" como valor y "Name" como texto. *@
+                            <label asp-for="RolUsuarioID" class="form-label">Rol</label>
                             <select asp-for="RolUsuarioID" class="form-select" asp-items="ViewBag.RolUsuarioID">
                                 <option value="">-- Seleccione un Rol --</option>
                             </select>
@@ -40,7 +41,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="PermisoID" class="form-label"></label>
+                            <label asp-for="PermisoID" class="form-label">Permiso</label>
                             <select asp-for="PermisoID" class="form-select" asp-items="ViewBag.PermisoID">
                                 <option value="">-- Seleccione un Permiso --</option>
                             </select>

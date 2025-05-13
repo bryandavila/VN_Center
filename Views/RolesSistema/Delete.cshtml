@@ -1,5 +1,4 @@
 @model VN_Center.Models.Entities.RolesSistema
-
 @{
     ViewData["Title"] = "Eliminar Rol";
 }
@@ -17,19 +16,22 @@
                     <h5 class="mb-0 text-danger">Confirmar Eliminación</h5>
                 </div>
                 <div class="card-body">
-                    <p class="mb-0">¿Estás seguro de que quieres eliminar el rol "<strong>@Model.NombreRol</strong>"?</p>
-                    <p class="text-warning small">Advertencia: Eliminar un rol puede afectar a los usuarios que lo tengan asignado. Asegúrate de que ningún usuario dependa de este rol o reasígnalos antes de eliminar.</p>
+                    @* Actualizado para usar Model.Name *@
+                    <p class="mb-0">¿Estás seguro de que quieres eliminar el rol "<strong>@Model.Name</strong>"?</p>
+                    <p class="text-warning small">Advertencia: Eliminar un rol puede afectar a los usuarios que lo tengan asignado y los permisos asociados. Asegúrate de que ningún usuario o configuración dependa de este rol, o reasígnalos antes de eliminar.</p>
                     <hr />
                     <dl class="row">
-                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.NombreRol)</dt>
-                        <dd class="col-sm-8">@Html.DisplayFor(model => model.NombreRol)</dd>
+                        @* Actualizado DisplayNameFor y DisplayFor para usar "Name" *@
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Name)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.Name)</dd>
 
                         <dt class="col-sm-4">@Html.DisplayNameFor(model => model.DescripcionRol)</dt>
                         <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.DescripcionRol) ? "Sin descripción" : Model.DescripcionRol)</dd>
                     </dl>
 
                     <form asp-action="Delete" method="post" id="deleteForm" class="mt-4">
-                        <input type="hidden" asp-for="RolUsuarioID" />
+                        @* Actualizado asp-for para usar "Id" *@
+                        <input type="hidden" asp-for="Id" />
                         <button type="button" id="btnConfirmDelete" class="btn btn-danger me-2">Sí, Eliminar Rol</button>
                         <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
                     </form>
@@ -43,28 +45,35 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
+    @* Tu script de SweetAlert para confirmación puede permanecer igual si ya funciona *@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const deleteButton = document.getElementById('btnConfirmDelete');
             if (deleteButton) {
                 deleteButton.addEventListener('click', function (event) {
                     event.preventDefault();
-
-                    Swal.fire({
-                        title: '¿Estás realmente seguro?',
-                        html: "¡No podrás revertir la eliminación de este rol!<br><strong class='text-warning'>Asegúrate de que ningún usuario esté usando este rol.</strong>",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Sí, ¡elimínalo!',
-                        cancelButtonText: 'No, cancelar'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
+                    // Asumiendo que tienes SweetAlert2 (swal) disponible globalmente
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: '¿Estás realmente seguro?',
+                            html: "¡No podrás revertir la eliminación de este rol!<br><strong class='text-warning'>Asegúrate de que ningún usuario esté usando este rol y que los permisos asociados se manejen adecuadamente.</strong>",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Sí, ¡elimínalo!',
+                            cancelButtonText: 'No, cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById('deleteForm').submit();
+                            }
+                        });
+                    } else {
+                        // Fallback si SweetAlert no está cargado
+                        if(confirm("¿Estás realmente seguro de que quieres eliminar este rol? Esta acción no se puede deshacer y podría afectar a usuarios y permisos.")) {
                             document.getElementById('deleteForm').submit();
                         }
-                    });
+                    }
                 });
             }
         });

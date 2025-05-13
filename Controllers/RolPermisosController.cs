@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -7,33 +6,34 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using VN_Center.Data;
 using VN_Center.Models.Entities;
+using Microsoft.AspNetCore.Identity; // Necesario para RoleManager
 
 namespace VN_Center.Controllers
 {
+  // TODO: Considerar añadir autorización si es necesario
   public class RolPermisosController : Controller
   {
     private readonly VNCenterDbContext _context;
+    private readonly RoleManager<RolesSistema> _roleManager; // Inyectar RoleManager
 
-    public RolPermisosController(VNCenterDbContext context)
+    public RolPermisosController(VNCenterDbContext context, RoleManager<RolesSistema> roleManager)
     {
       _context = context;
+      _roleManager = roleManager; // Asignar RoleManager
     }
 
     // GET: RolPermisos
     public async Task<IActionResult> Index()
     {
       var vNCenterDbContext = _context.RolPermisos
-                                      .Include(r => r.Permisos)
-                                      .Include(r => r.RolesSistema)
-                                      .OrderBy(r => r.RolesSistema.NombreRol)
-                                      .ThenBy(r => r.Permisos.NombrePermiso);
+                                    .Include(r => r.Permisos)
+                                    .Include(r => r.RolesSistema) // RolesSistema es la entidad de Identity
+                                    .OrderBy(r => r.RolesSistema.Name) // Ordenar por RolesSistema.Name
+                                    .ThenBy(r => r.Permisos.NombrePermiso);
       return View(await vNCenterDbContext.ToListAsync());
     }
 
-    // GET: RolPermisos/Details/5 (Details para una tabla de cruce pura puede no ser muy útil,
-    // pero el scaffolder la crea. La dejaremos por ahora.)
-    // Para Details, necesitamos ambos IDs. El scaffolder crea Details(int? id) que no funciona para PK compuesta.
-    // Lo ajustaremos para que tome ambos IDs.
+    // GET: RolPermisos/Details/rolId/permisoId
     public async Task<IActionResult> Details(int? rolId, int? permisoId)
     {
       if (rolId == null || permisoId == null)
@@ -43,8 +43,9 @@ namespace VN_Center.Controllers
 
       var rolPermisos = await _context.RolPermisos
           .Include(r => r.Permisos)
-          .Include(r => r.RolesSistema)
+          .Include(r => r.RolesSistema) // RolesSistema es la entidad de Identity
           .FirstOrDefaultAsync(m => m.RolUsuarioID == rolId && m.PermisoID == permisoId);
+
       if (rolPermisos == null)
       {
         return NotFound();
@@ -53,28 +54,31 @@ namespace VN_Center.Controllers
       return View(rolPermisos);
     }
 
-    private void PopulateRolesDropDownList(object? selectedRole = null)
+    // Método actualizado para poblar el dropdown de Roles usando RoleManager
+    private async Task PopulateRolesDropDownListAsync(object? selectedRole = null)
     {
-      var rolesQuery = from r in _context.RolesSistema
-                       orderby r.NombreRol
-                       select r;
-      ViewData["RolUsuarioID"] = new SelectList(rolesQuery.AsNoTracking(), "RolUsuarioID", "NombreRol", selectedRole);
+      // Obtener roles desde RoleManager
+      var rolesQuery = await _roleManager.Roles
+                                  .OrderBy(r => r.Name) // Usar Name de IdentityRole
+                                  .ToListAsync();
+      // Usar "Id" como valor y "Name" como texto para el SelectList
+      ViewData["RolUsuarioID"] = new SelectList(rolesQuery, "Id", "Name", selectedRole);
     }
 
-    private void PopulatePermisosDropDownList(object? selectedPermiso = null)
+    private async Task PopulatePermisosDropDownListAsync(object? selectedPermiso = null)
     {
-      var permisosQuery = from p in _context.Permisos
-                          orderby p.NombrePermiso
-                          select p;
-      ViewData["PermisoID"] = new SelectList(permisosQuery.AsNoTracking(), "PermisoID", "NombrePermiso", selectedPermiso);
+      var permisosQuery = await _context.Permisos
+                                   .OrderBy(p => p.NombrePermiso)
+                                   .ToListAsync(); // Es bueno usar ToListAsync si se va a iterar o pasar a SelectList
+      ViewData["PermisoID"] = new SelectList(permisosQuery, "PermisoID", "NombrePermiso", selectedPermiso);
     }
-
 
     // GET: RolPermisos/Create
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
-      PopulateRolesDropDownList();
-      PopulatePermisosDropDownList();
+      // Usar las versiones asíncronas
+      await PopulateRolesDropDownListAsync();
+      await PopulatePermisosDropDownListAsync();
       return View();
     }
 
@@ -83,10 +87,6 @@ namespace VN_Center.Controllers
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("RolUsuarioID,PermisoID")] RolPermisos rolPermisos)
     {
-      // No hay otras propiedades de navegación directas en RolPermisos que necesiten ModelState.Remove
-      // ModelState.Remove("RolesSistema"); // Ya no es necesario si solo se bindean los IDs
-      // ModelState.Remove("Permisos");
-
       // Verificar si la combinación Rol-Permiso ya existe
       if (await _context.RolPermisos.AnyAsync(rp => rp.RolUsuarioID == rolPermisos.RolUsuarioID && rp.PermisoID == rolPermisos.PermisoID))
       {
@@ -100,78 +100,29 @@ namespace VN_Center.Controllers
         TempData["SuccessMessage"] = "Permiso asignado al rol exitosamente.";
         return RedirectToAction(nameof(Index));
       }
-      PopulateRolesDropDownList(rolPermisos.RolUsuarioID);
-      PopulatePermisosDropDownList(rolPermisos.PermisoID);
+      await PopulateRolesDropDownListAsync(rolPermisos.RolUsuarioID);
+      await PopulatePermisosDropDownListAsync(rolPermisos.PermisoID);
       return View(rolPermisos);
     }
 
-    // GET: RolPermisos/Edit/5 (Edit para una PK compuesta es problemático con el scaffolder por defecto)
-    // Lo ajustaremos para que tome ambos IDs. El concepto de "Editar" una asignación es usualmente eliminarla y crear una nueva
-    // si se quiere cambiar el rol o el permiso. Si la tabla de cruce tuviera datos adicionales, sí se editaría.
-    // Por ahora, el scaffolder genera un Edit(int? id) que no funcionará.
-    // Una mejor UX sería gestionar esto desde la página de edición de un Rol (listar sus permisos y permitir añadir/quitar).
-    // Por simplicidad del CRUD generado, la acción Edit aquí podría no ser muy útil o necesitar un rediseño completo.
-    // Vamos a comentarla por ahora, ya que la funcionalidad principal es Crear y Eliminar asignaciones.
+    // Las acciones Edit para una tabla de cruce simple (sin datos adicionales en la tabla de cruce)
+    // a menudo se omiten, ya que "editar" una asignación usualmente significa eliminar la antigua y crear una nueva.
+    // Si decides implementarla, asegúrate de que la lógica y la UX sean claras.
+    // Por ahora, se mantienen comentadas como en tu código original.
     /*
     public async Task<IActionResult> Edit(int? rolId, int? permisoId)
     {
-        if (rolId == null || permisoId == null)
-        {
-            return NotFound();
-        }
-
-        var rolPermisos = await _context.RolPermisos.FindAsync(rolId, permisoId); // FindAsync funciona con PK compuesta
-        if (rolPermisos == null)
-        {
-            return NotFound();
-        }
-        PopulateRolesDropDownList(rolPermisos.RolUsuarioID);
-        PopulatePermisosDropDownList(rolPermisos.PermisoID);
-        return View(rolPermisos);
+        // ...
     }
-    */
-
-    // POST: RolPermisos/Edit/5
-    // Comentado por las mismas razones que el GET de Edit.
-    /*
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int rolId, int permisoId, [Bind("RolUsuarioID,PermisoID")] RolPermisos rolPermisos)
     {
-        if (rolId != rolPermisos.RolUsuarioID || permisoId != rolPermisos.PermisoID)
-        {
-            return NotFound();
-        }
-
-        if (ModelState.IsValid)
-        {
-            try
-            {
-                _context.Update(rolPermisos);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Asignación de permiso actualizada exitosamente.";
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!RolPermisosExists(rolPermisos.RolUsuarioID, rolPermisos.PermisoID))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return RedirectToAction(nameof(Index));
-        }
-        PopulateRolesDropDownList(rolPermisos.RolUsuarioID);
-        PopulatePermisosDropDownList(rolPermisos.PermisoID);
-        return View(rolPermisos);
+        // ...
     }
     */
 
-    // GET: RolPermisos/Delete/5
-    // Ajustado para tomar ambos IDs de la clave compuesta.
+    // GET: RolPermisos/Delete/rolId/permisoId
     public async Task<IActionResult> Delete(int? rolId, int? permisoId)
     {
       if (rolId == null || permisoId == null)
@@ -181,8 +132,9 @@ namespace VN_Center.Controllers
 
       var rolPermisos = await _context.RolPermisos
           .Include(r => r.Permisos)
-          .Include(r => r.RolesSistema)
+          .Include(r => r.RolesSistema) // RolesSistema es la entidad de Identity
           .FirstOrDefaultAsync(m => m.RolUsuarioID == rolId && m.PermisoID == permisoId);
+
       if (rolPermisos == null)
       {
         return NotFound();
@@ -191,12 +143,13 @@ namespace VN_Center.Controllers
       return View(rolPermisos);
     }
 
-    // POST: RolPermisos/Delete/5
+    // POST: RolPermisos/DeleteConfirmed
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    // Ajustado para tomar ambos IDs de la clave compuesta.
-    public async Task<IActionResult> DeleteConfirmed(int RolUsuarioID, int PermisoID) // Parámetros deben coincidir con los valores de la ruta/formulario
+    // Los nombres de los parámetros deben coincidir con los campos del formulario/ruta (RolUsuarioID, PermisoID)
+    public async Task<IActionResult> DeleteConfirmed(int RolUsuarioID, int PermisoID)
     {
+      // FindAsync funciona bien con claves compuestas si están definidas correctamente en OnModelCreating
       var rolPermisos = await _context.RolPermisos.FindAsync(RolUsuarioID, PermisoID);
       if (rolPermisos != null)
       {
@@ -204,10 +157,15 @@ namespace VN_Center.Controllers
         await _context.SaveChangesAsync();
         TempData["SuccessMessage"] = "Asignación de permiso eliminada exitosamente.";
       }
+      else
+      {
+        TempData["ErrorMessage"] = "No se encontró la asignación de permiso a eliminar.";
+      }
 
       return RedirectToAction(nameof(Index));
     }
 
+    // El método RolPermisosExists es para la clave compuesta y está bien como está.
     private bool RolPermisosExists(int rolId, int permisoId)
     {
       return _context.RolPermisos.Any(e => e.RolUsuarioID == rolId && e.PermisoID == permisoId);

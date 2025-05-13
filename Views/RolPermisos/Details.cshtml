@@ -20,10 +20,13 @@
                 <div class="card-body">
                     <dl class="row">
                         <dt class="col-sm-4">
-                            @Html.DisplayNameFor(model => model.RolesSistema.NombreRol)
+                            @* Actualizado para usar RolesSistema.Name. El DisplayNameFor puede seguir apuntando a la propiedad original si el texto es genérico "Rol" *@
+                            Rol
+                            @* @Html.DisplayNameFor(model => model.RolesSistema.Name) *@
                         </dt>
                         <dd class="col-sm-8">
-                            @Html.DisplayFor(model => model.RolesSistema.NombreRol)
+                            @* Actualizado para usar RolesSistema.Name *@
+                            @Html.DisplayFor(model => model.RolesSistema.Name)
                         </dd>
                         <dt class="col-sm-4">
                             @Html.DisplayNameFor(model => model.Permisos.NombrePermiso)
@@ -41,8 +44,9 @@
                 </div>
                 <div class="card-footer text-center">
                     @* Edit no está implementado por defecto para este tipo de PK compuestas.
-                     <a asp-action="Edit" asp-route-rolId="@Model.RolUsuarioID" asp-route-permisoId="@Model.PermisoID" class="btn btn-primary">Editar</a>
-                     *@
+                       Si se implementara, los asp-route- deberían ser asp-route-rolId y asp-route-permisoId
+                    *@
+                    @* <a asp-action="Edit" asp-route-rolId="@Model.RolUsuarioID" asp-route-permisoId="@Model.PermisoID" class="btn btn-primary">Editar</a> *@
                     <a asp-action="Index" class="btn btn-secondary">Volver a la Lista</a>
                 </div>
             </div>

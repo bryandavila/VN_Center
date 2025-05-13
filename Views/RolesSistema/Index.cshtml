@@ -1,5 +1,4 @@
 @model IEnumerable<VN_Center.Models.Entities.RolesSistema>
-
 @{
     ViewData["Title"] = "Roles del Sistema";
 }
@@ -17,6 +16,13 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -31,7 +37,8 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>@Html.DisplayNameFor(model => model.First().NombreRol)</th>
+                            @* Actualizado DisplayNameFor para usar "Name" *@
+                            <th>@Html.DisplayNameFor(model => model.First().Name)</th>
                             <th>@Html.DisplayNameFor(model => model.First().DescripcionRol)</th>
                             <th class="text-center">Acciones</th>
                         </tr>
@@ -40,7 +47,8 @@
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td><strong>@Html.DisplayFor(modelItem => item.NombreRol)</strong></td>
+                                @* Actualizado DisplayFor para usar item.Name *@
+                                <td><strong>@Html.DisplayFor(modelItem => item.Name)</strong></td>
                                 <td>@Html.DisplayFor(modelItem => item.DescripcionRol)</td>
                                 <td class="text-center">
                                     <div class="dropdown">
@@ -48,10 +56,10 @@
                                             <i class="bx bx-dots-vertical-rounded"></i>
                                         </button>
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item" asp-action="Edit" asp-route-id="@item.RolUsuarioID"><i class="bx bx-edit-alt me-1"></i> Editar</a>
-                                            <a class="dropdown-item" asp-action="Details" asp-route-id="@item.RolUsuarioID"><i class="bx bx-detail me-1"></i> Detalles</a>
-                                            @* Considerar deshabilitar o advertir sobre eliminar roles en uso *@
-                                            <a class="dropdown-item" asp-action="Delete" asp-route-id="@item.RolUsuarioID"><i class="bx bx-trash me-1"></i> Eliminar</a>
+                                            @* Actualizado asp-route-id para usar item.Id *@
+                                            <a class="dropdown-item" asp-action="Edit" asp-route-id="@item.Id"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                                            <a class="dropdown-item" asp-action="Details" asp-route-id="@item.Id"><i class="bx bx-detail me-1"></i> Detalles</a>
+                                            <a class="dropdown-item" asp-action="Delete" asp-route-id="@item.Id"><i class="bx bx-trash me-1"></i> Eliminar</a>
                                         </div>
                                     </div>
                                 </td>

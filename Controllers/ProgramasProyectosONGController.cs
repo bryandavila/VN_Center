@@ -7,23 +7,27 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using VN_Center.Data;
 using VN_Center.Models.Entities;
+using Microsoft.AspNetCore.Identity; // Para UserManager
 
 namespace VN_Center.Controllers
 {
   public class ProgramasProyectosONGController : Controller
   {
     private readonly VNCenterDbContext _context;
+    private readonly UserManager<UsuariosSistema> _userManager;
 
-    public ProgramasProyectosONGController(VNCenterDbContext context)
+    public ProgramasProyectosONGController(VNCenterDbContext context, UserManager<UsuariosSistema> userManager)
     {
       _context = context;
+      _userManager = userManager;
     }
 
     // GET: ProgramasProyectosONG
     public async Task<IActionResult> Index()
     {
-      // Incluye la entidad relacionada 'ResponsablePrincipalONG' para mostrar su nombre en la vista Index.
-      var vNCenterDbContext = _context.ProgramasProyectosONG.Include(p => p.ResponsablePrincipalONG);
+      // Usar la propiedad de navegación correcta: ResponsablePrincipalONG
+      var vNCenterDbContext = _context.ProgramasProyectosONG
+          .Include(p => p.ResponsablePrincipalONG);
       return View(await vNCenterDbContext.ToListAsync());
     }
 
@@ -36,7 +40,8 @@ namespace VN_Center.Controllers
       }
 
       var programasProyectosONG = await _context.ProgramasProyectosONG
-          .Include(p => p.ResponsablePrincipalONG) // Incluye la entidad relacionada
+          // Usar la propiedad de navegación correcta: ResponsablePrincipalONG
+          .Include(p => p.ResponsablePrincipalONG)
           .FirstOrDefaultAsync(m => m.ProgramaProyectoID == id);
       if (programasProyectosONG == null)
       {
@@ -46,55 +51,52 @@ namespace VN_Center.Controllers
       return View(programasProyectosONG);
     }
 
-    // Método privado para cargar la lista de usuarios responsables para el dropdown.
-    // Esto evita la repetición de código en las acciones Create y Edit.
-    private void PopulateResponsablesDropDownList(object? selectedResponsable = null)
+    // Método para poblar el dropdown de Usuarios Responsables
+    private async Task PopulateResponsablesDropDownListAsync(object? selectedResponsable = null)
     {
-      // Crea una consulta para obtener UsuarioID y NombreCompleto (Nombres + Apellidos)
-      var responsablesQuery = from u in _context.UsuariosSistema
-                              orderby u.Nombres, u.Apellidos
-                              select new
-                              {
-                                UsuarioID = u.UsuarioID,
-                                NombreCompleto = u.Nombres + " " + u.Apellidos
-                              };
-      // Pasa la lista al ViewData para ser usada en la vista por un <select> Tag Helper.
-      // "UsuarioID" es el valor de la opción, "NombreCompleto" es el texto a mostrar.
-      // selectedResponsable es el valor que estará preseleccionado (útil para la vista Edit).
-      ViewData["ResponsablePrincipalONGUsuarioID"] = new SelectList(responsablesQuery.AsNoTracking(), "UsuarioID", "NombreCompleto", selectedResponsable);
+      var responsablesQuery = await _userManager.Users
+                                  .OrderBy(u => u.Nombres)
+                                  .ThenBy(u => u.Apellidos)
+                                  .Select(u => new
+                                  {
+                                    u.Id, // El valor del dropdown será el Id del usuario
+                                    NombreCompleto = u.Nombres + " " + u.Apellidos + " (" + u.UserName + ")"
+                                  })
+                                  .ToListAsync();
+      // El ViewData debe coincidir con el nombre de la FK en la entidad ProgramasProyectosONG
+      ViewData["ResponsablePrincipalONGUsuarioID"] = new SelectList(responsablesQuery, "Id", "NombreCompleto", selectedResponsable);
     }
 
 
     // GET: ProgramasProyectosONG/Create
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
-      // Llama al método para poblar el dropdown de responsables.
-      PopulateResponsablesDropDownList();
+      await PopulateResponsablesDropDownListAsync();
       return View();
     }
 
     // POST: ProgramasProyectosONG/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Asegúrate que el Bind usa la FK correcta: ResponsablePrincipalONGUsuarioID
     public async Task<IActionResult> Create([Bind("ProgramaProyectoID,NombreProgramaProyecto,Descripcion,TipoIniciativa,FechaInicioEstimada,FechaFinEstimada,FechaInicioReal,FechaFinReal,EstadoProgramaProyecto,ResponsablePrincipalONGUsuarioID")] ProgramasProyectosONG programasProyectosONG)
     {
-      // Remueve la validación para las propiedades de navegación.
-      // Solo nos interesa validar las propiedades escalares y las FK IDs que se enlazan desde el formulario.
+      // La propiedad de navegación se llama ResponsablePrincipalONG
       ModelState.Remove("ResponsablePrincipalONG");
       ModelState.Remove("ProgramaProyectoComunidades");
       ModelState.Remove("ProgramaProyectoGrupos");
       ModelState.Remove("ParticipacionesActivas");
       ModelState.Remove("BeneficiariosProgramasProyectos");
+      ModelState.Remove("EvaluacionesPrograma"); // Añadido basado en tu entidad original
 
       if (ModelState.IsValid)
       {
         _context.Add(programasProyectosONG);
         await _context.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Programa/Proyecto creado exitosamente."; // Mensaje de éxito para mostrar en la siguiente vista.
+        TempData["SuccessMessage"] = "Programa/Proyecto creado exitosamente.";
         return RedirectToAction(nameof(Index));
       }
-      // Si el modelo no es válido, vuelve a poblar el dropdown antes de retornar la vista.
-      PopulateResponsablesDropDownList(programasProyectosONG.ResponsablePrincipalONGUsuarioID);
+      await PopulateResponsablesDropDownListAsync(programasProyectosONG.ResponsablePrincipalONGUsuarioID);
       return View(programasProyectosONG);
     }
 
@@ -111,14 +113,14 @@ namespace VN_Center.Controllers
       {
         return NotFound();
       }
-      // Llama al método para poblar el dropdown de responsables, preseleccionando el actual.
-      PopulateResponsablesDropDownList(programasProyectosONG.ResponsablePrincipalONGUsuarioID);
+      await PopulateResponsablesDropDownListAsync(programasProyectosONG.ResponsablePrincipalONGUsuarioID);
       return View(programasProyectosONG);
     }
 
     // POST: ProgramasProyectosONG/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Asegúrate que el Bind usa la FK correcta: ResponsablePrincipalONGUsuarioID
     public async Task<IActionResult> Edit(int id, [Bind("ProgramaProyectoID,NombreProgramaProyecto,Descripcion,TipoIniciativa,FechaInicioEstimada,FechaFinEstimada,FechaInicioReal,FechaFinReal,EstadoProgramaProyecto,ResponsablePrincipalONGUsuarioID")] ProgramasProyectosONG programasProyectosONG)
     {
       if (id != programasProyectosONG.ProgramaProyectoID)
@@ -126,12 +128,12 @@ namespace VN_Center.Controllers
         return NotFound();
       }
 
-      // Remueve la validación para las propiedades de navegación.
       ModelState.Remove("ResponsablePrincipalONG");
       ModelState.Remove("ProgramaProyectoComunidades");
       ModelState.Remove("ProgramaProyectoGrupos");
       ModelState.Remove("ParticipacionesActivas");
       ModelState.Remove("BeneficiariosProgramasProyectos");
+      ModelState.Remove("EvaluacionesPrograma"); // Añadido
 
       if (ModelState.IsValid)
       {
@@ -139,7 +141,7 @@ namespace VN_Center.Controllers
         {
           _context.Update(programasProyectosONG);
           await _context.SaveChangesAsync();
-          TempData["SuccessMessage"] = "Programa/Proyecto actualizado exitosamente."; // Mensaje de éxito.
+          TempData["SuccessMessage"] = "Programa/Proyecto actualizado exitosamente.";
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -154,8 +156,7 @@ namespace VN_Center.Controllers
         }
         return RedirectToAction(nameof(Index));
       }
-      // Si el modelo no es válido, vuelve a poblar el dropdown.
-      PopulateResponsablesDropDownList(programasProyectosONG.ResponsablePrincipalONGUsuarioID);
+      await PopulateResponsablesDropDownListAsync(programasProyectosONG.ResponsablePrincipalONGUsuarioID);
       return View(programasProyectosONG);
     }
 
@@ -168,7 +169,8 @@ namespace VN_Center.Controllers
       }
 
       var programasProyectosONG = await _context.ProgramasProyectosONG
-          .Include(p => p.ResponsablePrincipalONG) // Incluye para mostrar info en la confirmación.
+          // Usar la propiedad de navegación correcta: ResponsablePrincipalONG
+          .Include(p => p.ResponsablePrincipalONG)
           .FirstOrDefaultAsync(m => m.ProgramaProyectoID == id);
       if (programasProyectosONG == null)
       {
@@ -188,7 +190,7 @@ namespace VN_Center.Controllers
       {
         _context.ProgramasProyectosONG.Remove(programasProyectosONG);
         await _context.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Programa/Proyecto eliminado exitosamente."; // Mensaje de éxito.
+        TempData["SuccessMessage"] = "Programa/Proyecto eliminado exitosamente.";
       }
 
       return RedirectToAction(nameof(Index));

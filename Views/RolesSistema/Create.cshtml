@@ -1,5 +1,4 @@
 @model VN_Center.Models.Entities.RolesSistema
-
 @{
     ViewData["Title"] = "Crear Nuevo Rol";
 }
@@ -21,9 +20,10 @@
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                         <div class="mb-3">
-                            <label asp-for="NombreRol" class="form-label"></label>
-                            <input asp-for="NombreRol" class="form-control" placeholder="Ej: Administrador, Editor, Visitante" />
-                            <span asp-validation-for="NombreRol" class="text-danger"></span>
+                            @* Actualizado asp-for y el label para que usen "Name" en lugar de "NombreRol" *@
+                            <label asp-for="Name" class="form-label">Nombre del Rol</label>
+                            <input asp-for="Name" class="form-control" placeholder="Ej: Administrador, Editor, Visitante" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">

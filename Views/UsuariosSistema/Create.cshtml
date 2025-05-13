@@ -1,11 +1,12 @@
-@model VN_Center.Models.Entities.UsuariosSistema
-
+@model VN_Center.Models.ViewModels.UsuarioCreateViewModel
 @{
     ViewData["Title"] = "Crear Nuevo Usuario del Sistema";
+    // La lista de opciones para 'Activo' ahora se maneja directamente en el ViewModel o se puede pasar por ViewData si es más complejo.
+    // Para un simple booleano, un checkbox es más común, o el select como lo tenías, pero el ViewModel ya tiene 'Activo' como bool.
     var opcionesActivo = new List<SelectListItem>
     {
-        new SelectListItem { Value = "true", Text = "Sí" },
-        new SelectListItem { Value = "false", Text = "No" }
+        new SelectListItem { Value = "true", Text = "Sí", Selected = Model.Activo },
+        new SelectListItem { Value = "false", Text = "No", Selected = !Model.Activo }
     };
 }
 
@@ -39,9 +40,9 @@
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="NombreUsuario" class="form-label"></label>
-                            <input asp-for="NombreUsuario" class="form-control" placeholder="Nombre único para iniciar sesión" />
-                            <span asp-validation-for="NombreUsuario" class="text-danger"></span>
+                            <label asp-for="UserName" class="form-label"></label>
+                            <input asp-for="UserName" class="form-control" placeholder="Nombre único para iniciar sesión" />
+                            <span asp-validation-for="UserName" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
@@ -50,35 +51,37 @@
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
 
-                        <div class="mb-3 form-password-toggle">
-                            <label for="Password" class="form-label">Contraseña</label> @* Cambiado: label for="Password" *@
-                            <div class="input-group input-group-merge">
-                                <input type="password" id="Password" name="Password" class="form-control" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" /> @* Cambiado: quitado asp-for, añadido name="Password" *@
-                                <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
-                            </div>
-                            @* El span de validación para 'Password' se mostrará si añades un error con esa clave en el ModelState *@
-                            <span class="text-danger" data-valmsg-for="Password"></span>
-                            <small class="form-text text-muted">La contraseña es obligatoria para nuevos usuarios.</small>
+                        <div class="mb-3">
+                            <label asp-for="PhoneNumber" class="form-label"></label>
+                            <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="Número de teléfono (opcional)" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                         </div>
 
-                        @* Opcional: Campo para Confirmar Contraseña (necesitaría lógica en el controlador)
                         <div class="mb-3 form-password-toggle">
-                            <label for="ConfirmPassword" class="form-label">Confirmar Contraseña</label>
+                            <label asp-for="Password" class="form-label"></label>
                             <div class="input-group input-group-merge">
-                                <input type="password" id="ConfirmPassword" name="ConfirmPassword" class="form-control" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" />
+                                <input asp-for="Password" type="password" class="form-control" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" />
                                 <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
                             </div>
-                            <span data-valmsg-for="ConfirmPassword" class="text-danger"></span>
+                            <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
-                        *@
+
+                        <div class="mb-3 form-password-toggle">
+                            <label asp-for="ConfirmPassword" class="form-label"></label>
+                            <div class="input-group input-group-merge">
+                                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" />
+                                <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="RolUsuarioID" class="form-label"></label>
-                                <select asp-for="RolUsuarioID" class="form-select" asp-items="ViewBag.RolUsuarioID">
+                                <label asp-for="SelectedRoleName" class="form-label">Rol</label>
+                                <select asp-for="SelectedRoleName" class="form-select" asp-items="@(ViewData["RolesList"] as SelectList)">
                                     <option value="">Seleccione un rol...</option>
                                 </select>
-                                <span asp-validation-for="RolUsuarioID" class="text-danger"></span>
+                                <span asp-validation-for="SelectedRoleName" class="text-danger"></span>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Activo" class="form-label"></label>

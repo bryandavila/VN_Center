@@ -33,13 +33,16 @@
             </a>
         </div>
         <div class="table-responsive text-nowrap">
-            @if (Model.Any())
+            @if (Model != null && Model.Any()) // Añadir verificación de nulidad para Model
             {
                 <table class="table table-hover">
                     <thead>
                         <tr>
                             <th>
-                                @Html.DisplayNameFor(model => model.First().RolesSistema.NombreRol)
+                                @* Actualizado para usar RolesSistema.Name. El DisplayNameFor puede seguir apuntando a la propiedad original si el texto es genérico "Rol" *@
+                                @* Opcionalmente, podrías cambiar el DisplayNameFor si tienes un ViewModel específico *@
+                                Rol
+                                @* @Html.DisplayNameFor(model => model.First().RolesSistema.Name) *@
                             </th>
                             <th>
                                 @Html.DisplayNameFor(model => model.First().Permisos.NombrePermiso)
@@ -55,7 +58,8 @@
                         {
                             <tr>
                                 <td>
-                                    <strong>@Html.DisplayFor(modelItem => item.RolesSistema.NombreRol)</strong>
+                                    @* Actualizado para usar item.RolesSistema.Name *@
+                                    <strong>@Html.DisplayFor(modelItem => item.RolesSistema.Name)</strong>
                                 </td>
                                 <td>
                                     @Html.DisplayFor(modelItem => item.Permisos.NombrePermiso)
@@ -64,8 +68,6 @@
                                     @Html.DisplayFor(modelItem => item.Permisos.DescripcionPermiso)
                                 </td>
                                 <td class="text-center">
-                                    @* Edit no está implementado por defecto para PK compuestas de esta forma simple.
-                                       La acción principal aquí es Delete. Details también es útil. *@
                                     <a class="btn btn-sm btn-outline-info me-1" asp-action="Details" asp-route-rolId="@item.RolUsuarioID" asp-route-permisoId="@item.PermisoID" title="Detalles">
                                         <i class="bx bx-detail"></i>
                                     </a>

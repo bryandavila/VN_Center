@@ -1,69 +1,69 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using VN_Center.Data;
-using VN_Center.Models.Entities; // Asegúrate que este using esté presente
-using Microsoft.AspNetCore.Identity; // Necesario para AddIdentity y AddEntityFrameworkStores
+using Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore;
+using VN_Center.Models.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configuración del DbContext (ya lo teníamos)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// Add services to the container.
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
 builder.Services.AddDbContext<VNCenterDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// 2. Configuración de ASP.NET Core Identity
-// Aquí le decimos a Identity que use VNCenterDbContext para almacenar sus datos
-// y que nuestras clases personalizadas son UsuariosSistema y RolesSistema.
-// Usamos AddDefaultTokenProviders() para funcionalidades como la generación de tokens para reseteo de contraseña.
+// Configuración de Identity
 builder.Services.AddIdentity<UsuariosSistema, RolesSistema>(options => {
-  // Configuración de opciones de Identity (puedes ajustar esto según tus necesidades)
-  // Opciones de Contraseña
-  options.Password.RequireDigit = true; // Requerir al menos un dígito
-  options.Password.RequireLowercase = true; // Requerir al menos una minúscula
-  options.Password.RequireUppercase = true; // Requerir al menos una mayúscula
-  options.Password.RequireNonAlphanumeric = true; // Requerir al menos un caracter no alfanumérico (ej. @, #, !)
-  options.Password.RequiredLength = 8; // Longitud mínima de la contraseña
-  options.Password.RequiredUniqueChars = 1; // Número de caracteres únicos requeridos
+  // Configuraciones de Identity (ej. requisitos de contraseña)
+  options.SignIn.RequireConfirmedAccount = false; // Cambia a true si quieres confirmación de email
+  options.Password.RequireDigit = true;
+  options.Password.RequiredLength = 8;
+  options.Password.RequireNonAlphanumeric = false;
+  options.Password.RequireUppercase = true;
+  options.Password.RequireLowercase = true;
+  options.Password.RequiredUniqueChars = 1;
 
-  // Opciones de Lockout (bloqueo de cuenta tras intentos fallidos)
-  options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5); // Tiempo de bloqueo
-  options.Lockout.MaxFailedAccessAttempts = 5; // Intentos fallidos antes de bloquear
+  // Configuraciones de Lockout
+  options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+  options.Lockout.MaxFailedAccessAttempts = 5;
   options.Lockout.AllowedForNewUsers = true;
 
-  // Opciones de Usuario
-  options.User.AllowedUserNameCharacters =
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+"; // Caracteres permitidos en nombres de usuario
-  options.User.RequireUniqueEmail = true; // Requerir que los correos electrónicos sean únicos
-
-  // Opciones de SignIn (Inicio de Sesión)
-  // options.SignIn.RequireConfirmedEmail = false; // Puedes ponerlo en true si implementas confirmación de email
-  // options.SignIn.RequireConfirmedPhoneNumber = false; // Si usas confirmación por teléfono
+  // Configuraciones de Usuario
+  options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+  options.User.RequireUniqueEmail = true;
 })
     .AddEntityFrameworkStores<VNCenterDbContext>()
-    .AddDefaultTokenProviders(); // Para tokens de reseteo de contraseña, email, etc.
+    .AddDefaultTokenProviders(); // Necesario para reseteo de contraseña, etc.
+                                 //.AddDefaultUI(); // Si usas la UI por defecto de Identity (Razor Pages)
 
-// 3. Configuración de la Cookie de Autenticación
-// Esto configura cómo la aplicación maneja la autenticación basada en cookies.
-builder.Services.ConfigureApplicationCookie(options =>
-{
-  // Opciones de la Cookie
-  options.Cookie.HttpOnly = true; // La cookie no es accesible por script del lado del cliente
-  options.ExpireTimeSpan = TimeSpan.FromDays(30); // Duración de la cookie de sesión
-
-  options.LoginPath = "/Auth/LoginBasic"; // Ruta a la página de inicio de sesión (ajusta si tu controlador/acción es diferente)
-  options.AccessDeniedPath = "/Auth/AccessDenied"; // Ruta si el acceso es denegado (ajusta si es diferente)
-  options.SlidingExpiration = true; // La cookie se renueva si el usuario está activo
-});
-
-
-builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
-// Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Si no usas la UI por defecto de Identity y tienes tu propio AuthController,
+// podrías necesitar configurar las rutas para login/logout aquí o en UseEndpoints.
+// builder.Services.AddRazorPages(); // Si usas Razor Pages para Identity UI
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+  app.UseMigrationsEndPoint(); // Útil para desarrollo con migraciones
+                               // Llamar al DataSeeder aquí
+  try
+  {
+    // Pasa IConfiguration al seeder
+    await DataSeeder.Initialize(app.Services, app.Configuration);
+    Console.WriteLine("Data seeding completed or verified.");
+  }
+  catch (Exception ex)
+  {
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "An error occurred seeding the DB.");
+    Console.WriteLine($"An error occurred seeding the DB: {ex.Message}");
+  }
+}
+else
 {
   app.UseExceptionHandler("/Home/Error");
   app.UseHsts();
@@ -74,13 +74,12 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// 4. Añadir Middleware de Autenticación y Autorización
-// ¡IMPORTANTE! Deben ir DESPUÉS de UseRouting y ANTES de UseEndpoints (que es MapControllerRoute)
-app.UseAuthentication(); // Habilita la autenticación
-app.UseAuthorization();  // Habilita la autorización
+app.UseAuthentication(); // Asegúrate que esto está ANTES de UseAuthorization
+app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Dashboards}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+// app.MapRazorPages(); // Si usas Razor Pages para Identity UI
 
 app.Run();

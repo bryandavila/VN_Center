@@ -1,5 +1,4 @@
 @model VN_Center.Models.Entities.RolesSistema
-
 @{
     ViewData["Title"] = "Editar Rol";
 }
@@ -14,17 +13,20 @@
         <div class="col-md-8 offset-md-2">
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Editando Rol: @Model.NombreRol</h5>
+                    @* Actualizado para usar Model.Name *@
+                    <h5 class="mb-0">Editando Rol: @Model.Name</h5>
                 </div>
                 <div class="card-body">
                     <form asp-action="Edit" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                        <input type="hidden" asp-for="RolUsuarioID" />
+                        @* Actualizado asp-for para usar "Id" en lugar de "RolUsuarioID" *@
+                        <input type="hidden" asp-for="Id" />
 
                         <div class="mb-3">
-                            <label asp-for="NombreRol" class="form-label"></label>
-                            <input asp-for="NombreRol" class="form-control" />
-                            <span asp-validation-for="NombreRol" class="text-danger"></span>
+                            @* Actualizado asp-for y el label para que usen "Name" *@
+                            <label asp-for="Name" class="form-label">Nombre del Rol</label>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">

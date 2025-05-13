@@ -1,7 +1,8 @@
 @model VN_Center.Models.Entities.UsuariosSistema
-
 @{
     ViewData["Title"] = "Eliminar Usuario del Sistema";
+    // Los roles se pasan a través de ViewBag.UserRoles desde el controlador
+    var userRoles = ViewBag.UserRoles as IEnumerable<string> ?? new List<string>();
 }
 
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -17,27 +18,33 @@
                     <h5 class="mb-0 text-danger">Confirmar Eliminación</h5>
                 </div>
                 <div class="card-body">
-                    <p class="mb-0">¿Estás seguro de que quieres eliminar al usuario "<strong>@Model.NombreUsuario</strong>" (@Model.Nombres @Model.Apellidos)?</p>
-                    <p class="text-danger small">Esta acción no se puede deshacer.</p>
+                    <p class="mb-0">¿Estás seguro de que quieres eliminar al usuario "<strong>@Model.UserName</strong>" (@Model.Nombres @Model.Apellidos)?</p> <p class="text-danger small">Esta acción no se puede deshacer.</p>
                     <hr />
                     <h6 class="mt-3 mb-2">Detalles del Usuario a Eliminar:</h6>
                     <dl class="row">
-                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.NombreUsuario)</dt>
-                        <dd class="col-sm-8">@Html.DisplayFor(model => model.NombreUsuario)</dd>
-
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.UserName)</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.UserName)</dd>
                         <dt class="col-sm-4">@Html.DisplayNameFor(model => model.NombreCompleto)</dt>
                         <dd class="col-sm-8">@Html.DisplayFor(model => model.NombreCompleto)</dd>
 
                         <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Email)</dt>
                         <dd class="col-sm-8">@Html.DisplayFor(model => model.Email)</dd>
 
-                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.RolesSistema.NombreRol)</dt>
-                        <dd class="col-sm-8">@(Model.RolesSistema?.NombreRol ?? "N/A")</dd>
+                        <dt class="col-sm-4">Rol(es)</dt>
+                        <dd class="col-sm-8">
+                            @if (userRoles.Any())
+                            {
+                                @string.Join(", ", userRoles)
+                            }
+                            else
+                            {
+                                @:No asignado
+                            }
+                        </dd>
                     </dl>
 
                     <form asp-action="Delete" method="post" id="deleteForm" class="mt-4">
-                        <input type="hidden" asp-for="UsuarioID" />
-                        <button type="button" id="btnConfirmDelete" class="btn btn-danger me-2">Sí, Eliminar Usuario</button>
+                        <input type="hidden" asp-for="Id" /> <button type="button" id="btnConfirmDelete" class="btn btn-danger me-2">Sí, Eliminar Usuario</button>
                         <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
                     </form>
                 </div>
@@ -50,7 +57,7 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
+    @* Tu script de SweetAlert para confirmación puede permanecer igual si ya funciona *@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const deleteButton = document.getElementById('btnConfirmDelete');
@@ -58,20 +65,28 @@
                 deleteButton.addEventListener('click', function (event) {
                     event.preventDefault();
 
-                    Swal.fire({
-                        title: '¿Estás realmente seguro?',
-                        text: "¡No podrás revertir la eliminación de este usuario!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Sí, ¡elimínalo!',
-                        cancelButtonText: 'No, cancelar'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
+                    // Asumiendo que tienes SweetAlert2 (swal) disponible globalmente
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: '¿Estás realmente seguro?',
+                            text: "¡No podrás revertir la eliminación de este usuario!",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Sí, ¡elimínalo!',
+                            cancelButtonText: 'No, cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById('deleteForm').submit();
+                            }
+                        });
+                    } else {
+                        // Fallback si SweetAlert no está cargado
+                        if(confirm("¿Estás realmente seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.")) {
                             document.getElementById('deleteForm').submit();
                         }
-                    });
+                    }
                 });
             }
         });
