@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using VN_Center.Data;
-using Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore;
 using VN_Center.Models.Entities;
-using VN_Center.Services;
+using Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore;
+using VN_Center.Services; // Namespace de tu IEmailSender, SendGridEmailSender, etc.
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,70 +14,46 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<VNCenterDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// Configuración de Identity
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
 builder.Services.AddIdentity<UsuariosSistema, RolesSistema>(options => {
-  // Configuraciones de Identity (ej. requisitos de contraseña)
-  options.SignIn.RequireConfirmedAccount = false; // Cambia a true si quieres confirmación de email
+  options.SignIn.RequireConfirmedAccount = false;
   options.Password.RequireDigit = true;
   options.Password.RequiredLength = 8;
   options.Password.RequireNonAlphanumeric = false;
   options.Password.RequireUppercase = true;
   options.Password.RequireLowercase = true;
   options.Password.RequiredUniqueChars = 1;
-
-  // Configuraciones de Lockout
   options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
   options.Lockout.MaxFailedAccessAttempts = 5;
   options.Lockout.AllowedForNewUsers = true;
-
-  // Configuraciones de Usuario
   options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
   options.User.RequireUniqueEmail = true;
 })
     .AddEntityFrameworkStores<VNCenterDbContext>()
-    .AddDefaultTokenProviders(); // Necesario para reseteo de contraseña, etc.
-                                 //.AddDefaultUI(); // Si usas la UI por defecto de Identity (Razor Pages)
-builder.Services.AddTransient<IEmailSender, ConsoleEmailSender>();
+    .AddDefaultTokenProviders();
 
-builder.Services.AddControllersWithViews();
+// *** ASEGÚRATE QUE ESTA LÍNEA USA SendGridEmailSender ***
+builder.Services.AddTransient<IEmailSender, SendGridEmailSender>();
+// Y que no haya otra línea registrando IEmailSender con SmtpEmailSender o ConsoleEmailSender
 
 builder.Services.AddControllersWithViews();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-  // Cookie settings
   options.Cookie.HttpOnly = true;
-  options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Duración de la cookie de sesión
-
-  options.LoginPath = "/Auth/LoginBasic"; // Tu página de inicio de sesión
-  options.LogoutPath = "/Auth/Logout";   // Tu acción de cierre de sesión
-  options.AccessDeniedPath = "/Auth/AccessDenied"; // Página para acceso denegado
+  options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+  options.LoginPath = "/Auth/LoginBasic";
+  options.LogoutPath = "/Auth/Logout";
+  options.AccessDeniedPath = "/Auth/AccessDenied";
   options.SlidingExpiration = true;
 });
 
-// Si no usas la UI por defecto de Identity y tienes tu propio AuthController,
-// podrías necesitar configurar las rutas para login/logout aquí o en UseEndpoints.
-// builder.Services.AddRazorPages(); // Si usas Razor Pages para Identity UI
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-  app.UseMigrationsEndPoint(); // Útil para desarrollo con migraciones
-                               // Llamar al DataSeeder aquí
-  try
-  {
-    // Pasa IConfiguration al seeder
-    await DataSeeder.Initialize(app.Services, app.Configuration);
-    Console.WriteLine("Data seeding completed or verified.");
-  }
-  catch (Exception ex)
-  {
-    var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "An error occurred seeding the DB.");
-    Console.WriteLine($"An error occurred seeding the DB: {ex.Message}");
-  }
+  app.UseMigrationsEndPoint();
 }
 else
 {
@@ -85,17 +61,29 @@ else
   app.UseHsts();
 }
 
+if (app.Environment.IsDevelopment())
+{
+  try
+  {
+    await DataSeeder.Initialize(app.Services, app.Configuration);
+    Console.WriteLine("Data seeding completed or verified.");
+  }
+  catch (Exception ex)
+  {
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "An error occurred seeding the DB.");
+    Console.WriteLine($"An error occurred seeding the DB: {ex.Message} \n {ex.StackTrace}");
+  }
+}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
-app.UseAuthentication(); // Asegúrate que esto está ANTES de UseAuthorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-// app.MapRazorPages(); // Si usas Razor Pages para Identity UI
 
 app.Run();

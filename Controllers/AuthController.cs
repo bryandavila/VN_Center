@@ -195,14 +195,12 @@ namespace VN_Center.Controllers
 
         _logger.LogInformation($"Token de reseteo de contraseña generado para {user.Email}.");
 
-        // *** USAR EL SERVICIO DE CORREO REAL ***
+        // *** MODIFICACIÓN AQUÍ: Pasamos solo el callbackUrl como 'htmlMessageAsResetLink' ***
         await _emailSender.SendEmailAsync(
             model.Email,
-            "Restablecer Contraseña - VN Center",
-            $"Por favor, restablece tu contraseña haciendo clic aquí: <a href='{HtmlEncoder.Default.Encode(callbackUrl!)}'>enlace de restablecimiento</a>");
-
-        // Ya no necesitamos TempData para el enlace si se envía por correo
-        // TempData["ResetPasswordLink"] = callbackUrl; 
+            "Restablecer Contraseña - VN Center", // Este asunto se puede definir/sobrescribir en la plantilla de SendGrid
+            callbackUrl! // SendGridEmailSender usará esto para el campo {{{reset_link}}}
+        );
 
         return RedirectToAction(nameof(ForgotPasswordConfirmation));
       }
