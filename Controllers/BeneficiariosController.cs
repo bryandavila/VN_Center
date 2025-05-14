@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -10,9 +9,10 @@ using VN_Center.Data;
 using VN_Center.Models.Entities;
 using ClosedXML.Excel;
 using System.IO;
-using QuestPDF.Fluent;
-using QuestPDF.Infrastructure;
-using VN_Center.Documents;
+using VN_Center.Documents; // Para BeneficiarioDetailPdfSharpGenerator
+                           // using QuestPDF.Fluent; // *** ELIMINADO O COMENTADO ***
+                           // using QuestPDF.Infrastructure; // *** ELIMINADO O COMENTADO ***
+
 
 namespace VN_Center.Controllers
 {
@@ -35,7 +35,7 @@ namespace VN_Center.Controllers
       return View(await vNCenterDbContext.ToListAsync());
     }
 
-    // GET: Beneficiarios/ExportToExcel (Existente)
+    // GET: Beneficiarios/ExportToExcel
     public async Task<IActionResult> ExportToExcel()
     {
       var beneficiarios = await _context.Beneficiarios
@@ -86,36 +86,26 @@ namespace VN_Center.Controllers
       }
     }
 
-    // GET: Beneficiarios/ExportToPdf (Lista - Existente)
+    // *** ACCIÓN ExportToPdf (LISTA) ELIMINADA O COMENTADA PORQUE USABA QUESTPDF ***
+    /*
     public async Task<IActionResult> ExportToPdf()
     {
-      var beneficiarios = await _context.Beneficiarios
-                                  .Include(b => b.Comunidad)
-                                  .OrderBy(b => b.Apellidos)
-                                  .ThenBy(b => b.Nombres)
-                                  .ToListAsync();
-      var document = new BeneficiariosPdfDocument(beneficiarios); // Usa el documento de lista
-      byte[] pdfBytes = document.GeneratePdf();
-      return File(pdfBytes, "application/pdf", $"Beneficiarios_Lista_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+        // Esta acción usaba BeneficiariosPdfDocument (QuestPDF)
+        // Si quieres una exportación de lista a PDF con PdfSharpCore, necesitarás crear
+        // una nueva clase similar a BeneficiarioDetailPdfSharpGenerator pero para la lista.
+        return Content("Exportación de lista a PDF está pendiente de reimplementación con PdfSharpCore.");
     }
+    */
 
-    // *** NUEVA ACCIÓN PARA EXPORTAR DETALLES DE UN BENEFICIARIO A PDF ***
-    // GET: Beneficiarios/ExportDetailToPdf/5
+    // GET: Beneficiarios/ExportDetailToPdf/5 (Usando PdfSharpCore)
     public async Task<IActionResult> ExportDetailToPdf(int? id)
     {
       if (id == null)
       {
         return NotFound();
       }
-
-      // Cargar el beneficiario con todos los datos necesarios para el detalle
-      // Incluye las relaciones que quieras mostrar en el PDF de detalle
       var beneficiario = await _context.Beneficiarios
           .Include(b => b.Comunidad)
-          // Podrías incluir otras relaciones si las vas a mostrar en el PDF:
-          // .Include(b => b.BeneficiarioAsistenciaRecibida).ThenInclude(ba => ba.TiposAsistencia) 
-          // .Include(b => b.BeneficiarioGrupos).ThenInclude(bg => bg.GruposComunitarios)
-          // .Include(b => b.BeneficiariosProgramasProyectos).ThenInclude(bpp => bpp.ProgramasProyectosONG)
           .FirstOrDefaultAsync(m => m.BeneficiarioID == id);
 
       if (beneficiario == null)
@@ -123,13 +113,13 @@ namespace VN_Center.Controllers
         return NotFound();
       }
 
-      var document = new BeneficiarioDetailPdfDocument(beneficiario); // Usa el nuevo documento de detalle
-      byte[] pdfBytes = document.GeneratePdf();
+      var pdfGenerator = new BeneficiarioDetailPdfSharpGenerator(beneficiario);
+      byte[] pdfBytes = pdfGenerator.GeneratePdf();
 
       return File(pdfBytes, "application/pdf", $"Beneficiario_Detalle_{beneficiario.BeneficiarioID}_{DateTime.Now:yyyyMMddHHmmss}.pdf");
     }
 
-
+    // ... (resto de tus acciones Details, Create, Edit, Delete, etc. sin cambios) ...
     // GET: Beneficiarios/Details/5
     public async Task<IActionResult> Details(int? id)
     {
@@ -137,16 +127,13 @@ namespace VN_Center.Controllers
       {
         return NotFound();
       }
-
       var beneficiarios = await _context.Beneficiarios
           .Include(b => b.Comunidad)
-          // Incluye otras relaciones aquí si las muestras en la vista de Detalles HTML
           .FirstOrDefaultAsync(m => m.BeneficiarioID == id);
       if (beneficiarios == null)
       {
         return NotFound();
       }
-
       return View(beneficiarios);
     }
 

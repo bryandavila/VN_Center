@@ -3,9 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using VN_Center.Data;
 using VN_Center.Models.Entities;
 using Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore;
-using VN_Center.Services; // Namespace de tu IEmailSender, SendGridEmailSender, etc.
+using VN_Center.Services;
+// using QuestPDF.Infrastructure; // *** ELIMINADO ESTE USING ***
 
 var builder = WebApplication.CreateBuilder(args);
+
+// *** ELIMINADA LA CONFIGURACIÓN DE LICENCIA DE QUESTPDF ***
+// QuestPDF.Settings.License = LicenseType.Community; 
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -33,9 +37,7 @@ builder.Services.AddIdentity<UsuariosSistema, RolesSistema>(options => {
     .AddEntityFrameworkStores<VNCenterDbContext>()
     .AddDefaultTokenProviders();
 
-// *** ASEGÚRATE QUE ESTA LÍNEA USA SendGridEmailSender ***
 builder.Services.AddTransient<IEmailSender, SendGridEmailSender>();
-// Y que no haya otra línea registrando IEmailSender con SmtpEmailSender o ConsoleEmailSender
 
 builder.Services.AddControllersWithViews();
 
