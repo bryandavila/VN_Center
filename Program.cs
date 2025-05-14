@@ -4,9 +4,11 @@ using VN_Center.Data;
 using VN_Center.Models.Entities;
 using Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore;
 using VN_Center.Services;
-// using QuestPDF.Infrastructure; // *** ELIMINADO ESTE USING ***
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 // *** ELIMINADA LA CONFIGURACIÓN DE LICENCIA DE QUESTPDF ***
 // QuestPDF.Settings.License = LicenseType.Community; 

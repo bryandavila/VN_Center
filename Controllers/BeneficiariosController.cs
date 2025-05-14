@@ -1,18 +1,18 @@
 using System;
+using System.Collections.Generic; // Para IEnumerable
+using System.IO;                  // Para MemoryStream
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Rendering; // *** Para SelectList ***
 using Microsoft.EntityFrameworkCore;
 using VN_Center.Data;
 using VN_Center.Models.Entities;
-using ClosedXML.Excel;
-using System.IO;
-using VN_Center.Documents; // Para BeneficiarioDetailPdfSharpGenerator
-                           // using QuestPDF.Fluent; // *** ELIMINADO O COMENTADO ***
-                           // using QuestPDF.Infrastructure; // *** ELIMINADO O COMENTADO ***
-
+using ClosedXML.Excel;                 // Para XLWorkbook, XLColor, etc.
+using QuestPDF.Fluent;                 // Para la API fluida de QuestPDF
+using QuestPDF.Infrastructure;         // Para IDocument, etc. de QuestPDF
+using VN_Center.Documents;             // *** Para BeneficiariosPdfDocument y BeneficiarioDetailPdfDocument ***
 
 namespace VN_Center.Controllers
 {
@@ -86,18 +86,22 @@ namespace VN_Center.Controllers
       }
     }
 
-    // *** ACCIÓN ExportToPdf (LISTA) ELIMINADA O COMENTADA PORQUE USABA QUESTPDF ***
-    /*
+    // GET: Beneficiarios/ExportToPdf (Lista - Usando QuestPDF)
+    // La línea 96 (aproximadamente) es la siguiente:
     public async Task<IActionResult> ExportToPdf()
     {
-        // Esta acción usaba BeneficiariosPdfDocument (QuestPDF)
-        // Si quieres una exportación de lista a PDF con PdfSharpCore, necesitarás crear
-        // una nueva clase similar a BeneficiarioDetailPdfSharpGenerator pero para la lista.
-        return Content("Exportación de lista a PDF está pendiente de reimplementación con PdfSharpCore.");
+      var beneficiarios = await _context.Beneficiarios
+                                  .Include(b => b.Comunidad)
+                                  .OrderBy(b => b.Apellidos)
+                                  .ThenBy(b => b.Nombres)
+                                  .ToListAsync();
+      // Esta línea requiere 'using VN_Center.Documents;' y que BeneficiariosPdfDocument.cs exista en esa carpeta/namespace
+      var document = new BeneficiariosPdfDocument(beneficiarios);
+      byte[] pdfBytes = document.GeneratePdf();
+      return File(pdfBytes, "application/pdf", $"Beneficiarios_Lista_{DateTime.Now:yyyyMMddHHmmss}.pdf");
     }
-    */
 
-    // GET: Beneficiarios/ExportDetailToPdf/5 (Usando PdfSharpCore)
+    // GET: Beneficiarios/ExportDetailToPdf/5 (Usando QuestPDF)
     public async Task<IActionResult> ExportDetailToPdf(int? id)
     {
       if (id == null)
@@ -113,46 +117,36 @@ namespace VN_Center.Controllers
         return NotFound();
       }
 
-      var pdfGenerator = new BeneficiarioDetailPdfSharpGenerator(beneficiario);
-      byte[] pdfBytes = pdfGenerator.GeneratePdf();
+      // Esta línea requiere 'using VN_Center.Documents;' y que BeneficiarioDetailPdfDocument.cs exista en esa carpeta/namespace
+      var document = new BeneficiarioDetailPdfDocument(beneficiario);
+      byte[] pdfBytes = document.GeneratePdf();
 
       return File(pdfBytes, "application/pdf", $"Beneficiario_Detalle_{beneficiario.BeneficiarioID}_{DateTime.Now:yyyyMMddHHmmss}.pdf");
     }
 
-    // ... (resto de tus acciones Details, Create, Edit, Delete, etc. sin cambios) ...
     // GET: Beneficiarios/Details/5
     public async Task<IActionResult> Details(int? id)
     {
-      if (id == null)
-      {
-        return NotFound();
-      }
+      if (id == null) { return NotFound(); }
       var beneficiarios = await _context.Beneficiarios
           .Include(b => b.Comunidad)
           .FirstOrDefaultAsync(m => m.BeneficiarioID == id);
-      if (beneficiarios == null)
-      {
-        return NotFound();
-      }
+      if (beneficiarios == null) { return NotFound(); }
       return View(beneficiarios);
     }
 
+    // La línea 137 (aproximadamente) está dentro de este método:
     private void PopulateComunidadesDropDownList(object? selectedComunidad = null)
     {
-      var comunidadesQuery = from c in _context.Comunidades
-                             orderby c.NombreComunidad
-                             select c;
+      var comunidadesQuery = from c in _context.Comunidades orderby c.NombreComunidad select c;
+      // Esta línea requiere 'using Microsoft.AspNetCore.Mvc.Rendering;' para SelectList
       ViewData["ComunidadID"] = new SelectList(comunidadesQuery.AsNoTracking(), "ComunidadID", "NombreComunidad", selectedComunidad);
     }
-
-    // GET: Beneficiarios/Create
     public IActionResult Create()
     {
       PopulateComunidadesDropDownList();
       return View();
     }
-
-    // POST: Beneficiarios/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("BeneficiarioID,FechaRegistroBeneficiario,ComunidadID,Nombres,Apellidos,RangoEdad,Genero,PaisOrigen,OtroPaisOrigen,EstadoMigratorio,OtroEstadoMigratorio,NumeroPersonasHogar,ViviendaAlquiladaOPropia,MiembrosHogarEmpleados,EstaEmpleadoPersonalmente,TipoSituacionLaboral,OtroTipoSituacionLaboral,TipoTrabajoRealizadoSiEmpleado,OtroTipoTrabajoRealizado,EstadoCivil,TiempoEnCostaRicaSiMigrante,TiempoViviendoEnComunidadActual,IngresosSuficientesNecesidades,NivelEducacionCompletado,OtroNivelEducacion,InscritoProgramaEducacionCapacitacionActual,NinosHogarAsistenEscuela,BarrerasAsistenciaEscolarNinos,OtroBarrerasAsistenciaEscolar,PercepcionAccesoIgualOportunidadesLaboralesMujeres,DisponibilidadServiciosMujeresVictimasViolencia,DisponibilidadServiciosSaludMujer,DisponibilidadServiciosApoyoAdultosMayores,AccesibilidadServiciosTransporteComunidad,AccesoComputadora,AccesoInternet")] Beneficiarios beneficiarios)
@@ -161,7 +155,6 @@ namespace VN_Center.Controllers
       ModelState.Remove("BeneficiarioAsistenciaRecibida");
       ModelState.Remove("BeneficiarioGrupos");
       ModelState.Remove("BeneficiariosProgramasProyectos");
-
       if (ModelState.IsValid)
       {
         _context.Add(beneficiarios);
@@ -172,37 +165,23 @@ namespace VN_Center.Controllers
       PopulateComunidadesDropDownList(beneficiarios.ComunidadID);
       return View(beneficiarios);
     }
-
-    // GET: Beneficiarios/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {
-      if (id == null)
-      {
-        return NotFound();
-      }
+      if (id == null) { return NotFound(); }
       var beneficiarios = await _context.Beneficiarios.FindAsync(id);
-      if (beneficiarios == null)
-      {
-        return NotFound();
-      }
+      if (beneficiarios == null) { return NotFound(); }
       PopulateComunidadesDropDownList(beneficiarios.ComunidadID);
       return View(beneficiarios);
     }
-
-    // POST: Beneficiarios/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, [Bind("BeneficiarioID,FechaRegistroBeneficiario,ComunidadID,Nombres,Apellidos,RangoEdad,Genero,PaisOrigen,OtroPaisOrigen,EstadoMigratorio,OtroEstadoMigratorio,NumeroPersonasHogar,ViviendaAlquiladaOPropia,MiembrosHogarEmpleados,EstaEmpleadoPersonalmente,TipoSituacionLaboral,OtroTipoSituacionLaboral,TipoTrabajoRealizadoSiEmpleado,OtroTipoTrabajoRealizado,EstadoCivil,TiempoEnCostaRicaSiMigrante,TiempoViviendoEnComunidadActual,IngresosSuficientesNecesidades,NivelEducacionCompletado,OtroNivelEducacion,InscritoProgramaEducacionCapacitacionActual,NinosHogarAsistenEscuela,BarrerasAsistenciaEscolarNinos,OtroBarrerasAsistenciaEscolar,PercepcionAccesoIgualOportunidadesLaboralesMujeres,DisponibilidadServiciosMujeresVictimasViolencia,DisponibilidadServiciosSaludMujer,DisponibilidadServiciosApoyoAdultosMayores,AccesibilidadServiciosTransporteComunidad,AccesoComputadora,AccesoInternet")] Beneficiarios beneficiarios)
     {
-      if (id != beneficiarios.BeneficiarioID)
-      {
-        return NotFound();
-      }
+      if (id != beneficiarios.BeneficiarioID) { return NotFound(); }
       ModelState.Remove("Comunidad");
       ModelState.Remove("BeneficiarioAsistenciaRecibida");
       ModelState.Remove("BeneficiarioGrupos");
       ModelState.Remove("BeneficiariosProgramasProyectos");
-
       if (ModelState.IsValid)
       {
         try
@@ -213,39 +192,23 @@ namespace VN_Center.Controllers
         }
         catch (DbUpdateConcurrencyException)
         {
-          if (!BeneficiariosExists(beneficiarios.BeneficiarioID))
-          {
-            return NotFound();
-          }
-          else
-          {
-            throw;
-          }
+          if (!BeneficiariosExists(beneficiarios.BeneficiarioID)) { return NotFound(); }
+          else { throw; }
         }
         return RedirectToAction(nameof(Index));
       }
       PopulateComunidadesDropDownList(beneficiarios.ComunidadID);
       return View(beneficiarios);
     }
-
-    // GET: Beneficiarios/Delete/5
     public async Task<IActionResult> Delete(int? id)
     {
-      if (id == null)
-      {
-        return NotFound();
-      }
+      if (id == null) { return NotFound(); }
       var beneficiarios = await _context.Beneficiarios
           .Include(b => b.Comunidad)
           .FirstOrDefaultAsync(m => m.BeneficiarioID == id);
-      if (beneficiarios == null)
-      {
-        return NotFound();
-      }
+      if (beneficiarios == null) { return NotFound(); }
       return View(beneficiarios);
     }
-
-    // POST: Beneficiarios/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
@@ -259,7 +222,6 @@ namespace VN_Center.Controllers
       }
       return RedirectToAction(nameof(Index));
     }
-
     private bool BeneficiariosExists(int id)
     {
       return _context.Beneficiarios.Any(e => e.BeneficiarioID == id);
