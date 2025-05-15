@@ -43,6 +43,7 @@ namespace VN_Center.Data
     public DbSet<ParticipacionesActivas> ParticipacionesActivas { get; set; } = null!;
     public DbSet<BeneficiariosProgramasProyectos> BeneficiariosProgramasProyectos { get; set; } = null!;
     public DbSet<EvaluacionesPrograma> EvaluacionesPrograma { get; set; } = null!;
+    public DbSet<RegistrosAuditoria> RegistrosAuditoria { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
