@@ -1,6 +1,5 @@
 @* VN_Center/Views/Auditoria/Index.cshtml *@
-@model IEnumerable<VN_Center.Models.Entities.RegistrosAuditoria>
-
+@model IEnumerable<VN_Center.Models.ViewModels.RegistroAuditoriaViewModel>
 @{
     ViewData["Title"] = "Registros de Auditoría del Sistema";
     var paginaActual = (int)ViewData["PaginaActual"];
@@ -55,17 +54,17 @@
             <h5 class="mb-0">Resultados de Auditoría</h5>
         </div>
         <div class="table-responsive text-nowrap">
-            @if (Model.Any())
+            @if (Model != null && Model.Any())
             {
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>@Html.DisplayNameFor(model => model.First().FechaHoraEvento)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().NombreUsuarioEjecutor)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().TipoEvento)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().EntidadAfectada)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().IdEntidadAfectada)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().DireccionIp)</th>
+                            <th>Fecha y Hora</th> @* Texto literal *@
+                            <th>Usuario Ejecutor</th> @* Texto literal *@
+                            <th>Tipo de Evento</th> @* Texto literal *@
+                            <th>Entidad Afectada</th> @* Texto literal *@
+                            <th>Nombre/Detalle Entidad Afectada</th> @* Texto literal *@
+                            <th>Dirección IP</th> @* Texto literal *@
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -77,7 +76,7 @@
                                 <td>@Html.DisplayFor(modelItem => item.NombreUsuarioEjecutor)</td>
                                 <td>@Html.DisplayFor(modelItem => item.TipoEvento)</td>
                                 <td>@Html.DisplayFor(modelItem => item.EntidadAfectada)</td>
-                                <td>@Html.DisplayFor(modelItem => item.IdEntidadAfectada)</td>
+                                <td>@Html.DisplayFor(modelItem => item.NombreDetalleEntidadAfectada)</td>
                                 <td>@Html.DisplayFor(modelItem => item.DireccionIp)</td>
                                 <td class="text-center">
                                     <a asp-action="Details" asp-route-id="@item.AuditoriaID" class="btn btn-sm btn-outline-info">
@@ -96,7 +95,7 @@
                 </div>
             }
         </div>
-        @if (Model.Any() && totalPaginas > 1)
+        @if (Model != null && Model.Any() && totalPaginas > 1)
         {
             <div class="card-footer d-flex justify-content-center">
                 <nav aria-label="Paginación de auditoría">

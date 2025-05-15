@@ -1,6 +1,5 @@
 @* VN_Center/Views/Auditoria/Details.cshtml *@
-@model VN_Center.Models.Entities.RegistrosAuditoria
-
+@model VN_Center.Models.ViewModels.RegistroAuditoriaViewModel
 @{
     ViewData["Title"] = "Detalle del Registro de Auditoría";
 }
@@ -32,8 +31,8 @@
                 <dt class="col-sm-3">@Html.DisplayNameFor(model => model.EntidadAfectada)</dt>
                 <dd class="col-sm-9">@Html.DisplayFor(model => model.EntidadAfectada)</dd>
 
-                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.IdEntidadAfectada)</dt>
-                <dd class="col-sm-9">@Html.DisplayFor(model => model.IdEntidadAfectada)</dd>
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.NombreDetalleEntidadAfectada)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.NombreDetalleEntidadAfectada)</dd>
 
                 <dt class="col-sm-3">@Html.DisplayNameFor(model => model.DireccionIp)</dt>
                 <dd class="col-sm-9">@Html.DisplayFor(model => model.DireccionIp)</dd>
