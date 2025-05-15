@@ -1,5 +1,6 @@
 @* VN_Center/Views/Auditoria/Index.cshtml *@
 @model IEnumerable<VN_Center.Models.ViewModels.RegistroAuditoriaViewModel>
+
 @{
     ViewData["Title"] = "Registros de Auditoría del Sistema";
     var paginaActual = (int)ViewData["PaginaActual"];
@@ -7,6 +8,12 @@
     var tienePaginaAnterior = (bool)ViewData["TienePaginaAnterior"];
     var tienePaginaSiguiente = (bool)ViewData["TienePaginaSiguiente"];
     var tiposEventoUnicos = ViewBag.TiposEventoUnicos as List<string> ?? new List<string>();
+
+    // Capturar los valores actuales de los filtros para pasarlos al botón de exportar
+    var filtroUsuarioActual = ViewData["FiltroUsuarioActual"] as string;
+    var filtroTipoEventoActual = ViewData["FiltroTipoEventoActual"] as string;
+    var fechaDesdeActual = ViewData["FechaDesdeActual"] as string;
+    var fechaHastaActual = ViewData["FechaHastaActual"] as string;
 }
 
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -22,7 +29,7 @@
             <form asp-action="Index" method="get" class="row g-3">
                 <div class="col-md-3">
                     <label for="filtroUsuario" class="form-label">Usuario Ejecutor</label>
-                    <input type="text" name="filtroUsuario" id="filtroUsuario" value="@ViewData["FiltroUsuarioActual"]" class="form-control" />
+                    <input type="text" name="filtroUsuario" id="filtroUsuario" value="@filtroUsuarioActual" class="form-control" />
                 </div>
                 <div class="col-md-3">
                     <label for="filtroTipoEvento" class="form-label">Tipo de Evento</label>
@@ -30,17 +37,17 @@
                         <option value="">Todos</option>
                         @foreach (var tipo in tiposEventoUnicos)
                         {
-                            <option value="@tipo" selected="@(ViewData["FiltroTipoEventoActual"]?.ToString() == tipo)">@tipo</option>
+                            <option value="@tipo" selected="@(filtroTipoEventoActual == tipo)">@tipo</option>
                         }
                     </select>
                 </div>
                 <div class="col-md-2">
                     <label for="fechaDesde" class="form-label">Fecha Desde</label>
-                    <input type="date" name="fechaDesde" id="fechaDesde" value="@ViewData["FechaDesdeActual"]" class="form-control" />
+                    <input type="date" name="fechaDesde" id="fechaDesde" value="@fechaDesdeActual" class="form-control" />
                 </div>
                 <div class="col-md-2">
                     <label for="fechaHasta" class="form-label">Fecha Hasta</label>
-                    <input type="date" name="fechaHasta" id="fechaHasta" value="@ViewData["FechaHastaActual"]" class="form-control" />
+                    <input type="date" name="fechaHasta" id="fechaHasta" value="@fechaHastaActual" class="form-control" />
                 </div>
                 <div class="col-md-2 align-self-end">
                     <button type="submit" class="btn btn-primary w-100"><i class="bx bx-search me-1"></i> Filtrar</button>
@@ -50,8 +57,18 @@
     </div>
 
     <div class="card mt-4">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            @* Contenedor para título y botón *@
             <h5 class="mb-0">Resultados de Auditoría</h5>
+            <a asp-action="ExportToPdf"
+               asp-route-filtroUsuario="@filtroUsuarioActual"
+               asp-route-filtroTipoEvento="@filtroTipoEventoActual"
+               asp-route-fechaDesde="@fechaDesdeActual"
+               asp-route-fechaHasta="@fechaHastaActual"
+               class="btn btn-success">
+                @* <--- NUEVO BOTÓN EXPORTAR *@
+                <i class="bx bx-printer me-1"></i> Exportar a PDF
+            </a>
         </div>
         <div class="table-responsive text-nowrap">
             @if (Model != null && Model.Any())
@@ -59,12 +76,12 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Fecha y Hora</th> @* Texto literal *@
-                            <th>Usuario Ejecutor</th> @* Texto literal *@
-                            <th>Tipo de Evento</th> @* Texto literal *@
-                            <th>Entidad Afectada</th> @* Texto literal *@
-                            <th>Nombre/Detalle Entidad Afectada</th> @* Texto literal *@
-                            <th>Dirección IP</th> @* Texto literal *@
+                            <th>Fecha y Hora</th>
+                            <th>Usuario Ejecutor</th>
+                            <th>Tipo de Evento</th>
+                            <th>Entidad Afectada</th>
+                            <th>Nombre/Detalle Entidad Afectada</th>
+                            <th>Dirección IP</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -103,10 +120,10 @@
                         <li class="page-item @(tienePaginaAnterior ? "" : "disabled")">
                             <a class="page-link" asp-action="Index"
                                asp-route-pagina="@(paginaActual - 1)"
-                               asp-route-filtroUsuario="@ViewData["FiltroUsuarioActual"]"
-                               asp-route-filtroTipoEvento="@ViewData["FiltroTipoEventoActual"]"
-                               asp-route-fechaDesde="@ViewData["FechaDesdeActual"]"
-                               asp-route-fechaHasta="@ViewData["FechaHastaActual"]">&laquo; Anterior</a>
+                               asp-route-filtroUsuario="@filtroUsuarioActual"
+                               asp-route-filtroTipoEvento="@filtroTipoEventoActual"
+                               asp-route-fechaDesde="@fechaDesdeActual"
+                               asp-route-fechaHasta="@fechaHastaActual">&laquo; Anterior</a>
                         </li>
 
                         @for (int i = 1; i <= totalPaginas; i++)
@@ -114,20 +131,20 @@
                             <li class="page-item @(i == paginaActual ? "active" : "")">
                                 <a class="page-link" asp-action="Index"
                                    asp-route-pagina="@i"
-                                   asp-route-filtroUsuario="@ViewData["FiltroUsuarioActual"]"
-                                   asp-route-filtroTipoEvento="@ViewData["FiltroTipoEventoActual"]"
-                                   asp-route-fechaDesde="@ViewData["FechaDesdeActual"]"
-                                   asp-route-fechaHasta="@ViewData["FechaHastaActual"]">@i</a>
+                                   asp-route-filtroUsuario="@filtroUsuarioActual"
+                                   asp-route-filtroTipoEvento="@filtroTipoEventoActual"
+                                   asp-route-fechaDesde="@fechaDesdeActual"
+                                   asp-route-fechaHasta="@fechaHastaActual">@i</a>
                             </li>
                         }
 
                         <li class="page-item @(tienePaginaSiguiente ? "" : "disabled")">
                             <a class="page-link" asp-action="Index"
                                asp-route-pagina="@(paginaActual + 1)"
-                               asp-route-filtroUsuario="@ViewData["FiltroUsuarioActual"]"
-                               asp-route-filtroTipoEvento="@ViewData["FiltroTipoEventoActual"]"
-                               asp-route-fechaDesde="@ViewData["FechaDesdeActual"]"
-                               asp-route-fechaHasta="@ViewData["FechaHastaActual"]">Siguiente &raquo;</a>
+                               asp-route-filtroUsuario="@filtroUsuarioActual"
+                               asp-route-filtroTipoEvento="@filtroTipoEventoActual"
+                               asp-route-fechaDesde="@fechaDesdeActual"
+                               asp-route-fechaHasta="@fechaHastaActual">Siguiente &raquo;</a>
                         </li>
                     </ul>
                 </nav>

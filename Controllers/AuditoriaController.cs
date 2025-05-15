@@ -9,6 +9,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
+using QuestPDF.Fluent; // Para QuestPDF
+using VN_Center.Documents; // Para RegistrosAuditoriaPdfDocument
+using Microsoft.AspNetCore.Hosting; // Para IWebHostEnvironment
+using System.IO; // Para Path
+using System.Text; // Para StringBuilder
 
 namespace VN_Center.Controllers
 {
@@ -17,11 +22,16 @@ namespace VN_Center.Controllers
   {
     private readonly VNCenterDbContext _context;
     private readonly UserManager<UsuariosSistema> _userManager;
+    private readonly IWebHostEnvironment _webHostEnvironment; // <--- AÑADIDO
 
-    public AuditoriaController(VNCenterDbContext context, UserManager<UsuariosSistema> userManager)
+    public AuditoriaController(
+        VNCenterDbContext context,
+        UserManager<UsuariosSistema> userManager,
+        IWebHostEnvironment webHostEnvironment) // <--- AÑADIDO
     {
       _context = context;
       _userManager = userManager;
+      _webHostEnvironment = webHostEnvironment; // <--- AÑADIDO
     }
 
     // GET: Auditoria
@@ -39,30 +49,23 @@ namespace VN_Center.Controllers
 
       var query = _context.RegistrosAuditoria.AsQueryable();
 
-      // Filtro por Usuario Ejecutor (CORREGIDO y insensible a mayúsculas/minúsculas)
       if (!string.IsNullOrEmpty(filtroUsuario))
       {
-        // Se busca en la columna NombreUsuarioEjecutor que ya guardamos.
-        // ToLower() para búsqueda insensible a mayúsculas/minúsculas.
         query = query.Where(r => r.NombreUsuarioEjecutor != null && r.NombreUsuarioEjecutor.ToLower().Contains(filtroUsuario.ToLower()));
       }
 
-      // Filtro por Tipo de Evento
       if (!string.IsNullOrEmpty(filtroTipoEvento))
       {
         query = query.Where(r => r.TipoEvento.Contains(filtroTipoEvento));
       }
 
-      // Filtro por Fecha Desde
       if (fechaDesde.HasValue)
       {
         query = query.Where(r => r.FechaHoraEvento >= fechaDesde.Value);
       }
 
-      // Filtro por Fecha Hasta
       if (fechaHasta.HasValue)
       {
-        // Se añade un día a fechaHasta para incluir todos los eventos de ese día.
         query = query.Where(r => r.FechaHoraEvento < fechaHasta.Value.AddDays(1));
       }
 
@@ -94,7 +97,6 @@ namespace VN_Center.Controllers
 
         if (registro.EntidadAfectada == "UsuariosSistema" && !string.IsNullOrEmpty(registro.IdEntidadAfectada))
         {
-          // Intentamos encontrar el usuario por ID. El ID de UsuariosSistema es int.
           if (int.TryParse(registro.IdEntidadAfectada, out int userIdAfectado))
           {
             var usuarioAfectado = await _userManager.FindByIdAsync(userIdAfectado.ToString());
@@ -132,6 +134,7 @@ namespace VN_Center.Controllers
     // GET: Auditoria/Details/5
     public async Task<IActionResult> Details(int? id)
     {
+      // ... (código existente de Details) ...
       if (id == null)
       {
         return NotFound();
@@ -178,8 +181,93 @@ namespace VN_Center.Controllers
           viewModel.NombreDetalleEntidadAfectada = $"ID Entidad: {registroAuditoria.IdEntidadAfectada} (Formato incorrecto)";
         }
       }
-
       return View(viewModel);
+    }
+
+    // NUEVA ACCIÓN PARA EXPORTAR A PDF LA LISTA DE AUDITORÍA
+    public async Task<IActionResult> ExportToPdf(
+        string? filtroUsuario,
+        string? filtroTipoEvento,
+        DateTime? fechaDesde,
+        DateTime? fechaHasta)
+    {
+      var query = _context.RegistrosAuditoria.AsQueryable();
+      var sbFiltros = new StringBuilder();
+
+      if (!string.IsNullOrEmpty(filtroUsuario))
+      {
+        query = query.Where(r => r.NombreUsuarioEjecutor != null && r.NombreUsuarioEjecutor.ToLower().Contains(filtroUsuario.ToLower()));
+        sbFiltros.Append($"Usuario Ejecutor: '{filtroUsuario}'; ");
+      }
+
+      if (!string.IsNullOrEmpty(filtroTipoEvento))
+      {
+        query = query.Where(r => r.TipoEvento.Contains(filtroTipoEvento));
+        sbFiltros.Append($"Tipo Evento: '{filtroTipoEvento}'; ");
+      }
+
+      if (fechaDesde.HasValue)
+      {
+        query = query.Where(r => r.FechaHoraEvento >= fechaDesde.Value);
+        sbFiltros.Append($"Desde: {fechaDesde.Value:dd/MM/yyyy}; ");
+      }
+
+      if (fechaHasta.HasValue)
+      {
+        query = query.Where(r => r.FechaHoraEvento < fechaHasta.Value.AddDays(1));
+        sbFiltros.Append($"Hasta: {fechaHasta.Value:dd/MM/yyyy}; ");
+      }
+
+      // Obtener todos los registros que coinciden con los filtros (sin paginación para el PDF)
+      var registrosAuditoria = await query.OrderByDescending(r => r.FechaHoraEvento).ToListAsync();
+
+      var viewModelList = new List<RegistroAuditoriaViewModel>();
+      foreach (var registro in registrosAuditoria)
+      {
+        var vm = new RegistroAuditoriaViewModel
+        {
+          AuditoriaID = registro.AuditoriaID,
+          FechaHoraEvento = registro.FechaHoraEvento,
+          UsuarioEjecutorId = registro.UsuarioEjecutorId,
+          NombreUsuarioEjecutor = registro.NombreUsuarioEjecutor,
+          TipoEvento = registro.TipoEvento,
+          EntidadAfectada = registro.EntidadAfectada,
+          IdEntidadAfectada = registro.IdEntidadAfectada,
+          DetallesCambio = registro.DetallesCambio,
+          DireccionIp = registro.DireccionIp,
+          NombreDetalleEntidadAfectada = registro.IdEntidadAfectada
+        };
+
+        if (registro.EntidadAfectada == "UsuariosSistema" && !string.IsNullOrEmpty(registro.IdEntidadAfectada))
+        {
+          if (int.TryParse(registro.IdEntidadAfectada, out int userIdAfectado))
+          {
+            var usuarioAfectado = await _userManager.FindByIdAsync(userIdAfectado.ToString());
+            if (usuarioAfectado != null)
+            {
+              vm.NombreDetalleEntidadAfectada = $"{usuarioAfectado.NombreCompleto} ({usuarioAfectado.UserName})";
+            }
+            else
+            {
+              vm.NombreDetalleEntidadAfectada = $"Usuario ID: {registro.IdEntidadAfectada} (No encontrado)";
+            }
+          }
+          else
+          {
+            vm.NombreDetalleEntidadAfectada = $"ID Entidad: {registro.IdEntidadAfectada} (Formato incorrecto)";
+          }
+        }
+        viewModelList.Add(vm);
+      }
+
+      string wwwRootPath = _webHostEnvironment.WebRootPath;
+      string logoPath = Path.Combine(wwwRootPath, "img", "logo_vncenter_mini.png");
+      string filtrosAplicadosStr = sbFiltros.Length > 0 ? sbFiltros.ToString().TrimEnd(';', ' ') : "Ninguno";
+
+      var document = new RegistrosAuditoriaPdfDocument(viewModelList, logoPath, filtrosAplicadosStr);
+      var pdfBytes = document.GeneratePdf();
+
+      return File(pdfBytes, "application/pdf", $"RegistrosAuditoria_{DateTime.Now:yyyyMMddHHmmss}.pdf");
     }
   }
 }
