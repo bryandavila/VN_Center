@@ -22,6 +22,9 @@ builder.Services.AddDbContext<VNCenterDbContext>(options =>
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+builder.Services.AddScoped<IAuditoriaService, AuditoriaService>();
+
+
 builder.Services.AddIdentity<UsuariosSistema, RolesSistema>(options => {
   options.SignIn.RequireConfirmedAccount = false;
   options.Password.RequireDigit = true;
