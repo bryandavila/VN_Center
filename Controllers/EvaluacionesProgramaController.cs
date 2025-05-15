@@ -1,13 +1,17 @@
+// VN_Center/Controllers/EvaluacionesProgramaController.cs
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using VN_Center.Data;
 using VN_Center.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
+using QuestPDF.Fluent; // Para QuestPDF
+using VN_Center.Documents; // Para EvaluacionesProgramaPdfDocument
+using Microsoft.AspNetCore.Hosting; // Para IWebHostEnvironment
+using System.IO; // Para Path
 
 namespace VN_Center.Controllers
 {
@@ -15,20 +19,24 @@ namespace VN_Center.Controllers
   public class EvaluacionesProgramaController : Controller
   {
     private readonly VNCenterDbContext _context;
+    // Asegúrate de que _webHostEnvironment esté declarado como un campo de la clase
+    private readonly IWebHostEnvironment _webHostEnvironment;
 
-    public EvaluacionesProgramaController(VNCenterDbContext context)
+    // El constructor debe recibir IWebHostEnvironment y asignarlo al campo
+    public EvaluacionesProgramaController(VNCenterDbContext context, IWebHostEnvironment webHostEnvironment)
     {
       _context = context;
+      _webHostEnvironment = webHostEnvironment;
     }
 
     // GET: EvaluacionesPrograma
     public async Task<IActionResult> Index()
     {
       var vNCenterDbContext = _context.EvaluacionesPrograma
-                                      .Include(e => e.ParticipacionActiva)
-                                          .ThenInclude(pa => pa!.Solicitud) // Encadenar Include
-                                      .Include(e => e.ParticipacionActiva)
-                                          .ThenInclude(pa => pa!.ProgramaProyecto); // Encadenar Include
+                                  .Include(e => e.ParticipacionActiva)
+                                      .ThenInclude(pa => pa!.Solicitud)
+                                  .Include(e => e.ParticipacionActiva)
+                                      .ThenInclude(pa => pa!.ProgramaProyecto);
       return View(await vNCenterDbContext.OrderByDescending(e => e.FechaEvaluacion).ToListAsync());
     }
 
@@ -59,8 +67,6 @@ namespace VN_Center.Controllers
       var participacionesQuery = from pa in _context.ParticipacionesActivas
                                  .Include(p => p.Solicitud)
                                  .Include(p => p.ProgramaProyecto)
-                                   // Opcional: Filtrar participaciones que aún no tienen evaluación
-                                   // where !_context.EvaluacionesPrograma.Any(e => e.ParticipacionID == pa.ParticipacionID)
                                  orderby pa.Solicitud.Apellidos, pa.Solicitud.Nombres, pa.ProgramaProyecto.NombreProgramaProyecto
                                  select new
                                  {
@@ -88,16 +94,14 @@ namespace VN_Center.Controllers
     {
       ModelState.Remove("ParticipacionActiva");
 
-      // Verificar si ya existe una evaluación para esta participación
       if (await _context.EvaluacionesPrograma.AnyAsync(e => e.ParticipacionID == evaluacionesPrograma.ParticipacionID && e.EvaluacionID != evaluacionesPrograma.EvaluacionID))
       {
         ModelState.AddModelError("ParticipacionID", "Ya existe una evaluación registrada para esta participación.");
       }
 
-
       if (ModelState.IsValid)
       {
-        evaluacionesPrograma.FechaEvaluacion = DateTime.UtcNow; // Asegurar fecha actual
+        evaluacionesPrograma.FechaEvaluacion = DateTime.UtcNow;
         _context.Add(evaluacionesPrograma);
         await _context.SaveChangesAsync();
         TempData["SuccessMessage"] = "Evaluación de programa creada exitosamente.";
@@ -136,11 +140,10 @@ namespace VN_Center.Controllers
 
       ModelState.Remove("ParticipacionActiva");
 
-      // Verificar si se está cambiando ParticipacionID a una que ya tiene evaluación
       if (await _context.EvaluacionesPrograma.AnyAsync(e => e.ParticipacionID == evaluacionesPrograma.ParticipacionID && e.EvaluacionID != evaluacionesPrograma.EvaluacionID))
       {
         var originalParticipacionId = await _context.EvaluacionesPrograma.AsNoTracking().Where(e => e.EvaluacionID == id).Select(e => e.ParticipacionID).FirstOrDefaultAsync();
-        if (originalParticipacionId != evaluacionesPrograma.ParticipacionID) // Solo si el ParticipacionID ha cambiado
+        if (originalParticipacionId != evaluacionesPrograma.ParticipacionID)
         {
           ModelState.AddModelError("ParticipacionID", "Ya existe una evaluación registrada para la nueva participación seleccionada.");
         }
@@ -150,7 +153,6 @@ namespace VN_Center.Controllers
       {
         try
         {
-          // Preservar la fecha de evaluación original si no se permite editar
           var originalEntity = await _context.EvaluacionesPrograma.AsNoTracking().FirstOrDefaultAsync(e => e.EvaluacionID == id);
           if (originalEntity != null)
           {
@@ -219,6 +221,56 @@ namespace VN_Center.Controllers
     private bool EvaluacionesProgramaExists(int id)
     {
       return _context.EvaluacionesPrograma.Any(e => e.EvaluacionID == id);
+    }
+
+    // ACCIÓN PARA EXPORTAR A PDF
+    public async Task<IActionResult> ExportToPdf()
+    {
+      var evaluaciones = await _context.EvaluacionesPrograma
+                                  .Include(e => e.ParticipacionActiva)
+                                      .ThenInclude(pa => pa!.Solicitud)
+                                  .Include(e => e.ParticipacionActiva)
+                                      .ThenInclude(pa => pa!.ProgramaProyecto)
+                                  .ToListAsync();
+
+      // _webHostEnvironment se usa aquí. Debe estar correctamente inicializado.
+      string wwwRootPath = _webHostEnvironment.WebRootPath;
+      string logoPath = Path.Combine(wwwRootPath, "img", "logo_vncenter_mini.png");
+
+      var document = new EvaluacionesProgramaPdfDocument(evaluaciones, logoPath);
+      var pdfBytes = document.GeneratePdf();
+
+      return File(pdfBytes, "application/pdf", $"Lista_EvaluacionesPrograma_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+    }
+
+    // NUEVA ACCIÓN PARA EXPORTAR DETALLES A PDF
+    public async Task<IActionResult> ExportDetailToPdf(int id)
+    {
+      var evaluacionPrograma = await _context.EvaluacionesPrograma
+          .Include(e => e.ParticipacionActiva)
+              .ThenInclude(pa => pa!.Solicitud) // Para el nombre del solicitante
+          .Include(e => e.ParticipacionActiva)
+              .ThenInclude(pa => pa!.ProgramaProyecto) // Para el nombre del programa
+          .FirstOrDefaultAsync(m => m.EvaluacionID == id);
+
+      if (evaluacionPrograma == null)
+      {
+        return NotFound();
+      }
+
+      string wwwRootPath = _webHostEnvironment.WebRootPath;
+      string logoPath = Path.Combine(wwwRootPath, "img", "logo_vncenter_mini.png");
+
+      var document = new EvaluacionProgramaDetailPdfDocument(evaluacionPrograma, logoPath);
+      var pdfBytes = document.GeneratePdf();
+
+      string participanteNombre = "Evaluacion"; // Default
+      if (evaluacionPrograma.ParticipacionActiva?.Solicitud != null)
+      {
+        participanteNombre = $"{evaluacionPrograma.ParticipacionActiva.Solicitud.Nombres}_{evaluacionPrograma.ParticipacionActiva.Solicitud.Apellidos}".Replace(" ", "_");
+      }
+
+      return File(pdfBytes, "application/pdf", $"Detalle_Evaluacion_{participanteNombre}_ID{evaluacionPrograma.EvaluacionID}_{DateTime.Now:yyyyMMdd}.pdf");
     }
   }
 }
