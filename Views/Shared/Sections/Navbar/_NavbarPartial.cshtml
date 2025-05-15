@@ -1,3 +1,4 @@
+@* VN_Center/Views/Shared/_NavbarPartial.cshtml *@
 @using Microsoft.AspNetCore.Identity
 @using VN_Center.Models.Entities
 
@@ -40,7 +41,8 @@
         @if (SignInManager.IsSignedIn(User))
         {
             var currentUser = await UserManager.GetUserAsync(User);
-            var userName = currentUser?.Nombres ?? User.Identity?.Name;
+            var userName = currentUser?.Nombres ?? User.Identity?.Name; // Muestra Nombres si está disponible
+            var userRole = User.IsInRole("Administrador") ? "Administrador" : (User.IsInRole("Usuario") ? "Usuario" : "Rol Desconocido"); // Obtener el rol
 
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
@@ -51,6 +53,7 @@
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li>
                         <a class="dropdown-item" href="javascript:void(0);">
+                            @* Podrías enlazar a Details aquí también si quieres *@
                             <div class="d-flex">
                                 <div class="flex-shrink-0 me-3">
                                     <div class="avatar avatar-online">
@@ -59,7 +62,7 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <h6 class="mb-0">@userName</h6>
-                                    <small class="text-muted">@(User.IsInRole("Administrador") ? "Administrador" : "Usuario")</small>
+                                    <small class="text-muted">@userRole</small>
                                 </div>
                             </div>
                         </a>
@@ -68,13 +71,15 @@
                         <div class="dropdown-divider my-1"></div>
                     </li>
                     <li>
+                        @* Enlace "Mi Perfil" apunta a la vista de Detalles del usuario actual *@
                         <a class="dropdown-item" asp-controller="UsuariosSistema" asp-action="Details" asp-route-id="@UserManager.GetUserId(User)">
                             <i class="bx bx-user bx-md me-2"></i>
                             <span>Mi Perfil</span>
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="javascript:void(0);">
+                        @* --- ENLACE DE CONFIGURACIÓN MODIFICADO --- *@
+                        <a class="dropdown-item" asp-controller="UsuariosSistema" asp-action="Edit" asp-route-id="@UserManager.GetUserId(User)">
                             <i class="bx bx-cog bx-md me-2"></i>
                             <span>Configuración</span>
                         </a>
