@@ -1,7 +1,8 @@
+// VN_Center/Models/Entities/Beneficiarios.cs
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema; // Necesario para [NotMapped]
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VN_Center.Models.Entities
 {
@@ -150,6 +151,12 @@ namespace VN_Center.Models.Entities
     [Display(Name = "Acceso a Internet")]
     public string? AccesoInternet { get; set; }
 
+    // --- NUEVA PROPIEDAD PARA AUDITORÍA Y FILTRADO ---
+    [StringLength(450)]
+    [Display(Name = "Usuario Creador ID")]
+    public string? UsuarioCreadorId { get; set; }
+    // --- FIN DE NUEVA PROPIEDAD ---
+
     // --- Propiedades de Navegación ---
     [ForeignKey("ComunidadID")]
     [Display(Name = "Comunidad")]
@@ -160,16 +167,15 @@ namespace VN_Center.Models.Entities
     public virtual ICollection<BeneficiariosProgramasProyectos> BeneficiariosProgramasProyectos { get; set; } = new List<BeneficiariosProgramasProyectos>();
 
     // --- Propiedad Calculada (No Mapeada) ---
-    [NotMapped] // Importante: Para que EF Core no intente mapearla a una columna en la BD
+    [NotMapped]
     [Display(Name = "Nombre Completo del Beneficiario")]
     public string NombreCompleto
     {
       get
       {
-        // Manejar casos donde Nombres o Apellidos puedan ser nulos o vacíos
         if (string.IsNullOrWhiteSpace(Nombres) && string.IsNullOrWhiteSpace(Apellidos))
         {
-          return "Beneficiario (ID: " + BeneficiarioID + ")"; // O un texto más genérico
+          return "Beneficiario (ID: " + BeneficiarioID + ")";
         }
         return $"{Nombres} {Apellidos}".Trim();
       }

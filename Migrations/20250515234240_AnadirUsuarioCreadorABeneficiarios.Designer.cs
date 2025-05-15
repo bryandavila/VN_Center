@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VN_Center.Data;
 
@@ -11,9 +12,11 @@ using VN_Center.Data;
 namespace VN_Center.Migrations
 {
     [DbContext(typeof(VNCenterDbContext))]
-    partial class VNCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250515234240_AnadirUsuarioCreadorABeneficiarios")]
+    partial class AnadirUsuarioCreadorABeneficiarios
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
