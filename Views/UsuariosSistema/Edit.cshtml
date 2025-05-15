@@ -1,3 +1,4 @@
+@* VN_Center/Views/UsuariosSistema/Edit.cshtml *@
 @model VN_Center.Models.ViewModels.UsuarioEditViewModel
 @{
     ViewData["Title"] = "Editar Usuario del Sistema";
@@ -23,7 +24,9 @@
                 <div class="card-body">
                     <form asp-action="Edit" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                        <input type="hidden" asp-for="Id" /> <div class="row">
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Nombres" class="form-label"></label>
                                 <input asp-for="Nombres" class="form-control" />
@@ -38,7 +41,8 @@
 
                         <div class="mb-3">
                             <label asp-for="UserName" class="form-label"></label>
-                            <input asp-for="UserName" class="form-control" /> <span asp-validation-for="UserName" class="text-danger"></span>
+                            <input asp-for="UserName" class="form-control" />
+                            <span asp-validation-for="UserName" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
@@ -53,7 +57,6 @@
                             <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                         </div>
 
-                        <p class="text-muted">Para cambiar la contraseña, por favor use la funcionalidad de "Cambiar Contraseña" (si existe) o contacte al administrador.</p>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="SelectedRoleName" class="form-label">Rol</label>
@@ -67,6 +70,22 @@
                                 <select asp-for="Activo" class="form-select" asp-items="opcionesActivo"></select>
                                 <span asp-validation-for="Activo" class="text-danger"></span>
                             </div>
+                        </div>
+
+                        <hr class="my-4" />
+                        <h5 class="mb-3 text-primary">Restablecer Contraseña (Opcional)</h5>
+                        <p class="text-muted small">Deje estos campos en blanco si no desea cambiar la contraseña del usuario.</p>
+
+                        <div class="mb-3">
+                            <label asp-for="NewPassword" class="form-label"></label>
+                            <input asp-for="NewPassword" class="form-control" />
+                            <span asp-validation-for="NewPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ConfirmNewPassword" class="form-label"></label>
+                            <input asp-for="ConfirmNewPassword" class="form-control" />
+                            <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
                         </div>
 
                         <div class="mt-4">
