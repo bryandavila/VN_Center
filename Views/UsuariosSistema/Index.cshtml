@@ -1,10 +1,10 @@
-@model IEnumerable<VN_Center.Models.Entities.UsuariosSistema>
+@* VN_Center/Views/UsuariosSistema/Index.cshtml *@
+@model IEnumerable<VN_Center.Models.ViewModels.UsuarioSistemaViewModel>
 @{
     ViewData["Title"] = "Usuarios del Sistema";
 }
 
 <div class="container-xxl flex-grow-1 container-p-y">
-
     <h4 class="fw-bold py-3 mb-4">
         <span class="text-muted fw-light">Administración /</span> Usuarios del Sistema
     </h4>
@@ -27,9 +27,12 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Usuarios Registrados</h5>
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="bx bx-plus me-1"></i> Crear Nuevo Usuario
-            </a>
+            <div>
+                <a asp-action="Create" class="btn btn-primary me-2"><i class="bx bx-plus me-1"></i> Crear Nuevo Usuario</a>
+                <a asp-action="ExportToPdf" class="btn btn-info">
+                    <i class="bx bx-printer me-1"></i> Exportar a PDF
+                </a>
+            </div>
         </div>
         <div class="table-responsive text-nowrap">
             @if (Model.Any())
@@ -37,11 +40,11 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>@Html.DisplayNameFor(model => model.First().UserName)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().NombreCompleto)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().Email)</th>
+                            <th>Nombre de Usuario</th> @* Texto literal para cabecera *@
+                            <th>Nombre Completo</th>   @* Texto literal para cabecera *@
+                            <th>Correo Electrónico</th>@* Texto literal para cabecera *@
                             <th>Rol(es)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().Activo)</th>
+                            <th>Activo</th>            @* Texto literal para cabecera *@
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -53,16 +56,17 @@
                                 <td>@Html.DisplayFor(modelItem => item.NombreCompleto)</td>
                                 <td>@Html.DisplayFor(modelItem => item.Email)</td>
                                 <td>
-                                    @{
-                                        // Para mostrar roles, necesitaríamos obtenerlos en el controlador y pasarlos,
-                                        // o hacer una llamada aquí por cada usuario (menos eficiente).
-                                        // El controlador UsuariosSistemaController NO pasa roles para el Index actualmente.
-                                        // Si se necesita, se debe modificar el controlador para pasar esta info,
-                                        // por ejemplo, en un ViewModel que contenga el usuario y sus roles.
-                                        // Por ahora, dejaremos esto como "N/A" o lo quitamos.
-                                        // Para una solución simple, podemos quitar esta columna del Index y ver roles en Details.
+                                    @if (item.Roles.Any())
+                                    {
+                                        foreach (var rol in item.Roles)
+                                        {
+                                            <span class="badge bg-label-primary me-1">@rol</span>
+                                        }
                                     }
-                                    N/A
+                                    else
+                                    {
+                                        <span class="badge bg-label-secondary">Sin roles</span>
+                                    }
                                 </td>
                                 <td>
                                     @if (item.Activo)
@@ -80,7 +84,9 @@
                                             <i class="bx bx-dots-vertical-rounded"></i>
                                         </button>
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item" asp-action="Edit" asp-route-id="@item.Id"><i class="bx bx-edit-alt me-1"></i> Editar</a> <a class="dropdown-item" asp-action="Details" asp-route-id="@item.Id"><i class="bx bx-detail me-1"></i> Detalles</a> <a class="dropdown-item" asp-action="Delete" asp-route-id="@item.Id"><i class="bx bx-trash me-1"></i> Eliminar</a>
+                                            <a class="dropdown-item" asp-action="Edit" asp-route-id="@item.Id"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                                            <a class="dropdown-item" asp-action="Details" asp-route-id="@item.Id"><i class="bx bx-detail me-1"></i> Detalles</a>
+                                            <a class="dropdown-item" asp-action="Delete" asp-route-id="@item.Id"><i class="bx bx-trash me-1"></i> Eliminar</a>
                                         </div>
                                     </div>
                                 </td>
