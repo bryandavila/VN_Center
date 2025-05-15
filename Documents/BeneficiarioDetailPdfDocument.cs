@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using VN_Center.Models.Entities;
 
-namespace VN_Center.Documents
+namespace VN_Center.Documents//
 {
   public class BeneficiariosPdfDocument : IDocument // IDocument es de QuestPDF
   {
