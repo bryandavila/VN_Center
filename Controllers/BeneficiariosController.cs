@@ -1,37 +1,42 @@
+// VN_Center/Controllers/BeneficiariosController.cs
 using System;
-using System.Collections.Generic; // Para IEnumerable
-using System.IO;                  // Para MemoryStream
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering; // *** Para SelectList ***
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using VN_Center.Data;
+using VN_Center.Data; // Asumiendo que VNCenterDbContext está aquí o en un namespace similar
 using VN_Center.Models.Entities;
-using ClosedXML.Excel;                 // Para XLWorkbook, XLColor, etc.
-using QuestPDF.Fluent;                 // Para la API fluida de QuestPDF
-using QuestPDF.Infrastructure;         // Para IDocument, etc. de QuestPDF
-using VN_Center.Documents;             // *** Para BeneficiariosPdfDocument y BeneficiarioDetailPdfDocument ***
+using ClosedXML.Excel;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
+using VN_Center.Documents;
+using Microsoft.AspNetCore.Hosting; // Necesario para IWebHostEnvironment
 
 namespace VN_Center.Controllers
 {
   [Authorize]
   public class BeneficiariosController : Controller
   {
-    private readonly VNCenterDbContext _context;
+    private readonly VNCenterDbContext _context; // Usando VNCenterDbContext
+    private readonly IWebHostEnvironment _webHostEnvironment; // Para obtener la ruta wwwroot
 
-    public BeneficiariosController(VNCenterDbContext context)
+    public BeneficiariosController(VNCenterDbContext context, IWebHostEnvironment webHostEnvironment)
     {
       _context = context;
+      _webHostEnvironment = webHostEnvironment; // Inyectar IWebHostEnvironment
     }
 
     // GET: Beneficiarios
     public async Task<IActionResult> Index()
     {
-      var vNCenterDbContext = _context.Beneficiarios.Include(b => b.Comunidad)
-                                                    .OrderBy(b => b.Apellidos)
-                                                    .ThenBy(b => b.Nombres);
+      var vNCenterDbContext = _context.Beneficiarios
+                                      .Include(b => b.Comunidad) // Asumiendo que la entidad Beneficiarios tiene una propiedad de navegación Comunidad
+                                      .OrderBy(b => b.Apellidos)
+                                      .ThenBy(b => b.Nombres);
       return View(await vNCenterDbContext.ToListAsync());
     }
 
@@ -51,7 +56,7 @@ namespace VN_Center.Controllers
         worksheet.Cell(currentRow, 1).Value = "ID";
         worksheet.Cell(currentRow, 2).Value = "Nombres";
         worksheet.Cell(currentRow, 3).Value = "Apellidos";
-        worksheet.Cell(currentRow, 4).Value = "Comunidad";
+        worksheet.Cell(currentRow, 4).Value = "Comunidad"; // Asumiendo Comunidad tiene NombreComunidad
         worksheet.Cell(currentRow, 5).Value = "Rango Edad";
         worksheet.Cell(currentRow, 6).Value = "Género";
         worksheet.Cell(currentRow, 7).Value = "Fecha de Registro";
@@ -67,10 +72,10 @@ namespace VN_Center.Controllers
           worksheet.Cell(currentRow, 1).Value = ben.BeneficiarioID;
           worksheet.Cell(currentRow, 2).Value = ben.Nombres;
           worksheet.Cell(currentRow, 3).Value = ben.Apellidos;
-          worksheet.Cell(currentRow, 4).Value = ben.Comunidad?.NombreComunidad;
+          worksheet.Cell(currentRow, 4).Value = ben.Comunidad?.NombreComunidad; // Protección contra nulos
           worksheet.Cell(currentRow, 5).Value = ben.RangoEdad;
           worksheet.Cell(currentRow, 6).Value = ben.Genero;
-          worksheet.Cell(currentRow, 7).Value = ben.FechaRegistroBeneficiario;
+          worksheet.Cell(currentRow, 7).Value = ben.FechaRegistroBeneficiario; // Usando FechaRegistroBeneficiario
           worksheet.Cell(currentRow, 7).Style.DateFormat.Format = "dd/MM/yyyy";
         }
         worksheet.Columns().AdjustToContents();
@@ -87,41 +92,52 @@ namespace VN_Center.Controllers
     }
 
     // GET: Beneficiarios/ExportToPdf (Lista - Usando QuestPDF)
-    // La línea 96 (aproximadamente) es la siguiente:
     public async Task<IActionResult> ExportToPdf()
     {
       var beneficiarios = await _context.Beneficiarios
-                                  .Include(b => b.Comunidad)
-                                  .OrderBy(b => b.Apellidos)
-                                  .ThenBy(b => b.Nombres)
-                                  .ToListAsync();
-      // Esta línea requiere 'using VN_Center.Documents;' y que BeneficiariosPdfDocument.cs exista en esa carpeta/namespace
-      var document = new BeneficiariosPdfDocument(beneficiarios);
+                                      .Include(b => b.Comunidad)
+                                      .OrderBy(b => b.Apellidos)
+                                      .ThenBy(b => b.Nombres)
+                                      .ToListAsync();
+      var document = new BeneficiariosPdfDocument(beneficiarios); // Asume que BeneficiariosPdfDocument espera una lista de 'Beneficiarios'
       byte[] pdfBytes = document.GeneratePdf();
       return File(pdfBytes, "application/pdf", $"Beneficiarios_Lista_{DateTime.Now:yyyyMMddHHmmss}.pdf");
     }
 
-    // GET: Beneficiarios/ExportDetailToPdf/5 (Usando QuestPDF)
-    public async Task<IActionResult> ExportDetailToPdf(int? id)
+    // GET: Beneficiarios/ExportDetailToPdf/5
+    public async Task<IActionResult> ExportDetailToPdf(int id)
     {
-      if (id == null)
-      {
-        return NotFound();
-      }
       var beneficiario = await _context.Beneficiarios
-          .Include(b => b.Comunidad)
-          .FirstOrDefaultAsync(m => m.BeneficiarioID == id);
+          // Incluir todas las colecciones y entidades relacionadas necesarias para el PDF
+          .Include(b => b.FuenteConocimiento) // Asumiendo que existe esta propiedad de navegación
+          .Include(b => b.BeneficiarioProgramaProyectos)
+              .ThenInclude(bpp => bpp.ProgramaProyecto)
+          .Include(b => b.BeneficiarioGrupos)
+              .ThenInclude(bg => bg.GrupoComunitario)
+          .Include(b => b.AsistenciasRecibidas)
+          .Include(b => b.ParticipacionesActivas)
+          .Include(b => b.EvaluacionesPrograma)
+              .ThenInclude(ep => ep.ProgramaProyecto)
+          // Considera si necesitas cargar el usuario que registró o actualizó, si vas a mostrar sus nombres
+          // .Include(b => b.UsuarioRegistro) 
+          .FirstOrDefaultAsync(m => m.BeneficiarioID == id); // Corregido a BeneficiarioID
 
       if (beneficiario == null)
       {
         return NotFound();
       }
 
-      // Esta línea requiere 'using VN_Center.Documents;' y que BeneficiarioDetailPdfDocument.cs exista en esa carpeta/namespace
-      var document = new BeneficiarioDetailPdfDocument(beneficiario);
-      byte[] pdfBytes = document.GeneratePdf();
+      // Obtener la ruta del logo
+      string wwwRootPath = _webHostEnvironment.WebRootPath;
+      string logoPath = Path.Combine(wwwRootPath, "img", "logo_vncenter_mini.png"); // Ajusta la ruta a tu logo si es diferente
 
-      return File(pdfBytes, "application/pdf", $"Beneficiario_Detalle_{beneficiario.BeneficiarioID}_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+      // Pasar el objeto 'beneficiario' de tipo 'Beneficiarios'
+      var document = new BeneficiarioDetailPdfDocument(beneficiario, logoPath);
+      var pdfBytes = document.GeneratePdf();
+
+      // Usar Cedula si existe y no es nula, sino BeneficiarioID para el nombre del archivo
+      string fileIdentifier = !string.IsNullOrEmpty(beneficiario.Cedula) ? beneficiario.Cedula : beneficiario.BeneficiarioID.ToString();
+      return File(pdfBytes, "application/pdf", $"Beneficiario_{fileIdentifier}_Detalle.pdf");
     }
 
     // GET: Beneficiarios/Details/5
@@ -130,31 +146,34 @@ namespace VN_Center.Controllers
       if (id == null) { return NotFound(); }
       var beneficiarios = await _context.Beneficiarios
           .Include(b => b.Comunidad)
-          .FirstOrDefaultAsync(m => m.BeneficiarioID == id);
+          .FirstOrDefaultAsync(m => m.BeneficiarioID == id); // Usa BeneficiarioID
       if (beneficiarios == null) { return NotFound(); }
       return View(beneficiarios);
     }
 
-    // La línea 137 (aproximadamente) está dentro de este método:
     private void PopulateComunidadesDropDownList(object? selectedComunidad = null)
     {
+      // Asumiendo que la entidad Comunidad tiene ComunidadID y NombreComunidad
       var comunidadesQuery = from c in _context.Comunidades orderby c.NombreComunidad select c;
-      // Esta línea requiere 'using Microsoft.AspNetCore.Mvc.Rendering;' para SelectList
       ViewData["ComunidadID"] = new SelectList(comunidadesQuery.AsNoTracking(), "ComunidadID", "NombreComunidad", selectedComunidad);
     }
+
     public IActionResult Create()
     {
       PopulateComunidadesDropDownList();
       return View();
     }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("BeneficiarioID,FechaRegistroBeneficiario,ComunidadID,Nombres,Apellidos,RangoEdad,Genero,PaisOrigen,OtroPaisOrigen,EstadoMigratorio,OtroEstadoMigratorio,NumeroPersonasHogar,ViviendaAlquiladaOPropia,MiembrosHogarEmpleados,EstaEmpleadoPersonalmente,TipoSituacionLaboral,OtroTipoSituacionLaboral,TipoTrabajoRealizadoSiEmpleado,OtroTipoTrabajoRealizado,EstadoCivil,TiempoEnCostaRicaSiMigrante,TiempoViviendoEnComunidadActual,IngresosSuficientesNecesidades,NivelEducacionCompletado,OtroNivelEducacion,InscritoProgramaEducacionCapacitacionActual,NinosHogarAsistenEscuela,BarrerasAsistenciaEscolarNinos,OtroBarrerasAsistenciaEscolar,PercepcionAccesoIgualOportunidadesLaboralesMujeres,DisponibilidadServiciosMujeresVictimasViolencia,DisponibilidadServiciosSaludMujer,DisponibilidadServiciosApoyoAdultosMayores,AccesibilidadServiciosTransporteComunidad,AccesoComputadora,AccesoInternet")] Beneficiarios beneficiarios)
+    public async Task<IActionResult> Create([Bind("BeneficiarioID,FechaRegistroBeneficiario,ComunidadID,Nombres,Apellidos,RangoEdad,Genero,PaisOrigen,OtroPaisOrigen,EstadoMigratorio,OtroEstadoMigratorio,NumeroPersonasHogar,ViviendaAlquiladaOPropia,MiembrosHogarEmpleados,EstaEmpleadoPersonalmente,TipoSituacionLaboral,OtroTipoSituacionLaboral,TipoTrabajoRealizadoSiEmpleado,OtroTipoTrabajoRealizado,EstadoCivil,TiempoEnCostaRicaSiMigrante,TiempoViviendoEnComunidadActual,IngresosSuficientesNecesidades,NivelEducacionCompletado,OtroNivelEducacion,InscritoProgramaEducacionCapacitacionActual,NinosHogarAsistenEscuela,BarrerasAsistenciaEscolarNinos,OtroBarrerasAsistenciaEscolar,PercepcionAccesoIgualOportunidadesLaboralesMujeres,DisponibilidadServiciosMujeresVictimasViolencia,DisponibilidadServiciosSaludMujer,DisponibilidadServiciosApoyoAdultosMayores,AccesibilidadServiciosTransporteComunidad,AccesoComputadora,AccesoInternet,Cedula")] Beneficiarios beneficiarios) // Añadí Cedula al Bind si es una propiedad que se debe crear/editar
     {
-      ModelState.Remove("Comunidad");
+      ModelState.Remove("Comunidad"); // Si Comunidad es una propiedad de navegación
+                                      // Quita estas líneas si estas propiedades de navegación no existen o si quieres validar su estado.
       ModelState.Remove("BeneficiarioAsistenciaRecibida");
       ModelState.Remove("BeneficiarioGrupos");
       ModelState.Remove("BeneficiariosProgramasProyectos");
+
       if (ModelState.IsValid)
       {
         _context.Add(beneficiarios);
@@ -165,23 +184,27 @@ namespace VN_Center.Controllers
       PopulateComunidadesDropDownList(beneficiarios.ComunidadID);
       return View(beneficiarios);
     }
+
     public async Task<IActionResult> Edit(int? id)
     {
       if (id == null) { return NotFound(); }
-      var beneficiarios = await _context.Beneficiarios.FindAsync(id);
+      var beneficiarios = await _context.Beneficiarios.FindAsync(id); // FindAsync usa la PK
       if (beneficiarios == null) { return NotFound(); }
       PopulateComunidadesDropDownList(beneficiarios.ComunidadID);
       return View(beneficiarios);
     }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("BeneficiarioID,FechaRegistroBeneficiario,ComunidadID,Nombres,Apellidos,RangoEdad,Genero,PaisOrigen,OtroPaisOrigen,EstadoMigratorio,OtroEstadoMigratorio,NumeroPersonasHogar,ViviendaAlquiladaOPropia,MiembrosHogarEmpleados,EstaEmpleadoPersonalmente,TipoSituacionLaboral,OtroTipoSituacionLaboral,TipoTrabajoRealizadoSiEmpleado,OtroTipoTrabajoRealizado,EstadoCivil,TiempoEnCostaRicaSiMigrante,TiempoViviendoEnComunidadActual,IngresosSuficientesNecesidades,NivelEducacionCompletado,OtroNivelEducacion,InscritoProgramaEducacionCapacitacionActual,NinosHogarAsistenEscuela,BarrerasAsistenciaEscolarNinos,OtroBarrerasAsistenciaEscolar,PercepcionAccesoIgualOportunidadesLaboralesMujeres,DisponibilidadServiciosMujeresVictimasViolencia,DisponibilidadServiciosSaludMujer,DisponibilidadServiciosApoyoAdultosMayores,AccesibilidadServiciosTransporteComunidad,AccesoComputadora,AccesoInternet")] Beneficiarios beneficiarios)
+    public async Task<IActionResult> Edit(int id, [Bind("BeneficiarioID,FechaRegistroBeneficiario,ComunidadID,Nombres,Apellidos,RangoEdad,Genero,PaisOrigen,OtroPaisOrigen,EstadoMigratorio,OtroEstadoMigratorio,NumeroPersonasHogar,ViviendaAlquiladaOPropia,MiembrosHogarEmpleados,EstaEmpleadoPersonalmente,TipoSituacionLaboral,OtroTipoSituacionLaboral,TipoTrabajoRealizadoSiEmpleado,OtroTipoTrabajoRealizado,EstadoCivil,TiempoEnCostaRicaSiMigrante,TiempoViviendoEnComunidadActual,IngresosSuficientesNecesidades,NivelEducacionCompletado,OtroNivelEducacion,InscritoProgramaEducacionCapacitacionActual,NinosHogarAsistenEscuela,BarrerasAsistenciaEscolarNinos,OtroBarrerasAsistenciaEscolar,PercepcionAccesoIgualOportunidadesLaboralesMujeres,DisponibilidadServiciosMujeresVictimasViolencia,DisponibilidadServiciosSaludMujer,DisponibilidadServiciosApoyoAdultosMayores,AccesibilidadServiciosTransporteComunidad,AccesoComputadora,AccesoInternet,Cedula")] Beneficiarios beneficiarios) // Añadí Cedula al Bind
     {
       if (id != beneficiarios.BeneficiarioID) { return NotFound(); }
+
       ModelState.Remove("Comunidad");
       ModelState.Remove("BeneficiarioAsistenciaRecibida");
       ModelState.Remove("BeneficiarioGrupos");
       ModelState.Remove("BeneficiariosProgramasProyectos");
+
       if (ModelState.IsValid)
       {
         try
@@ -200,15 +223,17 @@ namespace VN_Center.Controllers
       PopulateComunidadesDropDownList(beneficiarios.ComunidadID);
       return View(beneficiarios);
     }
+
     public async Task<IActionResult> Delete(int? id)
     {
       if (id == null) { return NotFound(); }
       var beneficiarios = await _context.Beneficiarios
           .Include(b => b.Comunidad)
-          .FirstOrDefaultAsync(m => m.BeneficiarioID == id);
+          .FirstOrDefaultAsync(m => m.BeneficiarioID == id); // Usa BeneficiarioID
       if (beneficiarios == null) { return NotFound(); }
       return View(beneficiarios);
     }
+
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
@@ -222,9 +247,10 @@ namespace VN_Center.Controllers
       }
       return RedirectToAction(nameof(Index));
     }
+
     private bool BeneficiariosExists(int id)
     {
-      return _context.Beneficiarios.Any(e => e.BeneficiarioID == id);
+      return _context.Beneficiarios.Any(e => e.BeneficiarioID == id); // Usa BeneficiarioID
     }
   }
 }
