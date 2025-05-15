@@ -1,4 +1,3 @@
-// VN_Center/Documents/BeneficiarioDetailPdfDocument.cs
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -27,7 +26,6 @@ namespace VN_Center.Documents
           .Page(page =>
           {
             page.Margin(30);
-            // La llamada a Element para el Header es correcta
             page.Header().Element(ComposeHeader);
             page.Content().Element(ComposeContent);
             page.Footer().AlignCenter().Text(text =>
@@ -44,12 +42,10 @@ namespace VN_Center.Documents
 
     void ComposeHeader(IContainer container)
     {
-      // Aplicar PaddingBottom PRIMERO y luego añadir el Row como contenido de ese contenedor acolchado.
       container
-          .PaddingBottom(1, Unit.Centimetre) // Aplicar el padding al contenedor principal del header
-          .Row(row => // El Row es ahora el contenido del contenedor que ya tiene PaddingBottom
+          .PaddingBottom(1, Unit.Centimetre)
+          .Row(row =>
           {
-            // Logo
             if (System.IO.File.Exists(_logoPath))
             {
               row.RelativeItem(1).MaxHeight(70).Image(_logoPath);
@@ -59,7 +55,6 @@ namespace VN_Center.Documents
               row.RelativeItem(1).MaxHeight(70).Text("Logo no encontrado").Bold();
             }
 
-            // Título
             row.RelativeItem(3).PaddingLeft(10).Column(column =>
             {
               column.Item().Text("FICHA DETALLADA DEL BENEFICIARIO")
@@ -70,7 +65,6 @@ namespace VN_Center.Documents
                         .FontSize(10);
             });
           });
-      // Ya no se necesita el container.PaddingBottom(1, Unit.Centimetre); aquí abajo porque se encadenó arriba.
     }
 
     void ComposeContent(IContainer container)
@@ -101,8 +95,8 @@ namespace VN_Center.Documents
           AddTableRow(table, "Estado Civil:", _beneficiario.EstadoCivil);
         });
 
-        // SECCIÓN 3: EDUCACIÓN Y EMPLEO
-        ComposeSectionTitle(column, "3. Educación y Empleo");
+        // SECCIÓN 2: EDUCACIÓN Y EMPLEO (Antes Sección 3)
+        ComposeSectionTitle(column, "2. Educación y Empleo");
         column.Item().Table(table =>
         {
           table.ColumnsDefinition(columns => { columns.RelativeColumn(1); columns.RelativeColumn(2); });
@@ -118,8 +112,8 @@ namespace VN_Center.Documents
             AddTableRow(table, "Otro Tipo Trabajo:", _beneficiario.OtroTipoTrabajoRealizado);
         });
 
-        // SECCIÓN 4: SITUACIÓN FAMILIAR Y VIVIENDA
-        ComposeSectionTitle(column, "4. Situación Familiar y Vivienda");
+        // SECCIÓN 3: SITUACIÓN FAMILIAR Y VIVIENDA (Antes Sección 4)
+        ComposeSectionTitle(column, "3. Situación Familiar y Vivienda");
         column.Item().Table(table =>
         {
           table.ColumnsDefinition(columns => { columns.RelativeColumn(1); columns.RelativeColumn(2); });
@@ -130,8 +124,8 @@ namespace VN_Center.Documents
           AddTableRow(table, "Tiempo Viviendo en Comunidad Actual:", _beneficiario.TiempoViviendoEnComunidadActual);
         });
 
-        // SECCIÓN 5: NECESIDADES Y PERCEPCIONES
-        ComposeSectionTitle(column, "5. Necesidades y Percepciones");
+        // SECCIÓN 4: NECESIDADES Y PERCEPCIONES (Antes Sección 5)
+        ComposeSectionTitle(column, "4. Necesidades y Percepciones");
         column.Item().Table(table =>
         {
           table.ColumnsDefinition(columns => { columns.RelativeColumn(1); columns.RelativeColumn(2); });
@@ -147,8 +141,8 @@ namespace VN_Center.Documents
           AddTableRow(table, "Disponibilidad Servicios Apoyo Adultos Mayores:", _beneficiario.DisponibilidadServiciosApoyoAdultosMayores);
         });
 
-        // SECCIÓN 6: ACCESO A SERVICIOS Y TECNOLOGÍA
-        ComposeSectionTitle(column, "6. Acceso a Servicios y Tecnología");
+        // SECCIÓN 5: ACCESO A SERVICIOS Y TECNOLOGÍA (Antes Sección 6)
+        ComposeSectionTitle(column, "5. Acceso a Servicios y Tecnología");
         column.Item().Table(table =>
         {
           table.ColumnsDefinition(columns => { columns.RelativeColumn(1); columns.RelativeColumn(2); });
@@ -157,10 +151,10 @@ namespace VN_Center.Documents
           AddTableRow(table, "Acceso a Internet:", _beneficiario.AccesoInternet);
         });
 
-        // SECCIÓN 7: PROGRAMAS Y PROYECTOS ASOCIADOS
+        // SECCIÓN 6: PROGRAMAS Y PROYECTOS ASOCIADOS (Antes Sección 7)
         if (_beneficiario.BeneficiariosProgramasProyectos != null && _beneficiario.BeneficiariosProgramasProyectos.Any())
         {
-          ComposeSectionTitle(column, "7. Programas y Proyectos Vinculados");
+          ComposeSectionTitle(column, "6. Programas y Proyectos Vinculados");
           column.Item().Table(table =>
           {
             table.ColumnsDefinition(columns => {
@@ -183,10 +177,10 @@ namespace VN_Center.Documents
           });
         }
 
-        // SECCIÓN 8: GRUPOS COMUNITARIOS ASOCIADOS
+        // SECCIÓN 7: GRUPOS COMUNITARIOS ASOCIADOS (Antes Sección 8)
         if (_beneficiario.BeneficiarioGrupos != null && _beneficiario.BeneficiarioGrupos.Any())
         {
-          ComposeSectionTitle(column, "8. Grupos Comunitarios Vinculados");
+          ComposeSectionTitle(column, "7. Grupos Comunitarios Vinculados");
           column.Item().Table(table =>
           {
             table.ColumnsDefinition(columns => {
@@ -207,10 +201,10 @@ namespace VN_Center.Documents
           });
         }
 
-        // SECCIÓN 9: ASISTENCIAS RECIBIDAS
+        // SECCIÓN 8: ASISTENCIAS RECIBIDAS (Antes Sección 9)
         if (_beneficiario.BeneficiarioAsistenciaRecibida != null && _beneficiario.BeneficiarioAsistenciaRecibida.Any())
         {
-          ComposeSectionTitle(column, "9. Asistencias Recibidas");
+          ComposeSectionTitle(column, "8. Asistencias Recibidas");
           column.Item().Table(table =>
           {
             table.ColumnsDefinition(columns => {
@@ -229,8 +223,8 @@ namespace VN_Center.Documents
           });
         }
 
-        // SECCIÓN 10: ESTADO DEL BENEFICIARIO
-        ComposeSectionTitle(column, "10. Estado del Beneficiario");
+        // SECCIÓN 9: ESTADO DEL BENEFICIARIO (Antes Sección 10)
+        ComposeSectionTitle(column, "9. Estado del Beneficiario");
         column.Item().Table(table =>
         {
           table.ColumnsDefinition(columns => { columns.RelativeColumn(1); columns.RelativeColumn(2); });
