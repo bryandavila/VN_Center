@@ -12,8 +12,11 @@ using VN_Center.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using QuestPDF.Fluent;
 using VN_Center.Documents;
-using Microsoft.AspNetCore.Hosting; // Asegúrate que este using esté presente
+using Microsoft.AspNetCore.Hosting;
 using System.IO;
+using VN_Center.Services; // <--- AÑADIDO: Para IAuditoriaService
+using System.Security.Claims; // <--- AÑADIDO: Para obtener el ID del usuario actual
+using Microsoft.AspNetCore.Http; // <--- AÑADIDO: Para IHttpContextAccessor
 
 namespace VN_Center.Controllers
 {
@@ -23,19 +26,34 @@ namespace VN_Center.Controllers
     private readonly VNCenterDbContext _context;
     private readonly UserManager<UsuariosSistema> _userManager;
     private readonly RoleManager<RolesSistema> _roleManager;
-    private readonly IWebHostEnvironment _webHostEnvironment; // Declaración del campo
+    private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly IAuditoriaService _auditoriaService; // <--- AÑADIDO: Servicio de Auditoría
+    private readonly IHttpContextAccessor _httpContextAccessor; // <--- AÑADIDO: Para obtener IP
 
     public UsuariosSistemaController(
         VNCenterDbContext context,
         UserManager<UsuariosSistema> userManager,
         RoleManager<RolesSistema> roleManager,
-        IWebHostEnvironment webHostEnvironment) // Asegúrate que IWebHostEnvironment se inyecte
+        IWebHostEnvironment webHostEnvironment,
+        IAuditoriaService auditoriaService, // <--- AÑADIDO
+        IHttpContextAccessor httpContextAccessor) // <--- AÑADIDO
     {
       _context = context;
       _userManager = userManager;
       _roleManager = roleManager;
-      _webHostEnvironment = webHostEnvironment; // Inicialización
+      _webHostEnvironment = webHostEnvironment;
+      _auditoriaService = auditoriaService; // <--- AÑADIDO
+      _httpContextAccessor = httpContextAccessor; // <--- AÑADIDO
     }
+
+    private string? GetCurrentUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
+    private string? GetCurrentUserFullName()
+    {
+      var user = _userManager.GetUserAsync(User).Result; // Sincrónico, usar con cuidado o pasar HttpContext
+      return user?.NombreCompleto;
+    }
+    private string? GetUserIpAddress() => _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString();
+
 
     // GET: UsuariosSistema
     public async Task<IActionResult> Index()
@@ -89,7 +107,6 @@ namespace VN_Center.Controllers
         Email = usuario.Email,
         EmailConfirmed = usuario.EmailConfirmed,
         Activo = usuario.Activo,
-        // PhoneNumber = usuario.PhoneNumber, // Asegúrate que PhoneNumber exista en tu entidad UsuariosSistema si lo usas
         IsLockedOut = usuario.LockoutEnd.HasValue && usuario.LockoutEnd.Value > DateTimeOffset.UtcNow,
         LockoutEndDateUtc = usuario.LockoutEnd,
         Roles = roles
@@ -127,11 +144,14 @@ namespace VN_Center.Controllers
 
         if (result.Succeeded)
         {
+          string detallesAuditoria = $"Usuario '{usuario.UserName}' creado. Nombres: {usuario.Nombres}, Apellidos: {usuario.Apellidos}, Email: {usuario.Email}, Activo: {usuario.Activo}.";
+
           if (!string.IsNullOrEmpty(viewModel.SelectedRoleName))
           {
             if (await _roleManager.RoleExistsAsync(viewModel.SelectedRoleName))
             {
               await _userManager.AddToRoleAsync(usuario, viewModel.SelectedRoleName);
+              detallesAuditoria += $" Asignado al rol: '{viewModel.SelectedRoleName}'.";
             }
             else
             {
@@ -140,6 +160,18 @@ namespace VN_Center.Controllers
               return View(viewModel);
             }
           }
+
+          // Registrar evento de auditoría
+          await _auditoriaService.RegistrarEventoAuditoriaAsync(
+              GetCurrentUserId(),
+              GetCurrentUserFullName(),
+              "CreacionUsuario",
+              "UsuariosSistema",
+              usuario.Id.ToString(),
+              detallesAuditoria,
+              GetUserIpAddress()
+          );
+
           TempData["SuccessMessage"] = "Usuario del sistema creado exitosamente.";
           return RedirectToAction(nameof(Index));
         }
@@ -202,6 +234,17 @@ namespace VN_Center.Controllers
           return NotFound();
         }
 
+        // Guardar estado anterior para auditoría
+        var oldEmail = usuario.Email;
+        var oldNombres = usuario.Nombres;
+        var oldApellidos = usuario.Apellidos;
+        var oldActivo = usuario.Activo;
+        var oldPhoneNumber = usuario.PhoneNumber;
+        var oldUserName = usuario.UserName;
+        var oldRoles = await _userManager.GetRolesAsync(usuario);
+        var oldRoleName = oldRoles.FirstOrDefault();
+
+        // Actualizar propiedades
         usuario.UserName = viewModel.UserName;
         usuario.Email = viewModel.Email;
         usuario.Nombres = viewModel.Nombres;
@@ -213,20 +256,28 @@ namespace VN_Center.Controllers
 
         if (result.Succeeded)
         {
-          var currentRoles = await _userManager.GetRolesAsync(usuario);
-          var newRoleName = viewModel.SelectedRoleName;
+          var cambios = new List<string>();
+          if (oldUserName != usuario.UserName) cambios.Add($"UserName: de '{oldUserName}' a '{usuario.UserName}'");
+          if (oldEmail != usuario.Email) cambios.Add($"Email: de '{oldEmail}' a '{usuario.Email}'");
+          if (oldNombres != usuario.Nombres) cambios.Add($"Nombres: de '{oldNombres}' a '{usuario.Nombres}'");
+          if (oldApellidos != usuario.Apellidos) cambios.Add($"Apellidos: de '{oldApellidos}' a '{usuario.Apellidos}'");
+          if (oldActivo != usuario.Activo) cambios.Add($"Activo: de '{oldActivo}' a '{usuario.Activo}'");
+          if (oldPhoneNumber != usuario.PhoneNumber) cambios.Add($"Teléfono: de '{oldPhoneNumber ?? "N/A"}' a '{usuario.PhoneNumber ?? "N/A"}'");
 
-          if (!currentRoles.Contains(newRoleName ?? string.Empty) || (currentRoles.Any() && string.IsNullOrEmpty(newRoleName)))
+          // Actualizar rol
+          var newRoleName = viewModel.SelectedRoleName;
+          if (oldRoleName != newRoleName)
           {
-            if (currentRoles.Any())
+            if (oldRoles.Any())
             {
-              await _userManager.RemoveFromRolesAsync(usuario, currentRoles);
+              await _userManager.RemoveFromRolesAsync(usuario, oldRoles);
             }
             if (!string.IsNullOrEmpty(newRoleName))
             {
               if (await _roleManager.RoleExistsAsync(newRoleName))
               {
                 await _userManager.AddToRoleAsync(usuario, newRoleName);
+                cambios.Add($"Rol: de '{oldRoleName ?? "Ninguno"}' a '{newRoleName}'");
               }
               else
               {
@@ -235,7 +286,25 @@ namespace VN_Center.Controllers
                 return View(viewModel);
               }
             }
+            else if (oldRoles.Any()) // Si se quitó el rol
+            {
+              cambios.Add($"Rol: de '{oldRoleName}' a 'Ninguno'");
+            }
           }
+
+          if (cambios.Any())
+          {
+            await _auditoriaService.RegistrarEventoAuditoriaAsync(
+                GetCurrentUserId(),
+                GetCurrentUserFullName(),
+                "ActualizacionUsuario",
+                "UsuariosSistema",
+                usuario.Id.ToString(),
+                $"Usuario '{usuario.UserName}' actualizado. Cambios: {string.Join("; ", cambios)}.",
+                GetUserIpAddress()
+            );
+          }
+
           TempData["SuccessMessage"] = "Usuario del sistema actualizado exitosamente.";
           return RedirectToAction(nameof(Index));
         }
@@ -272,9 +341,21 @@ namespace VN_Center.Controllers
       var usuario = await _userManager.FindByIdAsync(id.ToString());
       if (usuario != null)
       {
+        var userNameParaAuditoria = usuario.UserName; // Guardar antes de eliminar
+        var userIdParaAuditoria = usuario.Id.ToString();
+
         var result = await _userManager.DeleteAsync(usuario);
         if (result.Succeeded)
         {
+          await _auditoriaService.RegistrarEventoAuditoriaAsync(
+              GetCurrentUserId(),
+              GetCurrentUserFullName(),
+              "EliminacionUsuario",
+              "UsuariosSistema",
+              userIdParaAuditoria, // Usar el ID guardado
+              $"Usuario '{userNameParaAuditoria}' (ID: {userIdParaAuditoria}) eliminado.",
+              GetUserIpAddress()
+          );
           TempData["SuccessMessage"] = "Usuario del sistema eliminado exitosamente.";
         }
         else
@@ -289,7 +370,6 @@ namespace VN_Center.Controllers
       return RedirectToAction(nameof(Index));
     }
 
-    // ACCIÓN PARA EXPORTAR A PDF
     public async Task<IActionResult> ExportToPdf()
     {
       var users = await _userManager.Users.OrderBy(u => u.Nombres).ThenBy(u => u.Apellidos).ToListAsync();
@@ -314,7 +394,6 @@ namespace VN_Center.Controllers
         });
       }
 
-      // Uso de _webHostEnvironment. Asegúrate de que esté correctamente inicializado.
       string wwwRootPath = _webHostEnvironment.WebRootPath;
       string logoPath = Path.Combine(wwwRootPath, "img", "logo_vncenter_mini.png");
 

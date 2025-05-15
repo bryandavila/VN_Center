@@ -10,9 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 QuestPDF.Settings.License = LicenseType.Community;
 
-// *** ELIMINADA LA CONFIGURACIÓN DE LICENCIA DE QUESTPDF ***
-// QuestPDF.Settings.License = LicenseType.Community; 
-
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -24,6 +21,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddScoped<IAuditoriaService, AuditoriaService>();
 
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddIdentity<UsuariosSistema, RolesSistema>(options => {
   options.SignIn.RequireConfirmedAccount = false;
