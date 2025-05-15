@@ -2,9 +2,9 @@
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using VN_Center.Models.Entities; // Asegúrate que Beneficiarios y otras entidades estén aquí
+using VN_Center.Models.Entities;
 using System.Linq;
-using System; // Para DateTime
+using System;
 
 namespace VN_Center.Documents
 {
@@ -27,10 +27,9 @@ namespace VN_Center.Documents
           .Page(page =>
           {
             page.Margin(30);
-
+            // La llamada a Element para el Header es correcta
             page.Header().Element(ComposeHeader);
             page.Content().Element(ComposeContent);
-
             page.Footer().AlignCenter().Text(text =>
             {
               text.Span("Página ");
@@ -45,29 +44,33 @@ namespace VN_Center.Documents
 
     void ComposeHeader(IContainer container)
     {
-      container.Row(row =>
-      {
-        if (System.IO.File.Exists(_logoPath))
-        {
-          row.RelativeItem(1).MaxHeight(70).Image(_logoPath);
-        }
-        else
-        {
-          row.RelativeItem(1).MaxHeight(70).Text("Logo no encontrado").Bold();
-        }
+      // Aplicar PaddingBottom PRIMERO y luego añadir el Row como contenido de ese contenedor acolchado.
+      container
+          .PaddingBottom(1, Unit.Centimetre) // Aplicar el padding al contenedor principal del header
+          .Row(row => // El Row es ahora el contenido del contenedor que ya tiene PaddingBottom
+          {
+            // Logo
+            if (System.IO.File.Exists(_logoPath))
+            {
+              row.RelativeItem(1).MaxHeight(70).Image(_logoPath);
+            }
+            else
+            {
+              row.RelativeItem(1).MaxHeight(70).Text("Logo no encontrado").Bold();
+            }
 
-        row.RelativeItem(3).PaddingLeft(10).Column(column =>
-        {
-          column.Item().Text($"FICHA DETALLADA DEL BENEFICIARIO")
-              .Bold().FontSize(18).FontColor(Colors.Blue.Medium);
-          // Corregido: .Trim() aplicado a la cadena
-          column.Item().Text(((_beneficiario.Nombres ?? "") + " " + (_beneficiario.Apellidos ?? "")).Trim())
-              .SemiBold().FontSize(16);
-          column.Item().Text($"ID: {_beneficiario.BeneficiarioID}")
-              .FontSize(10);
-        });
-      });
-      container.PaddingBottom(1, Unit.Centimetre);
+            // Título
+            row.RelativeItem(3).PaddingLeft(10).Column(column =>
+            {
+              column.Item().Text("FICHA DETALLADA DEL BENEFICIARIO")
+                        .Bold().FontSize(18).FontColor(Colors.Blue.Medium);
+              column.Item().Text(_beneficiario.NombreCompleto)
+                        .SemiBold().FontSize(16);
+              column.Item().Text($"ID: {_beneficiario.BeneficiarioID}")
+                        .FontSize(10);
+            });
+          });
+      // Ya no se necesita el container.PaddingBottom(1, Unit.Centimetre); aquí abajo porque se encadenó arriba.
     }
 
     void ComposeContent(IContainer container)
@@ -85,28 +88,17 @@ namespace VN_Center.Documents
             columns.RelativeColumn(1); columns.RelativeColumn(2);
             columns.RelativeColumn(1); columns.RelativeColumn(2);
           });
-          AddTableRow(table, "Cédula:", _beneficiario.Cedula);
-          AddTableRow(table, "Fecha de Nacimiento:", _beneficiario.FechaNacimiento?.ToString("dd/MM/yyyy") ?? "N/A");
-          AddTableRow(table, "Rango de Edad:", _beneficiario.RangoEdad ?? "N/A");
+          AddTableRow(table, "Nombres:", _beneficiario.Nombres);
+          AddTableRow(table, "Apellidos:", _beneficiario.Apellidos);
+          AddTableRow(table, "Rango de Edad:", _beneficiario.RangoEdad);
           AddTableRow(table, "Género:", _beneficiario.Genero);
-          AddTableRow(table, "Nacionalidad:", _beneficiario.Nacionalidad); // Verificar si existe en Beneficiarios.cs
+          AddTableRow(table, "País de Origen:", _beneficiario.PaisOrigen);
+          if (!string.IsNullOrWhiteSpace(_beneficiario.OtroPaisOrigen))
+            AddTableRow(table, "Otro País de Origen:", _beneficiario.OtroPaisOrigen);
+          AddTableRow(table, "Estado Migratorio:", _beneficiario.EstadoMigratorio);
+          if (!string.IsNullOrWhiteSpace(_beneficiario.OtroEstadoMigratorio))
+            AddTableRow(table, "Otro Estado Migratorio:", _beneficiario.OtroEstadoMigratorio);
           AddTableRow(table, "Estado Civil:", _beneficiario.EstadoCivil);
-          AddTableRow(table, "Lugar de Residencia:", _beneficiario.LugarResidencia); // Verificar si existe en Beneficiarios.cs
-          AddTableRow(table, "Dirección Exacta:", _beneficiario.DireccionExacta); // Verificar si existe en Beneficiarios.cs
-        });
-
-        // SECCIÓN 2: INFORMACIÓN DE CONTACTO
-        ComposeSectionTitle(column, "2. Información de Contacto");
-        column.Item().Table(table =>
-        {
-          table.ColumnsDefinition(columns =>
-          {
-            columns.RelativeColumn(1); columns.RelativeColumn(2);
-            columns.RelativeColumn(1); columns.RelativeColumn(2);
-          });
-          AddTableRow(table, "Teléfono Principal:", _beneficiario.TelefonoPrincipal); // Verificar si existe
-          AddTableRow(table, "Teléfono Secundario:", _beneficiario.TelefonoSecundario ?? "N/A"); // Verificar si existe
-          AddTableRow(table, "Correo Electrónico:", _beneficiario.CorreoElectronico); // Verificar si existe
         });
 
         // SECCIÓN 3: EDUCACIÓN Y EMPLEO
@@ -115,41 +107,60 @@ namespace VN_Center.Documents
         {
           table.ColumnsDefinition(columns => { columns.RelativeColumn(1); columns.RelativeColumn(2); });
           AddTableRow(table, "Nivel Educación Completado:", _beneficiario.NivelEducacionCompletado);
-          AddTableRow(table, "Ocupación:", _beneficiario.Ocupacion); // Verificar si existe
-          AddTableRow(table, "Fuente de Ingresos:", _beneficiario.FuenteIngresos); // Verificar si existe
-          AddTableRow(table, "Descripción Otros Ingresos:", _beneficiario.DescripcionOtrosIngresos ?? "N/A"); // Verificar si existe
+          if (!string.IsNullOrWhiteSpace(_beneficiario.OtroNivelEducacion))
+            AddTableRow(table, "Otro Nivel Educación:", _beneficiario.OtroNivelEducacion);
+          AddTableRow(table, "Está Empleado Personalmente:", _beneficiario.EstaEmpleadoPersonalmente);
+          AddTableRow(table, "Tipo Situación Laboral:", _beneficiario.TipoSituacionLaboral);
+          if (!string.IsNullOrWhiteSpace(_beneficiario.OtroTipoSituacionLaboral))
+            AddTableRow(table, "Otra Situación Laboral:", _beneficiario.OtroTipoSituacionLaboral);
+          AddTableRow(table, "Tipo Trabajo Realizado (si empleado):", _beneficiario.TipoTrabajoRealizadoSiEmpleado);
+          if (!string.IsNullOrWhiteSpace(_beneficiario.OtroTipoTrabajoRealizado))
+            AddTableRow(table, "Otro Tipo Trabajo:", _beneficiario.OtroTipoTrabajoRealizado);
         });
 
-        // SECCIÓN 4: SITUACIÓN FAMILIAR
-        ComposeSectionTitle(column, "4. Situación Familiar");
+        // SECCIÓN 4: SITUACIÓN FAMILIAR Y VIVIENDA
+        ComposeSectionTitle(column, "4. Situación Familiar y Vivienda");
         column.Item().Table(table =>
         {
           table.ColumnsDefinition(columns => { columns.RelativeColumn(1); columns.RelativeColumn(2); });
-          AddTableRow(table, "Jefatura Familiar:", _beneficiario.JefaturaFamiliar); // Verificar si existe
-          AddTableRow(table, "Composición Familiar:", _beneficiario.ComposicionFamiliar); // Verificar si existe
-          AddTableRow(table, "Nº Personas en el Hogar:", _beneficiario.NumeroPersonasHogar.ToString());
-          AddTableRow(table, "Nº Personas Dependientes:", _beneficiario.NumeroPersonasDependientes.ToString()); // Verificar si existe
-          AddTableRow(table, "Nº Personas con Discapacidad:", _beneficiario.NumeroPersonasDiscapacidad.ToString()); // Verificar si existe
-          AddTableRow(table, "Descripción Discapacidad:", _beneficiario.DescripcionDiscapacidad ?? "N/A"); // Verificar si existe
+          AddTableRow(table, "Nº Personas en el Hogar:", _beneficiario.NumeroPersonasHogar?.ToString() ?? "N/A");
+          AddTableRow(table, "Vivienda Alquilada o Propia:", _beneficiario.ViviendaAlquiladaOPropia);
+          AddTableRow(table, "Miembros del Hogar Empleados:", _beneficiario.MiembrosHogarEmpleados?.ToString() ?? "N/A");
+          AddTableRow(table, "Tiempo en Costa Rica (si migrante):", _beneficiario.TiempoEnCostaRicaSiMigrante);
+          AddTableRow(table, "Tiempo Viviendo en Comunidad Actual:", _beneficiario.TiempoViviendoEnComunidadActual);
         });
 
-        // SECCIÓN 5: INTERESES Y NECESIDADES
-        ComposeSectionTitle(column, "5. Intereses y Necesidades");
+        // SECCIÓN 5: NECESIDADES Y PERCEPCIONES
+        ComposeSectionTitle(column, "5. Necesidades y Percepciones");
         column.Item().Table(table =>
         {
           table.ColumnsDefinition(columns => { columns.RelativeColumn(1); columns.RelativeColumn(2); });
-          AddTableRow(table, "Intereses Vocacionales:", _beneficiario.InteresesVocacionales); // Verificar si existe
-          AddTableRow(table, "Necesidades de Capacitación:", _beneficiario.NecesidadesCapacitacion); // Verificar si existe
-          AddTableRow(table, "Necesidades de Apoyo:", _beneficiario.NecesidadesApoyo); // Verificar si existe
-                                                                                       // Corregido: Nombre de propiedad en FuenteConocimiento
-          AddTableRow(table, "Fuente Conocimiento VN:", _beneficiario.FuenteConocimiento?.NombreFuenteConocimiento ?? "N/A");
+          AddTableRow(table, "Ingresos Suficientes para Necesidades:", _beneficiario.IngresosSuficientesNecesidades);
+          AddTableRow(table, "Inscrito Prog. Educación/Capacitación Actual:", _beneficiario.InscritoProgramaEducacionCapacitacionActual);
+          AddTableRow(table, "Niños en Hogar Asisten Escuela:", _beneficiario.NinosHogarAsistenEscuela);
+          AddTableRow(table, "Barreras Asistencia Escolar Niños:", _beneficiario.BarrerasAsistenciaEscolarNinos);
+          if (!string.IsNullOrWhiteSpace(_beneficiario.OtroBarrerasAsistenciaEscolar))
+            AddTableRow(table, "Otras Barreras Escolares:", _beneficiario.OtroBarrerasAsistenciaEscolar);
+          AddTableRow(table, "Percepción Acceso Igual Oport. Laborales Mujeres:", _beneficiario.PercepcionAccesoIgualOportunidadesLaboralesMujeres);
+          AddTableRow(table, "Disponibilidad Servicios Mujeres Víctimas Violencia:", _beneficiario.DisponibilidadServiciosMujeresVictimasViolencia);
+          AddTableRow(table, "Disponibilidad Servicios Salud Mujer:", _beneficiario.DisponibilidadServiciosSaludMujer);
+          AddTableRow(table, "Disponibilidad Servicios Apoyo Adultos Mayores:", _beneficiario.DisponibilidadServiciosApoyoAdultosMayores);
         });
 
-        // SECCIÓN 6: PROGRAMAS Y PROYECTOS ASOCIADOS
-        // Corregido: Nombre de la colección
+        // SECCIÓN 6: ACCESO A SERVICIOS Y TECNOLOGÍA
+        ComposeSectionTitle(column, "6. Acceso a Servicios y Tecnología");
+        column.Item().Table(table =>
+        {
+          table.ColumnsDefinition(columns => { columns.RelativeColumn(1); columns.RelativeColumn(2); });
+          AddTableRow(table, "Accesibilidad Servicios Transporte Comunidad:", _beneficiario.AccesibilidadServiciosTransporteComunidad);
+          AddTableRow(table, "Acceso a Computadora:", _beneficiario.AccesoComputadora);
+          AddTableRow(table, "Acceso a Internet:", _beneficiario.AccesoInternet);
+        });
+
+        // SECCIÓN 7: PROGRAMAS Y PROYECTOS ASOCIADOS
         if (_beneficiario.BeneficiariosProgramasProyectos != null && _beneficiario.BeneficiariosProgramasProyectos.Any())
         {
-          ComposeSectionTitle(column, "6. Programas y Proyectos Vinculados");
+          ComposeSectionTitle(column, "7. Programas y Proyectos Vinculados");
           column.Item().Table(table =>
           {
             table.ColumnsDefinition(columns => {
@@ -158,147 +169,72 @@ namespace VN_Center.Documents
             });
             table.Header(header => {
               header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Programa/Proyecto").Bold();
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Fecha Inicio").Bold();
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Estado").Bold();
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Observaciones").Bold();
+              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Fecha Inscripción").Bold();
+              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Estado Participación").Bold();
+              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Notas").Bold();
             });
-            // Corregido: Nombre de la colección
             foreach (var bpp in _beneficiario.BeneficiariosProgramasProyectos)
             {
-              // Corregido: Nombre de propiedad en ProgramaProyecto
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), bpp.ProgramaProyecto?.NombreProgramaProyecto ?? "N/A");
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), bpp.FechaInicio.ToString("dd/MM/yyyy"));
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), bpp.EstadoActual);
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), bpp.Observaciones ?? "N/A");
+              table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(text => text.Span(bpp.ProgramaProyecto?.NombreProgramaProyecto ?? "N/A"));
+              table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(text => text.Span(bpp.FechaInscripcionBeneficiario.ToString("dd/MM/yyyy")));
+              table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(text => text.Span(bpp.EstadoParticipacionBeneficiario));
+              table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(text => text.Span(bpp.NotasAdicionales ?? "N/A"));
             }
           });
         }
 
-        // SECCIÓN 7: GRUPOS COMUNITARIOS ASOCIADOS
+        // SECCIÓN 8: GRUPOS COMUNITARIOS ASOCIADOS
         if (_beneficiario.BeneficiarioGrupos != null && _beneficiario.BeneficiarioGrupos.Any())
         {
-          ComposeSectionTitle(column, "7. Grupos Comunitarios Vinculados");
+          ComposeSectionTitle(column, "8. Grupos Comunitarios Vinculados");
           column.Item().Table(table =>
           {
             table.ColumnsDefinition(columns => {
               columns.RelativeColumn(3); columns.RelativeColumn(2);
-              columns.RelativeColumn(2); columns.RelativeColumn(3);
+              columns.RelativeColumn(2);
             });
             table.Header(header => {
               header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Grupo Comunitario").Bold();
               header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Rol").Bold();
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Fecha Vinculación").Bold();
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Observaciones").Bold();
+              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Fecha Unión").Bold();
             });
             foreach (var bg in _beneficiario.BeneficiarioGrupos)
             {
-              // Corregido: Nombre de propiedad en GrupoComunitario
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), bg.GrupoComunitario?.NombreGrupo ?? "N/A");
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), bg.RolEnGrupo ?? "N/A");
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), bg.FechaVinculacion.ToString("dd/MM/yyyy")); // Verificar si FechaVinculacion existe en BeneficiarioGrupos
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), bg.Observaciones ?? "N/A"); // Verificar si Observaciones existe en BeneficiarioGrupos
+              table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(text => text.Span(bg.GrupoComunitario?.NombreGrupo ?? "N/A"));
+              table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(text => text.Span(bg.RolEnGrupo ?? "N/A"));
+              table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(text => text.Span(bg.FechaUnionGrupo?.ToString("dd/MM/yyyy") ?? "N/A"));
             }
           });
         }
 
-        // SECCIÓN 8: ASISTENCIAS RECIBIDAS
-        // Corregido: Nombre de la colección
+        // SECCIÓN 9: ASISTENCIAS RECIBIDAS
         if (_beneficiario.BeneficiarioAsistenciaRecibida != null && _beneficiario.BeneficiarioAsistenciaRecibida.Any())
         {
-          ComposeSectionTitle(column, "8. Asistencias Recibidas");
+          ComposeSectionTitle(column, "9. Asistencias Recibidas");
           column.Item().Table(table =>
           {
             table.ColumnsDefinition(columns => {
-              columns.RelativeColumn(2); columns.RelativeColumn(3); columns.RelativeColumn(5);
+              columns.RelativeColumn(3);
+              columns.RelativeColumn(5);
             });
             table.Header(header => {
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Fecha").Bold();
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Tipo").Bold();
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Descripción").Bold();
+              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Tipo Asistencia").Bold();
+              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Notas Adicionales").Bold();
             });
-            // Corregido: Nombre de la colección
-            foreach (var asistencia in _beneficiario.BeneficiarioAsistenciaRecibida.OrderByDescending(a => a.FechaAsistencia))
+            foreach (var asistencia in _beneficiario.BeneficiarioAsistenciaRecibida)
             {
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), asistencia.FechaAsistencia.ToString("dd/MM/yyyy"));
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), asistencia.TipoAsistencia);
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), asistencia.Descripcion);
+              table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(text => text.Span(asistencia.TipoAsistencia?.NombreAsistencia ?? "N/A"));
+              table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(text => text.Span(asistencia.NotasAdicionales));
             }
           });
         }
 
-        // SECCIÓN 9: PARTICIPACIONES ACTIVAS
-        if (_beneficiario.ParticipacionesActivas != null && _beneficiario.ParticipacionesActivas.Any())
-        {
-          ComposeSectionTitle(column, "9. Participaciones Activas");
-          column.Item().Table(table =>
-          {
-            table.ColumnsDefinition(columns => {
-              columns.RelativeColumn(2); columns.RelativeColumn(3); columns.RelativeColumn(5);
-            });
-            table.Header(header => {
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Fecha").Bold();
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Actividad").Bold();
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Detalles").Bold();
-            });
-            foreach (var participacion in _beneficiario.ParticipacionesActivas.OrderByDescending(p => p.FechaParticipacion))
-            {
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), participacion.FechaParticipacion.ToString("dd/MM/yyyy"));
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), participacion.NombreActividad);
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), participacion.Detalles);
-            }
-          });
-        }
-
-        // SECCIÓN 10: EVALUACIONES DE PROGRAMA
-        if (_beneficiario.EvaluacionesPrograma != null && _beneficiario.EvaluacionesPrograma.Any())
-        {
-          ComposeSectionTitle(column, "10. Evaluaciones de Programa");
-          column.Item().Table(table =>
-          {
-            table.ColumnsDefinition(columns => {
-              columns.RelativeColumn(3); columns.RelativeColumn(2);
-              columns.RelativeColumn(1); columns.RelativeColumn(4);
-            });
-            table.Header(header => {
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Programa/Proyecto").Bold();
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Fecha Evaluación").Bold();
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Calificación").Bold();
-              header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Comentarios").Bold();
-            });
-            foreach (var evaluacion in _beneficiario.EvaluacionesPrograma.OrderByDescending(e => e.FechaEvaluacion))
-            {
-              // Corregido: Nombre de propiedad en ProgramaProyecto
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), evaluacion.ProgramaProyecto?.NombreProgramaProyecto ?? "N/A");
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), evaluacion.FechaEvaluacion.ToString("dd/MM/yyyy"));
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), evaluacion.Calificacion.ToString());
-              AddTableRowContent(table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5), evaluacion.Comentarios ?? "N/A");
-            }
-          });
-        }
-
-        // SECCIÓN 11: CONSENTIMIENTO INFORMADO
-        ComposeSectionTitle(column, "11. Consentimiento Informado");
+        // SECCIÓN 10: ESTADO DEL BENEFICIARIO
+        ComposeSectionTitle(column, "10. Estado del Beneficiario");
         column.Item().Table(table =>
         {
           table.ColumnsDefinition(columns => { columns.RelativeColumn(1); columns.RelativeColumn(2); });
-          AddTableRow(table, "Consentimiento Firmado:", _beneficiario.ConsentimientoInformadoFirmado ? "Sí" : "No"); // Verificar si existe
-          AddTableRow(table, "Fecha de Firma:", _beneficiario.FechaFirmaConsentimiento?.ToString("dd/MM/yyyy") ?? "N/A"); // Verificar si existe
-          AddTableRow(table, "Observaciones Consentimiento:", _beneficiario.ObservacionesConsentimiento ?? "N/A"); // Verificar si existe
-        });
-
-        // SECCIÓN 12: ESTADO DEL BENEFICIARIO
-        ComposeSectionTitle(column, "12. Estado del Beneficiario");
-        column.Item().Table(table =>
-        {
-          table.ColumnsDefinition(columns => { columns.RelativeColumn(1); columns.RelativeColumn(2); });
-          AddTableRow(table, "Activo:", _beneficiario.Activo ? "Sí" : "No"); // Verificar si existe
           AddTableRow(table, "Fecha de Registro:", _beneficiario.FechaRegistroBeneficiario.ToString("dd/MM/yyyy HH:mm"));
-          if (_beneficiario.FechaActualizacion.HasValue) // Verificar si existe
-          {
-            AddTableRow(table, "Última Actualización:", _beneficiario.FechaActualizacion.Value.ToString("dd/MM/yyyy HH:mm"));
-          }
-          AddTableRow(table, "Usuario que registró:", _beneficiario.UsuarioRegistroId ?? "N/A"); // Verificar si existe
-          AddTableRow(table, "Observaciones Generales:", _beneficiario.ObservacionesGenerales ?? "N/A"); // Verificar si existe
         });
       });
     }
@@ -322,12 +258,6 @@ namespace VN_Center.Documents
       table.Cell().Padding(2).Text(value1 ?? "N/A");
       table.Cell().Padding(2).Text(label2).SemiBold();
       table.Cell().Padding(2).Text(value2 ?? "N/A");
-    }
-
-    // Corregido para intentar solucionar CS1929
-    void AddTableRowContent(TableCellDescriptor cell, string? value)
-    {
-      cell.Text(text => text.Span(value ?? "N/A"));
     }
   }
 }
