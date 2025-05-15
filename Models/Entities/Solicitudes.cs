@@ -1,3 +1,4 @@
+// VN_Center/Models/Entities/Solicitudes.cs
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -33,7 +34,7 @@ namespace VN_Center.Models.Entities
     public string? Telefono { get; set; }
 
     [Display(Name = "Permite Contacto por WhatsApp")]
-    public bool? PermiteContactoWhatsApp { get; set; } // Se manejará con radios/checkbox en la vista
+    public bool? PermiteContactoWhatsApp { get; set; }
 
     [Column(TypeName = "NVARCHAR(MAX)")]
     [Display(Name = "Dirección")]
@@ -47,14 +48,14 @@ namespace VN_Center.Models.Entities
     [Required]
     [StringLength(20)]
     [Display(Name = "Tipo de Solicitud")]
-    public string TipoSolicitud { get; set; } = null!; // Se manejará con dropdown en la vista
+    public string TipoSolicitud { get; set; } = null!;
 
     [Display(Name = "Fecha de Envío")]
     [DataType(DataType.DateTime)]
-    public DateTime FechaEnvioSolicitud { get; set; } = DateTime.UtcNow;
+    public DateTime FechaEnvioSolicitud { get; set; } // Se asignará en el constructor o al crear
 
     [Display(Name = "Pasaporte Válido (+6 meses)")]
-    public bool? PasaporteValidoSeisMeses { get; set; } // Se manejará con radios/checkbox en la vista
+    public bool? PasaporteValidoSeisMeses { get; set; }
 
     [Column(TypeName = "DATE")]
     [Display(Name = "Fecha Expiración Pasaporte")]
@@ -133,7 +134,7 @@ namespace VN_Center.Models.Entities
     [Required]
     [StringLength(50)]
     [Display(Name = "Estado de la Solicitud")]
-    public string EstadoSolicitud { get; set; } = "Recibida";
+    public string EstadoSolicitud { get; set; } // Se asignará en el constructor o al crear
 
     // Campos específicos de Pasantía
     [StringLength(255)]
@@ -198,7 +199,7 @@ namespace VN_Center.Models.Entities
     public string? AniosEntrenamientoFormalEsp { get; set; }
 
     [Display(Name = "Comodidad con Habilidades en Español (1-5)")]
-    [Range(1, 5, ErrorMessage = "El valor debe estar entre 1 y 5.")] // AÑADIDO
+    [Range(1, 5, ErrorMessage = "El valor debe estar entre 1 y 5.")]
     public int? ComodidadHabilidadesEsp { get; set; }
 
     // Campos Generales Adicionales
@@ -217,7 +218,13 @@ namespace VN_Center.Models.Entities
     [DataType(DataType.MultilineText)]
     public string? SolicitudesEspecialesAlojamiento { get; set; }
 
-    // --- Propiedades de Navegación ---
+    // --- NUEVA PROPIEDAD PARA AUDITORÍA Y FILTRADO ---
+    [StringLength(450)]
+    [Display(Name = "Usuario Creador ID")]
+    public string? UsuarioCreadorId { get; set; }
+    // --- FIN DE NUEVA PROPIEDAD ---
+
+    // --- Propiedades de Navegación Existentes ---
     [ForeignKey("NivelIdiomaEspañolID")]
     [Display(Name = "Nivel de Español")]
     public virtual NivelesIdioma? NivelesIdioma { get; set; }
@@ -228,5 +235,11 @@ namespace VN_Center.Models.Entities
 
     public virtual ICollection<SolicitudCamposInteres> SolicitudCamposInteres { get; set; } = new List<SolicitudCamposInteres>();
     public virtual ICollection<ParticipacionesActivas> ParticipacionesActivas { get; set; } = new List<ParticipacionesActivas>();
+
+    public Solicitudes()
+    {
+      FechaEnvioSolicitud = DateTime.UtcNow;
+      EstadoSolicitud = "Recibida"; // Valor por defecto
+    }
   }
 }
