@@ -1,0 +1,138 @@
+@* VN_Center/Views/Auditoria/Index.cshtml *@
+@model IEnumerable<VN_Center.Models.Entities.RegistrosAuditoria>
+
+@{
+    ViewData["Title"] = "Registros de Auditoría del Sistema";
+    var paginaActual = (int)ViewData["PaginaActual"];
+    var totalPaginas = (int)ViewData["TotalPaginas"];
+    var tienePaginaAnterior = (bool)ViewData["TienePaginaAnterior"];
+    var tienePaginaSiguiente = (bool)ViewData["TienePaginaSiguiente"];
+    var tiposEventoUnicos = ViewBag.TiposEventoUnicos as List<string> ?? new List<string>();
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Administración /</span> Registros de Auditoría
+    </h4>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Filtros de Búsqueda</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="filtroUsuario" class="form-label">Usuario Ejecutor</label>
+                    <input type="text" name="filtroUsuario" id="filtroUsuario" value="@ViewData["FiltroUsuarioActual"]" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroTipoEvento" class="form-label">Tipo de Evento</label>
+                    <select name="filtroTipoEvento" id="filtroTipoEvento" class="form-select">
+                        <option value="">Todos</option>
+                        @foreach (var tipo in tiposEventoUnicos)
+                        {
+                            <option value="@tipo" selected="@(ViewData["FiltroTipoEventoActual"]?.ToString() == tipo)">@tipo</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="fechaDesde" class="form-label">Fecha Desde</label>
+                    <input type="date" name="fechaDesde" id="fechaDesde" value="@ViewData["FechaDesdeActual"]" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label for="fechaHasta" class="form-label">Fecha Hasta</label>
+                    <input type="date" name="fechaHasta" id="fechaHasta" value="@ViewData["FechaHastaActual"]" class="form-control" />
+                </div>
+                <div class="col-md-2 align-self-end">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bx bx-search me-1"></i> Filtrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Resultados de Auditoría</h5>
+        </div>
+        <div class="table-responsive text-nowrap">
+            @if (Model.Any())
+            {
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.First().FechaHoraEvento)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().NombreUsuarioEjecutor)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().TipoEvento)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().EntidadAfectada)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().IdEntidadAfectada)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().DireccionIp)</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.FechaHoraEvento.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td>@Html.DisplayFor(modelItem => item.NombreUsuarioEjecutor)</td>
+                                <td>@Html.DisplayFor(modelItem => item.TipoEvento)</td>
+                                <td>@Html.DisplayFor(modelItem => item.EntidadAfectada)</td>
+                                <td>@Html.DisplayFor(modelItem => item.IdEntidadAfectada)</td>
+                                <td>@Html.DisplayFor(modelItem => item.DireccionIp)</td>
+                                <td class="text-center">
+                                    <a asp-action="Details" asp-route-id="@item.AuditoriaID" class="btn btn-sm btn-outline-info">
+                                        <i class="bx bx-detail me-1"></i> Detalles
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="card-body">
+                    <p class="text-center">No hay registros de auditoría que coincidan con los filtros aplicados o no hay registros aún.</p>
+                </div>
+            }
+        </div>
+        @if (Model.Any() && totalPaginas > 1)
+        {
+            <div class="card-footer d-flex justify-content-center">
+                <nav aria-label="Paginación de auditoría">
+                    <ul class="pagination">
+                        <li class="page-item @(tienePaginaAnterior ? "" : "disabled")">
+                            <a class="page-link" asp-action="Index"
+                               asp-route-pagina="@(paginaActual - 1)"
+                               asp-route-filtroUsuario="@ViewData["FiltroUsuarioActual"]"
+                               asp-route-filtroTipoEvento="@ViewData["FiltroTipoEventoActual"]"
+                               asp-route-fechaDesde="@ViewData["FechaDesdeActual"]"
+                               asp-route-fechaHasta="@ViewData["FechaHastaActual"]">&laquo; Anterior</a>
+                        </li>
+
+                        @for (int i = 1; i <= totalPaginas; i++)
+                        {
+                            <li class="page-item @(i == paginaActual ? "active" : "")">
+                                <a class="page-link" asp-action="Index"
+                                   asp-route-pagina="@i"
+                                   asp-route-filtroUsuario="@ViewData["FiltroUsuarioActual"]"
+                                   asp-route-filtroTipoEvento="@ViewData["FiltroTipoEventoActual"]"
+                                   asp-route-fechaDesde="@ViewData["FechaDesdeActual"]"
+                                   asp-route-fechaHasta="@ViewData["FechaHastaActual"]">@i</a>
+                            </li>
+                        }
+
+                        <li class="page-item @(tienePaginaSiguiente ? "" : "disabled")">
+                            <a class="page-link" asp-action="Index"
+                               asp-route-pagina="@(paginaActual + 1)"
+                               asp-route-filtroUsuario="@ViewData["FiltroUsuarioActual"]"
+                               asp-route-filtroTipoEvento="@ViewData["FiltroTipoEventoActual"]"
+                               asp-route-fechaDesde="@ViewData["FechaDesdeActual"]"
+                               asp-route-fechaHasta="@ViewData["FechaHastaActual"]">Siguiente &raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>

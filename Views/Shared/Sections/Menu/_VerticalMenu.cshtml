@@ -1,11 +1,12 @@
+@* VN_Center/Views/Shared/_VerticalMenu.cshtml *@
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor
 @{
     TempData.Keep(); // Asegura que los TempData como appName persistan
     string? currentPage = ViewContext.HttpContext.Request.Path;
-    // Determinar si el usuario está autenticado (esto es un placeholder, se implementará con Identity)
+    // Determinar si el usuario está autenticado
     bool isAuthenticated = User.Identity?.IsAuthenticated ?? false;
-    // Determinar si el usuario es administrador (esto es un placeholder)
-    // bool isAdmin = isAuthenticated && User.IsInRole("Administrador"); // Descomentar y ajustar cuando Identity esté configurado
+    // Determinar si el usuario es administrador (esto debería usar la lógica de roles de Identity)
+    bool isAdmin = isAuthenticated && User.IsInRole("Administrador");
 }
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
@@ -153,68 +154,75 @@
             </a>
         </li>
 
+        @* Verifica si el usuario es Administrador para mostrar esta sección *@
+        @if (isAdmin)
+        {
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Administración del Sistema</span>
+            </li>
+            <li class='menu-item@(currentPage.StartsWith("/UsuariosSistema") ? " active" : "")'>
+                <a asp-controller="UsuariosSistema" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-user-circle"></i>
+                    <div>Usuarios del Sistema</div>
+                </a>
+            </li>
+            <li class='menu-item@(currentPage.StartsWith("/RolesSistema") ? " active" : "")'>
+                <a asp-controller="RolesSistema" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-shield-quarter"></i>
+                    <div>Roles del Sistema</div>
+                </a>
+            </li>
+            <li class='menu-item@(currentPage.StartsWith("/Permisos") ? " active" : "")'>
+                <a asp-controller="Permisos" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-key"></i>
+                    <div>Permisos del Sistema</div>
+                </a>
+            </li>
+            <li class='menu-item@(currentPage.StartsWith("/RolPermisos") ? " active" : "")'>
+                <a asp-controller="RolPermisos" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-shield-plus"></i>
+                    <div>Asignar Permisos a Roles</div>
+                </a>
+            </li>
+            @* --- NUEVO ENLACE PARA AUDITORÍA --- *@
+            <li class='menu-item@(currentPage.StartsWith("/Auditoria") ? " active" : "")'>
+                <a asp-controller="Auditoria" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-history"></i> @* Icono de ejemplo, puedes cambiarlo *@
+                    <div>Registros de Auditoría</div>
+                </a>
+            </li>
+        }
 
-        @* @if (isAdmin) // Descomentar cuando Identity esté configurado *@
-        @* { *@
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Administración del Sistema</span>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/UsuariosSistema") ? " active" : "")'>
-            <a asp-controller="UsuariosSistema" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-user-circle"></i>
-                <div>Usuarios del Sistema</div>
-            </a>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/RolesSistema") ? " active" : "")'>
-            <a asp-controller="RolesSistema" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-shield-quarter"></i>
-                <div>Roles del Sistema</div>
-            </a>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/Permisos") ? " active" : "")'>
-            <a asp-controller="Permisos" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-key"></i>
-                <div>Permisos del Sistema</div>
-            </a>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/RolPermisos") ? " active" : "")'>
-            <a asp-controller="RolPermisos" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-shield-plus"></i>
-                <div>Asignar Permisos a Roles</div>
-            </a>
-        </li>
-        @* Aquí iría el enlace al módulo de Auditoría/Log de Cambios en el futuro *@
-        @* } *@
 
-
-        @* @if (!isAuthenticated) // Descomentar cuando Identity esté configurado
-        { *@
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Acceso</span>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/Auth") ? " active open" : "")'>
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-lock-open-alt"></i>
-                <div>Autenticación</div>
-            </a>
-            <ul class="menu-sub">
-                <li class='menu-item@(currentPage == "/Auth/LoginBasic" ? " active" : "")'>
-                    <a asp-controller="Auth" asp-action="LoginBasic" class="menu-link" target="_blank">
-                        <div>Iniciar Sesión</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/Auth/RegisterBasic" ? " active" : "")'>
-                    <a asp-controller="Auth" asp-action="RegisterBasic" class="menu-link" target="_blank">
-                        <div>Registrarse</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/Auth/ForgotPasswordBasic" ? " active" : "")'>
-                    <a asp-controller="Auth" asp-action="ForgotPasswordBasic" class="menu-link" target="_blank">
-                        <div>Olvidé Contraseña</div>
-                    </a>
-                </li>
-            </ul>
-        </li>
-        @* } *@
+        @* La sección de Autenticación solo se muestra si el usuario NO está autenticado *@
+        @if (!isAuthenticated)
+        {
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Acceso</span>
+            </li>
+            <li class='menu-item@(currentPage.StartsWith("/Auth") ? " active open" : "")'>
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-lock-open-alt"></i>
+                    <div>Autenticación</div>
+                </a>
+                <ul class="menu-sub">
+                    <li class='menu-item@(currentPage == "/Auth/LoginBasic" ? " active" : "")'>
+                        <a asp-controller="Auth" asp-action="LoginBasic" class="menu-link" target="_blank">
+                            <div>Iniciar Sesión</div>
+                        </a>
+                    </li>
+                    <li class='menu-item@(currentPage == "/Auth/RegisterBasic" ? " active" : "")'>
+                        <a asp-controller="Auth" asp-action="RegisterBasic" class="menu-link" target="_blank">
+                            <div>Registrarse</div>
+                        </a>
+                    </li>
+                    <li class='menu-item@(currentPage == "/Auth/ForgotPasswordBasic" ? " active" : "")'>
+                        <a asp-controller="Auth" asp-action="ForgotPasswordBasic" class="menu-link" target="_blank">
+                            <div>Olvidé Contraseña</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        }
     </ul>
 </aside>
