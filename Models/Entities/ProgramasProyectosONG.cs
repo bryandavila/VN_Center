@@ -1,3 +1,4 @@
+// VN_Center/Models/Entities/ProgramasProyectosONG.cs
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -53,6 +54,12 @@ namespace VN_Center.Models.Entities
     [Display(Name = "Responsable Principal (ONG)")]
     public int? ResponsablePrincipalONGUsuarioID { get; set; } // FK
 
+    // --- NUEVA PROPIEDAD PARA AUDITORÍA Y FILTRADO ---
+    [StringLength(450)]
+    [Display(Name = "Usuario Creador ID")]
+    public string? UsuarioCreadorId { get; set; }
+    // --- FIN DE NUEVA PROPIEDAD ---
+
     // --- Propiedades de Navegación ---
     [ForeignKey("ResponsablePrincipalONGUsuarioID")]
     [Display(Name = "Responsable (ONG)")]
@@ -62,5 +69,7 @@ namespace VN_Center.Models.Entities
     public virtual ICollection<ProgramaProyectoGrupos> ProgramaProyectoGrupos { get; set; } = new List<ProgramaProyectoGrupos>();
     public virtual ICollection<ParticipacionesActivas> ParticipacionesActivas { get; set; } = new List<ParticipacionesActivas>();
     public virtual ICollection<BeneficiariosProgramasProyectos> BeneficiariosProgramasProyectos { get; set; } = new List<BeneficiariosProgramasProyectos>();
+    // Si tienes una relación directa de EvaluacionesPrograma a ProgramasProyectosONG, deberías incluirla aquí.
+    // public virtual ICollection<EvaluacionesPrograma> EvaluacionesPrograma { get; set; } = new List<EvaluacionesPrograma>();
   }
 }

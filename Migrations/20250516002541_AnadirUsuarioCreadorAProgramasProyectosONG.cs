@@ -1,0 +1,29 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace VN_Center.Migrations
+{
+    /// <inheritdoc />
+    public partial class AnadirUsuarioCreadorAProgramasProyectosONG : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<string>(
+                name: "UsuarioCreadorId",
+                table: "ProgramasProyectosONG",
+                type: "nvarchar(450)",
+                maxLength: 450,
+                nullable: true);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropColumn(
+                name: "UsuarioCreadorId",
+                table: "ProgramasProyectosONG");
+        }
+    }
+}

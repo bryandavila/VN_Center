@@ -1,3 +1,4 @@
+// VN_Center/Controllers/ProgramasProyectosONGController.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +8,13 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using VN_Center.Data;
 using VN_Center.Models.Entities;
-using Microsoft.AspNetCore.Identity; // Para UserManager
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace VN_Center.Controllers
 {
-  [Authorize]
+  [Authorize] // Todos los usuarios autenticados pueden acceder al controlador en general
   public class ProgramasProyectosONGController : Controller
   {
     private readonly VNCenterDbContext _context;
@@ -25,15 +27,19 @@ namespace VN_Center.Controllers
     }
 
     // GET: ProgramasProyectosONG
+    // Todos los usuarios autenticados pueden ver la lista de todos los programas
     public async Task<IActionResult> Index()
     {
-      // Usar la propiedad de navegación correcta: ResponsablePrincipalONG
-      var vNCenterDbContext = _context.ProgramasProyectosONG
-          .Include(p => p.ResponsablePrincipalONG);
-      return View(await vNCenterDbContext.ToListAsync());
+      var query = _context.ProgramasProyectosONG
+          .Include(p => p.ResponsablePrincipalONG)
+          .OrderBy(p => p.NombreProgramaProyecto);
+
+      // Ya no se filtra por UsuarioCreadorId para usuarios no administradores
+      return View(await query.ToListAsync());
     }
 
     // GET: ProgramasProyectosONG/Details/5
+    // Todos los usuarios autenticados pueden ver los detalles de cualquier programa
     public async Task<IActionResult> Details(int? id)
     {
       if (id == null)
@@ -41,19 +47,21 @@ namespace VN_Center.Controllers
         return NotFound();
       }
 
-      var programasProyectosONG = await _context.ProgramasProyectosONG
-          // Usar la propiedad de navegación correcta: ResponsablePrincipalONG
+      var programaProyecto = await _context.ProgramasProyectosONG
           .Include(p => p.ResponsablePrincipalONG)
+          // Si necesitas más Includes para la vista de detalles (ej. comunidades, grupos vinculados), añádelos aquí.
+          // .Include(p => p.ProgramaProyectoComunidades).ThenInclude(pc => pc.Comunidad) 
+          // .Include(p => p.ProgramaProyectoGrupos).ThenInclude(pg => pg.GrupoComunitario)
           .FirstOrDefaultAsync(m => m.ProgramaProyectoID == id);
-      if (programasProyectosONG == null)
+
+      if (programaProyecto == null)
       {
         return NotFound();
       }
-
-      return View(programasProyectosONG);
+      // Ya no se verifica UsuarioCreadorId para la visualización de detalles
+      return View(programaProyecto);
     }
 
-    // Método para poblar el dropdown de Usuarios Responsables
     private async Task PopulateResponsablesDropDownListAsync(object? selectedResponsable = null)
     {
       var responsablesQuery = await _userManager.Users
@@ -61,16 +69,15 @@ namespace VN_Center.Controllers
                                   .ThenBy(u => u.Apellidos)
                                   .Select(u => new
                                   {
-                                    u.Id, // El valor del dropdown será el Id del usuario
+                                    u.Id,
                                     NombreCompleto = u.Nombres + " " + u.Apellidos + " (" + u.UserName + ")"
                                   })
                                   .ToListAsync();
-      // El ViewData debe coincidir con el nombre de la FK en la entidad ProgramasProyectosONG
       ViewData["ResponsablePrincipalONGUsuarioID"] = new SelectList(responsablesQuery, "Id", "NombreCompleto", selectedResponsable);
     }
 
-
     // GET: ProgramasProyectosONG/Create
+    [Authorize(Roles = "Administrador")] // Solo Administradores pueden acceder a esta acción
     public async Task<IActionResult> Create()
     {
       await PopulateResponsablesDropDownListAsync();
@@ -80,19 +87,21 @@ namespace VN_Center.Controllers
     // POST: ProgramasProyectosONG/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    // Asegúrate que el Bind usa la FK correcta: ResponsablePrincipalONGUsuarioID
+    [Authorize(Roles = "Administrador")] // Solo Administradores pueden ejecutar esta acción
     public async Task<IActionResult> Create([Bind("ProgramaProyectoID,NombreProgramaProyecto,Descripcion,TipoIniciativa,FechaInicioEstimada,FechaFinEstimada,FechaInicioReal,FechaFinReal,EstadoProgramaProyecto,ResponsablePrincipalONGUsuarioID")] ProgramasProyectosONG programasProyectosONG)
     {
-      // La propiedad de navegación se llama ResponsablePrincipalONG
       ModelState.Remove("ResponsablePrincipalONG");
       ModelState.Remove("ProgramaProyectoComunidades");
       ModelState.Remove("ProgramaProyectoGrupos");
       ModelState.Remove("ParticipacionesActivas");
       ModelState.Remove("BeneficiariosProgramasProyectos");
-      ModelState.Remove("EvaluacionesPrograma"); // Añadido basado en tu entidad original
+      ModelState.Remove("UsuarioCreadorId"); // Aunque no se bindea, es bueno removerlo si no viene del form.
 
       if (ModelState.IsValid)
       {
+        // Asignar el UsuarioCreadorId, útil para auditoría y saber quién lo creó
+        programasProyectosONG.UsuarioCreadorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         _context.Add(programasProyectosONG);
         await _context.SaveChangesAsync();
         TempData["SuccessMessage"] = "Programa/Proyecto creado exitosamente.";
@@ -103,6 +112,7 @@ namespace VN_Center.Controllers
     }
 
     // GET: ProgramasProyectosONG/Edit/5
+    [Authorize(Roles = "Administrador")] // Solo Administradores
     public async Task<IActionResult> Edit(int? id)
     {
       if (id == null)
@@ -110,44 +120,52 @@ namespace VN_Center.Controllers
         return NotFound();
       }
 
-      var programasProyectosONG = await _context.ProgramasProyectosONG.FindAsync(id);
-      if (programasProyectosONG == null)
+      var programaProyecto = await _context.ProgramasProyectosONG.FindAsync(id);
+      if (programaProyecto == null)
       {
         return NotFound();
       }
-      await PopulateResponsablesDropDownListAsync(programasProyectosONG.ResponsablePrincipalONGUsuarioID);
-      return View(programasProyectosONG);
+      // No necesitamos la verificación de UsuarioCreadorId aquí porque ya está protegido por rol.
+      await PopulateResponsablesDropDownListAsync(programaProyecto.ResponsablePrincipalONGUsuarioID);
+      return View(programaProyecto);
     }
 
     // POST: ProgramasProyectosONG/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    // Asegúrate que el Bind usa la FK correcta: ResponsablePrincipalONGUsuarioID
-    public async Task<IActionResult> Edit(int id, [Bind("ProgramaProyectoID,NombreProgramaProyecto,Descripcion,TipoIniciativa,FechaInicioEstimada,FechaFinEstimada,FechaInicioReal,FechaFinReal,EstadoProgramaProyecto,ResponsablePrincipalONGUsuarioID")] ProgramasProyectosONG programasProyectosONG)
+    [Authorize(Roles = "Administrador")] // Solo Administradores
+    public async Task<IActionResult> Edit(int id, [Bind("ProgramaProyectoID,NombreProgramaProyecto,Descripcion,TipoIniciativa,FechaInicioEstimada,FechaFinEstimada,FechaInicioReal,FechaFinReal,EstadoProgramaProyecto,ResponsablePrincipalONGUsuarioID")] ProgramasProyectosONG programaModificado)
     {
-      if (id != programasProyectosONG.ProgramaProyectoID)
+      if (id != programaModificado.ProgramaProyectoID)
       {
         return NotFound();
       }
+
+      // Obtener el UsuarioCreadorId original para preservarlo
+      var programaOriginal = await _context.ProgramasProyectosONG.AsNoTracking().FirstOrDefaultAsync(p => p.ProgramaProyectoID == id);
+      if (programaOriginal == null)
+      {
+        return NotFound();
+      }
+      programaModificado.UsuarioCreadorId = programaOriginal.UsuarioCreadorId; // Preservar el creador original
 
       ModelState.Remove("ResponsablePrincipalONG");
       ModelState.Remove("ProgramaProyectoComunidades");
       ModelState.Remove("ProgramaProyectoGrupos");
       ModelState.Remove("ParticipacionesActivas");
       ModelState.Remove("BeneficiariosProgramasProyectos");
-      ModelState.Remove("EvaluacionesPrograma"); // Añadido
 
       if (ModelState.IsValid)
       {
         try
         {
-          _context.Update(programasProyectosONG);
+          _context.Update(programaModificado);
           await _context.SaveChangesAsync();
           TempData["SuccessMessage"] = "Programa/Proyecto actualizado exitosamente.";
         }
         catch (DbUpdateConcurrencyException)
         {
-          if (!ProgramasProyectosONGExists(programasProyectosONG.ProgramaProyectoID))
+          if (!ProgramasProyectosONGExists(programaModificado.ProgramaProyectoID))
           {
             return NotFound();
           }
@@ -158,11 +176,12 @@ namespace VN_Center.Controllers
         }
         return RedirectToAction(nameof(Index));
       }
-      await PopulateResponsablesDropDownListAsync(programasProyectosONG.ResponsablePrincipalONGUsuarioID);
-      return View(programasProyectosONG);
+      await PopulateResponsablesDropDownListAsync(programaModificado.ResponsablePrincipalONGUsuarioID);
+      return View(programaModificado);
     }
 
     // GET: ProgramasProyectosONG/Delete/5
+    [Authorize(Roles = "Administrador")] // Solo Administradores
     public async Task<IActionResult> Delete(int? id)
     {
       if (id == null)
@@ -170,31 +189,35 @@ namespace VN_Center.Controllers
         return NotFound();
       }
 
-      var programasProyectosONG = await _context.ProgramasProyectosONG
-          // Usar la propiedad de navegación correcta: ResponsablePrincipalONG
+      var programaProyecto = await _context.ProgramasProyectosONG
           .Include(p => p.ResponsablePrincipalONG)
           .FirstOrDefaultAsync(m => m.ProgramaProyectoID == id);
-      if (programasProyectosONG == null)
+      if (programaProyecto == null)
       {
         return NotFound();
       }
-
-      return View(programasProyectosONG);
+      // No necesitamos la verificación de UsuarioCreadorId aquí.
+      return View(programaProyecto);
     }
 
     // POST: ProgramasProyectosONG/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Administrador")] // Solo Administradores
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-      var programasProyectosONG = await _context.ProgramasProyectosONG.FindAsync(id);
-      if (programasProyectosONG != null)
+      var programaProyecto = await _context.ProgramasProyectosONG.FindAsync(id);
+      if (programaProyecto != null)
       {
-        _context.ProgramasProyectosONG.Remove(programasProyectosONG);
+        // No necesitamos la verificación de UsuarioCreadorId aquí.
+        _context.ProgramasProyectosONG.Remove(programaProyecto);
         await _context.SaveChangesAsync();
         TempData["SuccessMessage"] = "Programa/Proyecto eliminado exitosamente.";
       }
-
+      else
+      {
+        TempData["ErrorMessage"] = "El programa/proyecto no fue encontrado.";
+      }
       return RedirectToAction(nameof(Index));
     }
 
