@@ -1,0 +1,142 @@
+@* VN_Center/Views/Busqueda/Resultados.cshtml *@
+@model VN_Center.Models.ViewModels.ResultadosBusquedaViewModel
+
+@{
+    ViewData["Title"] = "Resultados de Búsqueda";
+    var terminoBusqueda = ViewData["TerminoBusquedaOriginal"] as string;
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Búsqueda /</span> Resultados
+    </h4>
+
+    @if (string.IsNullOrWhiteSpace(Model.TerminoBusqueda))
+    {
+        <div class="alert alert-warning" role="alert">
+            Por favor, ingrese un término para buscar.
+        </div>
+    }
+    else
+    {
+        <h5 class="mb-3">Resultados para: <span class="fw-semibold">"@terminoBusqueda"</span></h5>
+
+        @if (!Model.HayResultados)
+        {
+            <div class="alert alert-info" role="alert">
+                No se encontraron resultados para "@terminoBusqueda". Intente con otros términos.
+            </div>
+        }
+        else
+        {
+            @if (Model.UsuariosEncontrados.Any())
+            {
+                <div class="card mb-4">
+                    <h5 class="card-header">Usuarios del Sistema Encontrados (@Model.UsuariosEncontrados.Count)</h5>
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.UsuariosEncontrados)
+                        {
+                            <a asp-controller="UsuariosSistema" asp-action="Details" asp-route-id="@item.Id" class="list-group-item list-group-item-action">
+                                <strong>@item.NombreCompleto</strong> (@item.UserName) - @item.Email
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.BeneficiariosEncontrados.Any())
+            {
+                <div class="card mb-4">
+                    <h5 class="card-header">Beneficiarios Encontrados (@Model.BeneficiariosEncontrados.Count)</h5>
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.BeneficiariosEncontrados)
+                        {
+                            <a asp-controller="Beneficiarios" asp-action="Details" asp-route-id="@item.BeneficiarioID" class="list-group-item list-group-item-action">
+                                <strong>@item.NombreCompleto</strong> (@(item.Comunidad?.NombreComunidad ?? "Sin comunidad"))
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.ProgramasEncontrados.Any())
+            {
+                <div class="card mb-4">
+                    <h5 class="card-header">Programas y Proyectos Encontrados (@Model.ProgramasEncontrados.Count)</h5>
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.ProgramasEncontrados)
+                        {
+                            <a asp-controller="ProgramasProyectosONG" asp-action="Details" asp-route-id="@item.ProgramaProyectoID" class="list-group-item list-group-item-action">
+                                <strong>@item.NombreProgramaProyecto</strong> (Tipo: @item.TipoIniciativa)
+                                <small class="d-block text-muted">Responsable: @(item.ResponsablePrincipalONG?.NombreCompleto ?? "N/A")</small>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.SolicitudesVolPasEncontradas.Any())
+            {
+                <div class="card mb-4">
+                    <h5 class="card-header">Solicitudes (Voluntariado/Pasantía) Encontradas (@Model.SolicitudesVolPasEncontradas.Count)</h5>
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.SolicitudesVolPasEncontradas)
+                        {
+                            <a asp-controller="Solicitudes" asp-action="Details" asp-route-id="@item.SolicitudID" class="list-group-item list-group-item-action">
+                                <strong>@item.Nombres @item.Apellidos</strong> (Tipo: @item.TipoSolicitud) - @item.Email
+                                <small class="d-block text-muted">Estado: @item.EstadoSolicitud</small>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.SolicitudesInfoEncontradas.Any())
+            {
+                <div class="card mb-4">
+                    <h5 class="card-header">Consultas Generales Encontradas (@Model.SolicitudesInfoEncontradas.Count)</h5>
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.SolicitudesInfoEncontradas)
+                        {
+                            <a asp-controller="SolicitudesInformacionGeneral" asp-action="Details" asp-route-id="@item.SolicitudInfoID" class="list-group-item list-group-item-action">
+                                <strong>@item.NombreContacto</strong> (@item.EmailContacto)
+                                <small class="d-block text-muted">Programa de Interés: @(string.IsNullOrWhiteSpace(item.ProgramaDeInteres) ? "No especificado" : item.ProgramaDeInteres)</small>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.ComunidadesEncontradas.Any())
+            {
+                <div class="card mb-4">
+                    <h5 class="card-header">Comunidades Encontradas (@Model.ComunidadesEncontradas.Count)</h5>
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.ComunidadesEncontradas)
+                        {
+                            <a asp-controller="Comunidades" asp-action="Details" asp-route-id="@item.ComunidadID" class="list-group-item list-group-item-action">
+                                <strong>@item.NombreComunidad</strong>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.GruposEncontrados.Any())
+            {
+                <div class="card mb-4">
+                    <h5 class="card-header">Grupos Comunitarios Encontrados (@Model.GruposEncontrados.Count)</h5>
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.GruposEncontrados)
+                        {
+                            <a asp-controller="GruposComunitarios" asp-action="Details" asp-route-id="@item.GrupoID" class="list-group-item list-group-item-action">
+                                <strong>@item.NombreGrupo</strong> (Tipo: @(item.TipoGrupo ?? "N/A"))
+                                <small class="d-block text-muted">Comunidad: @(item.Comunidad?.NombreComunidad ?? "N/A")</small>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    }
+</div>
