@@ -11,10 +11,11 @@ using VN_Center.Data;
 using VN_Center.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Hosting; // <--- AÑADIDO para IWebHostEnvironment
-using System.IO;                   // <--- AÑADIDO para Path
-using QuestPDF.Fluent;             // <--- AÑADIDO para QuestPDF
-using VN_Center.Documents;         // <--- AÑADIDO para SolicitudDetailPdfDocument
+using Microsoft.AspNetCore.Hosting; // Para IWebHostEnvironment
+using System.IO;                   // Para Path
+using QuestPDF.Fluent;             // Para QuestPDF
+using VN_Center.Documents;         // Para los documentos PDF
+using Microsoft.Extensions.Logging; // Para ILogger
 
 namespace VN_Center.Controllers
 {
@@ -23,20 +24,20 @@ namespace VN_Center.Controllers
   {
     private readonly VNCenterDbContext _context;
     private readonly UserManager<UsuariosSistema> _userManager;
-    private readonly IWebHostEnvironment _webHostEnvironment; // <--- AÑADIDO
+    private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly ILogger<SolicitudesController> _logger;
 
     public SolicitudesController(
         VNCenterDbContext context,
         UserManager<UsuariosSistema> userManager,
-        IWebHostEnvironment webHostEnvironment) // <--- MODIFICADO
+        IWebHostEnvironment webHostEnvironment,
+        ILogger<SolicitudesController> logger)
     {
       _context = context;
       _userManager = userManager;
-      _webHostEnvironment = webHostEnvironment; // <--- AÑADIDO
+      _webHostEnvironment = webHostEnvironment;
+      _logger = logger;
     }
-
-    // ... (Acciones Index, Details GET, Create GET/POST, Edit GET/POST, Delete GET/POST existentes) ...
-    // El código de esas acciones ya incluye el filtrado por UsuarioCreadorId y los permisos.
 
     // GET: Solicitudes
     public async Task<IActionResult> Index()
@@ -62,6 +63,7 @@ namespace VN_Center.Controllers
       return View(await query.ToListAsync());
     }
 
+    // ... (Acciones Details GET, Create GET/POST, Edit GET/POST, Delete GET/POST existentes) ...
     // GET: Solicitudes/Details/5
     public async Task<IActionResult> Details(int? id)
     {
@@ -96,11 +98,7 @@ namespace VN_Center.Controllers
     {
       ViewData["FuenteConocimientoID"] = new SelectList(_context.FuentesConocimiento, "FuenteConocimientoID", "NombreFuente");
       ViewData["NivelIdiomaEspañolID"] = new SelectList(_context.NivelesIdioma, "NivelIdiomaID", "NombreNivel");
-      var model = new Solicitudes
-      {
-        FechaEnvioSolicitud = DateTime.UtcNow,
-        EstadoSolicitud = "Recibida"
-      };
+      var model = new Solicitudes();
       return View(model);
     }
 
@@ -258,35 +256,95 @@ namespace VN_Center.Controllers
       return _context.Solicitudes.Any(e => e.SolicitudID == id);
     }
 
-    // --- NUEVA ACCIÓN PARA EXPORTAR DETALLE DE SOLICITUD A PDF ---
+    // ACCIÓN PARA EXPORTAR DETALLE DE SOLICITUD A PDF
     public async Task<IActionResult> ExportDetailToPdf(int id)
     {
-      var solicitud = await _context.Solicitudes
-          .Include(s => s.NivelesIdioma) // Incluir datos relacionados necesarios para el PDF
-          .Include(s => s.FuentesConocimiento)
-          // Incluir otras relaciones si se muestran en el PDF de detalle
-          // .Include(s => s.SolicitudCamposInteres).ThenInclude(sci => sci.CampoInteresVocacional) 
-          .FirstOrDefaultAsync(m => m.SolicitudID == id);
-
-      if (solicitud == null)
+      _logger.LogInformation("Iniciando ExportDetailToPdf para Solicitud ID: {SolicitudID}", id);
+      try
       {
-        return NotFound();
+        var solicitud = await _context.Solicitudes
+            .Include(s => s.NivelesIdioma)
+            .Include(s => s.FuentesConocimiento)
+            .FirstOrDefaultAsync(m => m.SolicitudID == id);
+
+        if (solicitud == null)
+        {
+          _logger.LogWarning("Solicitud con ID: {SolicitudID} no encontrada para exportar.", id);
+          return NotFound();
+        }
+
+        if (!User.IsInRole("Administrador") && solicitud.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+        {
+          _logger.LogWarning("Usuario no autorizado intentó exportar detalles de Solicitud ID: {SolicitudID}", id);
+          TempData["ErrorMessage"] = "No tiene permiso para exportar los detalles de esta solicitud.";
+          return RedirectToAction(nameof(Index));
+        }
+
+        string wwwRootPath = _webHostEnvironment.WebRootPath;
+        string logoPath = Path.Combine(wwwRootPath, "img", "logo_vncenter_mini.png");
+
+        var document = new SolicitudDetailPdfDocument(solicitud, logoPath);
+        _logger.LogInformation("Documento PDF de detalle de solicitud creado, generando bytes...");
+        byte[] pdfBytes = document.GeneratePdf();
+        _logger.LogInformation("Bytes del PDF de detalle de solicitud generados. Longitud: {Length}", pdfBytes.Length);
+
+        string nombreArchivo = $"Solicitud_{solicitud.Nombres?.Replace(" ", "") ?? ""}_{solicitud.Apellidos?.Replace(" ", "") ?? ""}_ID{solicitud.SolicitudID}.pdf";
+        return File(pdfBytes, "application/pdf", nombreArchivo);
       }
-
-      // Verificar permisos: solo admin o el creador pueden exportar detalles
-      if (!User.IsInRole("Administrador") && solicitud.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+      catch (Exception ex)
       {
-        TempData["ErrorMessage"] = "No tiene permiso para exportar los detalles de esta solicitud.";
+        _logger.LogError(ex, "Error durante la generación del PDF de detalle para Solicitud ID: {SolicitudID}", id);
+        TempData["ErrorMessage"] = $"Ocurrió un error al generar el PDF: {ex.Message}. Revise los logs para más detalles.";
+        return RedirectToAction(nameof(Details), new { id = id });
+      }
+    }
+
+    // --- NUEVA ACCIÓN PARA EXPORTAR LISTA DE SOLICITUDES A PDF ---
+    public async Task<IActionResult> ExportListToPdf()
+    {
+      _logger.LogInformation("Iniciando ExportListToPdf para Solicitudes.");
+      try
+      {
+        IQueryable<Solicitudes> query = _context.Solicitudes
+                                            .Include(s => s.FuentesConocimiento)
+                                            .Include(s => s.NivelesIdioma)
+                                            .OrderByDescending(s => s.FechaEnvioSolicitud);
+
+        string tituloReporte = "Lista de Todas las Solicitudes";
+        if (!User.IsInRole("Administrador"))
+        {
+          var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+          if (!string.IsNullOrEmpty(userId))
+          {
+            query = query.Where(s => s.UsuarioCreadorId == userId);
+            tituloReporte = "Lista de Mis Solicitudes";
+          }
+          else
+          {
+            query = query.Where(s => false);
+            tituloReporte = "Lista de Solicitudes (Sin Acceso)";
+          }
+        }
+
+        var solicitudes = await query.ToListAsync();
+        _logger.LogInformation("Datos de solicitudes preparados para PDF. Total: {Count}", solicitudes.Count);
+
+        string wwwRootPath = _webHostEnvironment.WebRootPath;
+        string logoPath = Path.Combine(wwwRootPath, "img", "logo_vncenter_mini.png");
+
+        var document = new SolicitudesListPdfDocument(solicitudes, logoPath, tituloReporte);
+        _logger.LogInformation("Documento PDF de lista de solicitudes creado, generando bytes...");
+        byte[] pdfBytes = document.GeneratePdf();
+        _logger.LogInformation("Bytes del PDF de lista de solicitudes generados. Longitud: {Length}", pdfBytes.Length);
+
+        return File(pdfBytes, "application/pdf", $"Lista_Solicitudes_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error durante la generación del PDF de lista de Solicitudes.");
+        TempData["ErrorMessage"] = $"Ocurrió un error al generar el PDF: {ex.Message}. Revise los logs para más detalles.";
         return RedirectToAction(nameof(Index));
       }
-
-      string wwwRootPath = _webHostEnvironment.WebRootPath;
-      string logoPath = Path.Combine(wwwRootPath, "img", "logo_vncenter_mini.png");
-
-      var document = new SolicitudDetailPdfDocument(solicitud, logoPath);
-      var pdfBytes = document.GeneratePdf();
-
-      return File(pdfBytes, "application/pdf", $"Solicitud_{solicitud.Nombres}_{solicitud.Apellidos}_ID{solicitud.SolicitudID}.pdf");
     }
   }
 }

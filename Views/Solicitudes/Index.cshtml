@@ -1,4 +1,6 @@
+@* VN_Center/Views/Solicitudes/Index.cshtml *@
 @model IEnumerable<VN_Center.Models.Entities.Solicitudes>
+@using System.Security.Claims @* <--- AÑADIDO ESTE USING DIRECTIVE *@
 
 @{
     ViewData["Title"] = "Lista de Solicitudes";
@@ -17,13 +19,25 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
     <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
             <h5 class="mb-0">Solicitudes Registradas</h5>
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="bx bx-plus me-1"></i> Registrar Nueva Solicitud
-            </a>
+            <div class="d-flex gap-2">
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="bx bx-plus me-1"></i> Registrar Nueva Solicitud
+                </a>
+                <a asp-action="ExportListToPdf" class="btn btn-info">
+                    <i class="bx bx-printer me-1"></i> Exportar Lista a PDF
+                </a>
+            </div>
         </div>
         <div class="table-responsive text-nowrap">
             @if (Model.Any())
@@ -49,7 +63,6 @@
                                 <td>@Html.DisplayFor(modelItem => item.Email)</td>
                                 <td>@Html.DisplayFor(modelItem => item.TipoSolicitud)</td>
                                 <td>
-                                    @* Podríamos aplicar un estilo al estado si quisiéramos, ej: badge *@
                                     @if (item.EstadoSolicitud == "Aprobada")
                                     {
                                         <span class="badge bg-label-success me-1">@item.EstadoSolicitud</span>
@@ -74,9 +87,17 @@
                                             <i class="bx bx-dots-vertical-rounded"></i>
                                         </button>
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item" asp-action="Edit" asp-route-id="@item.SolicitudID"><i class="bx bx-edit-alt me-1"></i> Editar</a>
-                                            <a class="dropdown-item" asp-action="Details" asp-route-id="@item.SolicitudID"><i class="bx bx-detail me-1"></i> Detalles</a>
-                                            <a class="dropdown-item" asp-action="Delete" asp-route-id="@item.SolicitudID"><i class="bx bx-trash me-1"></i> Eliminar</a>
+                                            @* La condición de visualización de botones de acción ya estaba correcta aquí *@
+                                            @if (User.IsInRole("Administrador") || (item.UsuarioCreadorId == User.FindFirstValue(ClaimTypes.NameIdentifier)))
+                                            {
+                                                <a class="dropdown-item" asp-action="Edit" asp-route-id="@item.SolicitudID"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                                                <a class="dropdown-item" asp-action="Details" asp-route-id="@item.SolicitudID"><i class="bx bx-detail me-1"></i> Detalles</a>
+                                                <a class="dropdown-item" asp-action="Delete" asp-route-id="@item.SolicitudID"><i class="bx bx-trash me-1"></i> Eliminar</a>
+                                            }
+                                            else
+                                            {
+                                                <a class="dropdown-item" asp-action="Details" asp-route-id="@item.SolicitudID"><i class="bx bx-detail me-1"></i> Detalles</a>
+                                            }
                                         </div>
                                     </div>
                                 </td>
