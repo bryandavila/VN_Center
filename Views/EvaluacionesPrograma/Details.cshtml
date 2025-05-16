@@ -4,8 +4,7 @@
 @{
     ViewData["Title"] = "Detalles de la Evaluación";
     Func<string?, string> DisplayString = s => string.IsNullOrWhiteSpace(s) ? "No especificado" : s;
-    Func<int?, string> DisplayInt = i => i.HasValue ? i.Value.ToString() : "No especificado"; // Para puntajes sin "/5"
-    Func<int?, string> DisplayIntRating = i => i.HasValue ? $"{i.Value}/5" : "No especificado"; // Para puntajes con "/5"
+    Func<int?, string> DisplayIntRating = i => i.HasValue ? $"{i.Value}/5" : "No especificado";
     Func<bool?, string> FormatBoolean = b => b.HasValue ? (b.Value ? "Sí" : "No") : "No especificado";
 }
 
@@ -22,11 +21,13 @@
                 <small class="text-muted">Programa: @(Model.ParticipacionActiva?.ProgramaProyecto?.NombreProgramaProyecto ?? "N/A")</small>
             </h5>
             <div>
-                @* --- NUEVO BOTÓN PARA EXPORTAR DETALLE --- *@
                 <a asp-action="ExportDetailToPdf" asp-route-id="@Model.EvaluacionID" class="btn btn-success me-2">
                     <i class="bx bx-printer me-1"></i> Exportar a PDF
                 </a>
-                <a asp-action="Edit" asp-route-id="@Model.EvaluacionID" class="btn btn-primary me-2"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                @if (User.IsInRole("Administrador")) @* Solo Administradores pueden Editar *@
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.EvaluacionID" class="btn btn-primary me-2"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                }
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bx bx-list-ul me-1"></i> Volver a la Lista</a>
             </div>
         </div>
@@ -58,7 +59,7 @@
                                 <dd class="col-sm-8 mt-3">@DisplayString(Model.ExpectativasOriginalesCumplidas)</dd>
 
                                 <dt class="col-sm-4">@Html.DisplayNameFor(model => model.InformacionPreviaUtil)</dt>
-                                <dd class="col-sm-8">@DisplayIntRating(Model.InformacionPreviaUtil)</dd> @* Usando DisplayIntRating *@
+                                <dd class="col-sm-8">@DisplayIntRating(Model.InformacionPreviaUtil)</dd>
                             </dl>
                         </div>
                     </div>
@@ -80,7 +81,7 @@
                                 <dd class="col-sm-12">@Html.Raw(DisplayString(Model.ComentariosAlojamientoHotel).Replace("\n", "<br />"))</dd>
 
                                 <dt class="col-sm-4 mt-3">@Html.DisplayNameFor(model => model.ProgramaInmersionCulturalAyudoHumildad)</dt>
-                                <dd class="col-sm-8 mt-3">@DisplayIntRating(Model.ProgramaInmersionCulturalAyudoHumildad)</dd> @* Usando DisplayIntRating *@
+                                <dd class="col-sm-8 mt-3">@DisplayIntRating(Model.ProgramaInmersionCulturalAyudoHumildad)</dd>
 
                                 <dt class="col-sm-4">@Html.DisplayNameFor(model => model.ActividadesRecreativasCulturalesInteresantes)</dt>
                                 <dd class="col-sm-8">@DisplayString(Model.ActividadesRecreativasCulturalesInteresantes)</dd>
@@ -105,7 +106,7 @@
                                 <dd class="col-sm-12">@Html.Raw(DisplayString(Model.AspectoMasValiosoExperiencia).Replace("\n", "<br />"))</dd>
 
                                 <dt class="col-sm-4 mt-3">@Html.DisplayNameFor(model => model.AplicaraLoAprendidoFuturo)</dt>
-                                <dd class="col-sm-8 mt-3">@DisplayIntRating(Model.AplicaraLoAprendidoFuturo)</dd> @* Usando DisplayIntRating *@
+                                <dd class="col-sm-8 mt-3">@DisplayIntRating(Model.AplicaraLoAprendidoFuturo)</dd>
 
                                 <dt class="col-sm-12 mt-3">@Html.DisplayNameFor(model => model.TresCosasAprendidasSobreSiMismo)</dt>
                                 <dd class="col-sm-12">@Html.Raw(DisplayString(Model.TresCosasAprendidasSobreSiMismo).Replace("\n", "<br />"))</dd>
@@ -120,7 +121,7 @@
                                 <dd class="col-sm-12">@Html.Raw(DisplayString(Model.QueDiraOtrosSobrePrograma).Replace("\n", "<br />"))</dd>
 
                                 <dt class="col-sm-4 mt-3">@Html.DisplayNameFor(model => model.PermiteSerUsadoComoReferencia)</dt>
-                                <dd class="col-sm-8 mt-3">@FormatBoolean(Model.PermiteSerUsadoComoReferencia)</dd>
+                                <dd class="col-sm-8">@FormatBoolean(Model.PermiteSerUsadoComoReferencia)</dd>
 
                                 <dt class="col-sm-12 mt-3">@Html.DisplayNameFor(model => model.ComentariosAdicionalesEvaluacion)</dt>
                                 <dd class="col-sm-12">@Html.Raw(DisplayString(Model.ComentariosAdicionalesEvaluacion).Replace("\n", "<br />"))</dd>
@@ -136,15 +137,8 @@
 
 @section Scripts {
     <script>
-        // Opcional: Script para abrir todas las secciones del acordeón por defecto en la página de detalles
         document.addEventListener('DOMContentLoaded', function () {
-            var accordionItems = document.querySelectorAll('#accordionEvaluacionDetails .accordion-collapse');
-            // Para que la primera sección (Sobre el Programa) esté abierta por defecto y las demás cerradas,
-            // no necesitas hacer nada aquí si ya tiene la clase 'show' y 'active' en el HTML.
-            // Si quisieras que todas estén abiertas, podrías usar:
-            // accordionItems.forEach(function (item) {
-            //     new bootstrap.Collapse(item, { toggle: false }).show();
-            // });
+            // ... (script existente) ...
         });
     </script>
 }
