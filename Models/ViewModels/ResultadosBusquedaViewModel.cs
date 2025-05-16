@@ -1,14 +1,13 @@
-// VN_Center/Models/ViewModels/ResultadosBusquedaViewModel.cs
-using VN_Center.Models.Entities; // Asegúrate que este using apunte a tus entidades
+using VN_Center.Models.Entities;
 using System.Collections.Generic;
+using System.Linq; // Necesario para .Any()
 
-namespace VN_Center.Models.ViewModels // Asegúrate que el namespace sea este
+namespace VN_Center.Models.ViewModels
 {
   public class ResultadosBusquedaViewModel
   {
     public string? TerminoBusqueda { get; set; }
 
-    // Lista para cada tipo de entidad que quieres incluir en los resultados
     public List<UsuariosSistema> UsuariosEncontrados { get; set; } = new List<UsuariosSistema>();
     public List<Beneficiarios> BeneficiariosEncontrados { get; set; } = new List<Beneficiarios>();
     public List<ProgramasProyectosONG> ProgramasEncontrados { get; set; } = new List<ProgramasProyectosONG>();
@@ -16,14 +15,18 @@ namespace VN_Center.Models.ViewModels // Asegúrate que el namespace sea este
     public List<SolicitudesInformacionGeneral> SolicitudesInfoEncontradas { get; set; } = new List<SolicitudesInformacionGeneral>();
     public List<Comunidades> ComunidadesEncontradas { get; set; } = new List<Comunidades>();
     public List<GruposComunitarios> GruposEncontrados { get; set; } = new List<GruposComunitarios>();
-    // Puedes añadir más listas para otras entidades según necesites
+    public List<EvaluacionesPrograma> EvaluacionesEncontradas { get; set; } = new List<EvaluacionesPrograma>();
+    public List<ParticipacionesActivas> ParticipacionesEncontradas { get; set; } = new List<ParticipacionesActivas>();
 
-    public bool HayResultados => UsuariosEncontrados.Any() ||
-                                 BeneficiariosEncontrados.Any() ||
-                                 ProgramasEncontrados.Any() ||
-                                 SolicitudesVolPasEncontradas.Any() ||
-                                 SolicitudesInfoEncontradas.Any() ||
-                                 ComunidadesEncontradas.Any() ||
-                                 GruposEncontrados.Any();
+    public bool HayResultados =>
+        UsuariosEncontrados.Any() ||
+        BeneficiariosEncontrados.Any() ||
+        ProgramasEncontrados.Any() ||
+        SolicitudesVolPasEncontradas.Any() ||
+        SolicitudesInfoEncontradas.Any() ||
+        ComunidadesEncontradas.Any() ||
+        GruposEncontrados.Any() ||
+        EvaluacionesEncontradas.Any() || 
+        ParticipacionesEncontradas.Any();
   }
 }

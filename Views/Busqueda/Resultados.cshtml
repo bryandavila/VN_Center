@@ -53,6 +53,7 @@
                         {
                             <a asp-controller="Beneficiarios" asp-action="Details" asp-route-id="@item.BeneficiarioID" class="list-group-item list-group-item-action">
                                 <strong>@item.NombreCompleto</strong> (@(item.Comunidad?.NombreComunidad ?? "Sin comunidad"))
+                                <small class="d-block text-muted">País: @(item.PaisOrigen ?? "N/A"), Estado Migratorio: @(item.EstadoMigratorio ?? "N/A")</small>
                             </a>
                         }
                     </div>
@@ -67,8 +68,8 @@
                         @foreach (var item in Model.ProgramasEncontrados)
                         {
                             <a asp-controller="ProgramasProyectosONG" asp-action="Details" asp-route-id="@item.ProgramaProyectoID" class="list-group-item list-group-item-action">
-                                <strong>@item.NombreProgramaProyecto</strong> (Tipo: @item.TipoIniciativa)
-                                <small class="d-block text-muted">Responsable: @(item.ResponsablePrincipalONG?.NombreCompleto ?? "N/A")</small>
+                                <strong>@item.NombreProgramaProyecto</strong> (Tipo: @(item.TipoIniciativa ?? "N/A"))
+                                <small class="d-block text-muted">Estado: @(item.EstadoProgramaProyecto ?? "N/A"), Responsable: @(item.ResponsablePrincipalONG?.NombreCompleto ?? "N/A")</small>
                             </a>
                         }
                     </div>
@@ -84,7 +85,7 @@
                         {
                             <a asp-controller="Solicitudes" asp-action="Details" asp-route-id="@item.SolicitudID" class="list-group-item list-group-item-action">
                                 <strong>@item.Nombres @item.Apellidos</strong> (Tipo: @item.TipoSolicitud) - @item.Email
-                                <small class="d-block text-muted">Estado: @item.EstadoSolicitud</small>
+                                <small class="d-block text-muted">Estado: @item.EstadoSolicitud, Profesión: @(item.ProfesionOcupacion ?? "N/A")</small>
                             </a>
                         }
                     </div>
@@ -100,7 +101,7 @@
                         {
                             <a asp-controller="SolicitudesInformacionGeneral" asp-action="Details" asp-route-id="@item.SolicitudInfoID" class="list-group-item list-group-item-action">
                                 <strong>@item.NombreContacto</strong> (@item.EmailContacto)
-                                <small class="d-block text-muted">Programa de Interés: @(string.IsNullOrWhiteSpace(item.ProgramaDeInteres) ? "No especificado" : item.ProgramaDeInteres)</small>
+                                <small class="d-block text-muted">Programa de Interés: @(string.IsNullOrWhiteSpace(item.ProgramaDeInteres) ? "No especificado" : item.ProgramaDeInteres), Estado: @item.EstadoSolicitudInfo</small>
                             </a>
                         }
                     </div>
@@ -116,6 +117,7 @@
                         {
                             <a asp-controller="Comunidades" asp-action="Details" asp-route-id="@item.ComunidadID" class="list-group-item list-group-item-action">
                                 <strong>@item.NombreComunidad</strong>
+                                <small class="d-block text-muted">Ubicación: @(string.IsNullOrWhiteSpace(item.UbicacionDetallada) ? "No especificada" : item.UbicacionDetallada)</small>
                             </a>
                         }
                     </div>
@@ -131,12 +133,50 @@
                         {
                             <a asp-controller="GruposComunitarios" asp-action="Details" asp-route-id="@item.GrupoID" class="list-group-item list-group-item-action">
                                 <strong>@item.NombreGrupo</strong> (Tipo: @(item.TipoGrupo ?? "N/A"))
-                                <small class="d-block text-muted">Comunidad: @(item.Comunidad?.NombreComunidad ?? "N/A")</small>
+                                <small class="d-block text-muted">Comunidad: @(item.Comunidad?.NombreComunidad ?? "N/A"), Contacto: @(item.PersonaContactoPrincipal ?? "N/A")</small>
                             </a>
                         }
                     </div>
                 </div>
             }
+
+            @* --- NUEVAS SECCIONES DE RESULTADOS --- *@
+            @if (Model.EvaluacionesEncontradas.Any())
+            {
+                <div class="card mb-4">
+                    <h5 class="card-header">Evaluaciones de Programa Encontradas (@Model.EvaluacionesEncontradas.Count)</h5>
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.EvaluacionesEncontradas)
+                        {
+                            var participante = item.ParticipacionActiva?.Solicitud != null ? $"{item.ParticipacionActiva.Solicitud.Nombres} {item.ParticipacionActiva.Solicitud.Apellidos}" : "N/A";
+                            var programa = item.ParticipacionActiva?.ProgramaProyecto?.NombreProgramaProyecto ?? "N/A";
+                            <a asp-controller="EvaluacionesPrograma" asp-action="Details" asp-route-id="@item.EvaluacionID" class="list-group-item list-group-item-action">
+                                <strong>Evaluación de @participante</strong> para el programa <strong>@programa</strong>
+                                <small class="d-block text-muted">Fecha: @item.FechaEvaluacion.ToString("dd/MM/yyyy"), Evaluador: @(item.NombreProgramaUniversidadEvaluador ?? "N/A")</small>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.ParticipacionesEncontradas.Any())
+            {
+                <div class="card mb-4">
+                    <h5 class="card-header">Participaciones Activas Encontradas (@Model.ParticipacionesEncontradas.Count)</h5>
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.ParticipacionesEncontradas)
+                        {
+                            var participante = item.Solicitud != null ? $"{item.Solicitud.Nombres} {item.Solicitud.Apellidos}" : "N/A";
+                            var programa = item.ProgramaProyecto?.NombreProgramaProyecto ?? "N/A";
+                            <a asp-controller="ParticipacionesActivas" asp-action="Details" asp-route-id="@item.ParticipacionID" class="list-group-item list-group-item-action">
+                                <strong>Participación de @participante</strong> en <strong>@programa</strong>
+                                <small class="d-block text-muted">Rol: @(item.RolDesempenado ?? "N/A"), Inicio: @item.FechaInicioParticipacion.ToString("dd/MM/yyyy")</small>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+            @* --- FIN DE NUEVAS SECCIONES DE RESULTADOS --- *@
         }
     }
 </div>
