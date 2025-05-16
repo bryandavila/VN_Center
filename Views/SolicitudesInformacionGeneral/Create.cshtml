@@ -1,3 +1,4 @@
+@* VN_Center/Views/SolicitudesInformacionGeneral/Create.cshtml *@
 @model VN_Center.Models.Entities.SolicitudesInformacionGeneral
 
 @{
@@ -9,7 +10,8 @@
         new SelectListItem { Value = "false", Text = "No" }
     };
 
-    // Puedes definir una lista de estados si son fijos, o dejarlo como input si es más flexible
+    // Solo los administradores verán todos los estados para seleccionar al crear.
+    // Los usuarios normales tendrán el estado "Nueva" por defecto.
     var opcionesEstadoSolicitud = new List<SelectListItem>
     {
         new SelectListItem { Value = "Nueva", Text = "Nueva" },
@@ -17,6 +19,13 @@
         new SelectListItem { Value = "Respondida", Text = "Respondida" },
         new SelectListItem { Value = "Cerrada", Text = "Cerrada" }
     };
+    if (Model.EstadoSolicitudInfo != null && !opcionesEstadoSolicitud.Any(x => x.Value == Model.EstadoSolicitudInfo))
+    {
+        // Si el estado actual no está en la lista (podría pasar si se cambió manualmente en BD a un valor no estándar)
+        // lo añadimos para que se muestre seleccionado.
+        opcionesEstadoSolicitud.Add(new SelectListItem { Value = Model.EstadoSolicitudInfo, Text = Model.EstadoSolicitudInfo, Selected = true });
+    }
+
 }
 
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -35,7 +44,7 @@
                     <form asp-action="Create" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                        @* FechaRecepcion se establece en el controlador, no es necesario un campo aquí si es automático *@
+                        @* FechaRecepcion se establece en el controlador y en el constructor del modelo *@
                         @* <input type="hidden" asp-for="FechaRecepcion" /> *@
 
                         <div class="mb-3">
@@ -66,13 +75,20 @@
                         </div>
 
                         <div class="mb-3">
+                            <label asp-for="FuenteConocimientoID" class="form-label"></label>
+                            <select asp-for="FuenteConocimientoID" class="form-select" asp-items="ViewBag.FuenteConocimientoID">
+                                <option value="">Seleccione una fuente...</option>
+                            </select>
+                            <span asp-validation-for="FuenteConocimientoID" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
                             <label asp-for="ProgramaDeInteres" class="form-label"></label>
                             <input asp-for="ProgramaDeInteres" class="form-control" placeholder="Ej: Voluntariado, Pasantía específica, etc." />
                             <span asp-validation-for="ProgramaDeInteres" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3" id="divOtroPrograma" style="display: none;">
-                            @* Oculto por defecto *@
                             <label asp-for="ProgramaDeInteresOtro" class="form-label"></label>
                             <input asp-for="ProgramaDeInteresOtro" class="form-control" placeholder="Especifique el otro programa" />
                             <span asp-validation-for="ProgramaDeInteresOtro" class="text-danger"></span>
@@ -83,27 +99,39 @@
                             <textarea asp-for="PreguntasEspecificas" class="form-control" rows="4" placeholder="Detalle aquí las preguntas o la información que solicita..."></textarea>
                             <span asp-validation-for="PreguntasEspecificas" class="text-danger"></span>
                         </div>
-                        <hr />
-                        <h6 class="mt-4 mb-3 text-primary">Gestión Interna (ONG)</h6>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="EstadoSolicitudInfo" class="form-label"></label>
-                                <select asp-for="EstadoSolicitudInfo" class="form-select" asp-items="opcionesEstadoSolicitud"></select>
-                                <span asp-validation-for="EstadoSolicitudInfo" class="text-danger"></span>
+
+                        @if (User.IsInRole("Administrador")) // Mostrar sección de gestión interna solo a administradores
+                        {
+                            <hr class="my-4" />
+                            <h6 class="mt-4 mb-3 text-primary">Gestión Interna (ONG)</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="EstadoSolicitudInfo" class="form-label"></label>
+                                    <select asp-for="EstadoSolicitudInfo" class="form-select" asp-items="opcionesEstadoSolicitud"></select>
+                                    <span asp-validation-for="EstadoSolicitudInfo" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="UsuarioAsignadoID" class="form-label"></label>
+                                    <select asp-for="UsuarioAsignadoID" class="form-select" asp-items="ViewBag.UsuarioAsignadoID">
+                                        <option value="">Sin asignar</option>
+                                    </select>
+                                    <span asp-validation-for="UsuarioAsignadoID" class="text-danger"></span>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="UsuarioAsignadoID" class="form-label"></label>
-                                <select asp-for="UsuarioAsignadoID" class="form-select" asp-items="ViewBag.UsuarioAsignadoID">
-                                    <option value="">Sin asignar</option>
-                                </select>
-                                <span asp-validation-for="UsuarioAsignadoID" class="text-danger"></span>
+                            <div class="mb-3">
+                                <label asp-for="NotasSeguimiento" class="form-label"></label>
+                                <textarea asp-for="NotasSeguimiento" class="form-control" rows="3" placeholder="Notas internas sobre el seguimiento de esta solicitud..."></textarea>
+                                <span asp-validation-for="NotasSeguimiento" class="text-danger"></span>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="NotasSeguimiento" class="form-label"></label>
-                            <textarea asp-for="NotasSeguimiento" class="form-control" rows="3" placeholder="Notas internas sobre el seguimiento de esta solicitud..."></textarea>
-                            <span asp-validation-for="NotasSeguimiento" class="text-danger"></span>
-                        </div>
+                        }
+                        else
+                        {
+                            // Para usuarios no administradores, estos campos no se envían desde el formulario
+                            // y se manejarán en el controlador.
+                            // Podrías poner campos ocultos si fuera estrictamente necesario mantenerlos en el postback,
+                            // pero es mejor manejarlos en el controlador.
+                        }
+
 
                         <div class="mt-4">
                             <button type="submit" class="btn btn-primary me-2">Guardar Solicitud</button>
@@ -122,12 +150,14 @@
     }
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const programaInteresInput = document.getElementById('ProgramaDeInteres');
+            const programaInteresInput = document.getElementById('ProgramaDeInteres'); // Asegúrate que el ID sea correcto
             const otroProgramaDiv = document.getElementById('divOtroPrograma');
 
             function toggleOtroPrograma() {
                 if (programaInteresInput && otroProgramaDiv) {
-                    if (programaInteresInput.value.trim().toLowerCase() === 'otro' || programaInteresInput.value.trim().toLowerCase() === 'other') {
+                    // Convertir a minúsculas y quitar espacios extra para la comparación
+                    const valorInput = programaInteresInput.value.trim().toLowerCase();
+                    if (valorInput === 'otro' || valorInput === 'other') {
                         otroProgramaDiv.style.display = 'block';
                     } else {
                         otroProgramaDiv.style.display = 'none';
@@ -137,7 +167,7 @@
 
             if (programaInteresInput) {
                 programaInteresInput.addEventListener('input', toggleOtroPrograma);
-                toggleOtroPrograma(); // Initial check
+                toggleOtroPrograma(); // Llamada inicial para establecer el estado correcto al cargar
             }
         });
     </script>
