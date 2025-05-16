@@ -9,8 +9,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using VN_Center.Data;
 using VN_Center.Models.Entities;
-using Microsoft.AspNetCore.Identity; // Necesario para UserManager
-using System.Security.Claims;      // Necesario para ClaimTypes
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Hosting; // <--- AÑADIDO para IWebHostEnvironment
+using System.IO;                   // <--- AÑADIDO para Path
+using QuestPDF.Fluent;             // <--- AÑADIDO para QuestPDF
+using VN_Center.Documents;         // <--- AÑADIDO para SolicitudDetailPdfDocument
 
 namespace VN_Center.Controllers
 {
@@ -18,13 +22,21 @@ namespace VN_Center.Controllers
   public class SolicitudesController : Controller
   {
     private readonly VNCenterDbContext _context;
-    private readonly UserManager<UsuariosSistema> _userManager; // Inyectar UserManager
+    private readonly UserManager<UsuariosSistema> _userManager;
+    private readonly IWebHostEnvironment _webHostEnvironment; // <--- AÑADIDO
 
-    public SolicitudesController(VNCenterDbContext context, UserManager<UsuariosSistema> userManager) // Modificar constructor
+    public SolicitudesController(
+        VNCenterDbContext context,
+        UserManager<UsuariosSistema> userManager,
+        IWebHostEnvironment webHostEnvironment) // <--- MODIFICADO
     {
       _context = context;
-      _userManager = userManager; // Asignar UserManager
+      _userManager = userManager;
+      _webHostEnvironment = webHostEnvironment; // <--- AÑADIDO
     }
+
+    // ... (Acciones Index, Details GET, Create GET/POST, Edit GET/POST, Delete GET/POST existentes) ...
+    // El código de esas acciones ya incluye el filtrado por UsuarioCreadorId y los permisos.
 
     // GET: Solicitudes
     public async Task<IActionResult> Index()
@@ -34,18 +46,15 @@ namespace VN_Center.Controllers
                                           .Include(s => s.NivelesIdioma)
                                           .OrderByDescending(s => s.FechaEnvioSolicitud);
 
-      // Si el usuario NO es Administrador, filtrar por su UsuarioCreadorId
       if (!User.IsInRole("Administrador"))
       {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // Obtener ID del usuario actual
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!string.IsNullOrEmpty(userId))
         {
           query = query.Where(s => s.UsuarioCreadorId == userId);
         }
         else
         {
-          // Si no se puede obtener el ID del usuario (raro si está autenticado),
-          // no mostrar ninguna solicitud para evitar fugas de datos.
           query = query.Where(s => false);
         }
       }
@@ -64,7 +73,7 @@ namespace VN_Center.Controllers
       var query = _context.Solicitudes
           .Include(s => s.FuentesConocimiento)
           .Include(s => s.NivelesIdioma)
-          .AsQueryable(); // Empezar como IQueryable para añadir filtro condicional
+          .AsQueryable();
 
       var solicitud = await query.FirstOrDefaultAsync(m => m.SolicitudID == id);
 
@@ -73,11 +82,10 @@ namespace VN_Center.Controllers
         return NotFound();
       }
 
-      // Verificar permisos: solo admin o el creador pueden ver detalles
       if (!User.IsInRole("Administrador") && solicitud.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
       {
         TempData["ErrorMessage"] = "No tiene permiso para ver esta solicitud.";
-        return RedirectToAction(nameof(Index)); // O a una página de acceso denegado
+        return RedirectToAction(nameof(Index));
       }
 
       return View(solicitud);
@@ -88,11 +96,10 @@ namespace VN_Center.Controllers
     {
       ViewData["FuenteConocimientoID"] = new SelectList(_context.FuentesConocimiento, "FuenteConocimientoID", "NombreFuente");
       ViewData["NivelIdiomaEspañolID"] = new SelectList(_context.NivelesIdioma, "NivelIdiomaID", "NombreNivel");
-      // Inicializar el modelo con valores por defecto si es necesario
       var model = new Solicitudes
       {
         FechaEnvioSolicitud = DateTime.UtcNow,
-        EstadoSolicitud = "Recibida" // Estado por defecto
+        EstadoSolicitud = "Recibida"
       };
       return View(model);
     }
@@ -106,25 +113,17 @@ namespace VN_Center.Controllers
       ModelState.Remove("FuentesConocimiento");
       ModelState.Remove("SolicitudCamposInteres");
       ModelState.Remove("ParticipacionesActivas");
-      // ModelState.Remove("UsuarioCreador"); // Si añades la propiedad de navegación UsuarioCreador
 
       if (ModelState.IsValid)
       {
-        // Asignar el ID del usuario actualmente logueado
         solicitudes.UsuarioCreadorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        solicitudes.FechaEnvioSolicitud = DateTime.UtcNow; // Asegurar fecha de envío actual
-        if (string.IsNullOrWhiteSpace(solicitudes.EstadoSolicitud)) // Doble check por si el bind no lo toma
+        solicitudes.FechaEnvioSolicitud = DateTime.UtcNow;
+        if (string.IsNullOrWhiteSpace(solicitudes.EstadoSolicitud))
         {
           solicitudes.EstadoSolicitud = "Recibida";
         }
-
         _context.Add(solicitudes);
         await _context.SaveChangesAsync();
-
-        // Aquí podrías añadir una llamada al servicio de auditoría si lo deseas
-        // await _auditoriaService.RegistrarEventoAuditoriaAsync(...);
-
         TempData["SuccessMessage"] = "Solicitud creada exitosamente.";
         return RedirectToAction(nameof(Index));
       }
@@ -140,21 +139,16 @@ namespace VN_Center.Controllers
       {
         return NotFound();
       }
-
-      var solicitud = await _context.Solicitudes.FindAsync(id); // FindAsync no permite .Include
-
+      var solicitud = await _context.Solicitudes.FindAsync(id);
       if (solicitud == null)
       {
         return NotFound();
       }
-
-      // Verificar permisos: solo admin o el creador pueden editar
       if (!User.IsInRole("Administrador") && solicitud.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
       {
         TempData["ErrorMessage"] = "No tiene permiso para editar esta solicitud.";
         return RedirectToAction(nameof(Index));
       }
-
       ViewData["FuenteConocimientoID"] = new SelectList(_context.FuentesConocimiento, "FuenteConocimientoID", "NombreFuente", solicitud.FuenteConocimientoID);
       ViewData["NivelIdiomaEspañolID"] = new SelectList(_context.NivelesIdioma, "NivelIdiomaID", "NombreNivel", solicitud.NivelIdiomaEspañolID);
       return View(solicitud);
@@ -169,30 +163,22 @@ namespace VN_Center.Controllers
       {
         return NotFound();
       }
-
-      // Obtener la entidad original para verificar el UsuarioCreadorId y otros datos que no deben cambiar
       var solicitudOriginal = await _context.Solicitudes.AsNoTracking().FirstOrDefaultAsync(s => s.SolicitudID == id);
       if (solicitudOriginal == null)
       {
         return NotFound();
       }
-
-      // Verificar permisos: solo admin o el creador pueden editar
       if (!User.IsInRole("Administrador") && solicitudOriginal.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
       {
         TempData["ErrorMessage"] = "No tiene permiso para editar esta solicitud.";
         return RedirectToAction(nameof(Index));
       }
-
-      // Asegurarse de que UsuarioCreadorId y FechaEnvioSolicitud no se modifiquen si no es intencional
       solicitudModificada.UsuarioCreadorId = solicitudOriginal.UsuarioCreadorId;
-      solicitudModificada.FechaEnvioSolicitud = solicitudOriginal.FechaEnvioSolicitud; // La fecha de envío no debería cambiar en una edición
-
+      solicitudModificada.FechaEnvioSolicitud = solicitudOriginal.FechaEnvioSolicitud;
       ModelState.Remove("NivelesIdioma");
       ModelState.Remove("FuentesConocimiento");
       ModelState.Remove("SolicitudCamposInteres");
       ModelState.Remove("ParticipacionesActivas");
-      // ModelState.Remove("UsuarioCreador");
 
       if (ModelState.IsValid)
       {
@@ -227,24 +213,19 @@ namespace VN_Center.Controllers
       {
         return NotFound();
       }
-
       var solicitud = await _context.Solicitudes
           .Include(s => s.FuentesConocimiento)
           .Include(s => s.NivelesIdioma)
           .FirstOrDefaultAsync(m => m.SolicitudID == id);
-
       if (solicitud == null)
       {
         return NotFound();
       }
-
-      // Verificar permisos: solo admin o el creador pueden ver la página de confirmación de borrado
       if (!User.IsInRole("Administrador") && solicitud.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
       {
         TempData["ErrorMessage"] = "No tiene permiso para eliminar esta solicitud.";
         return RedirectToAction(nameof(Index));
       }
-
       return View(solicitud);
     }
 
@@ -256,13 +237,11 @@ namespace VN_Center.Controllers
       var solicitud = await _context.Solicitudes.FindAsync(id);
       if (solicitud != null)
       {
-        // Verificar permisos antes de eliminar
         if (!User.IsInRole("Administrador") && solicitud.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
         {
           TempData["ErrorMessage"] = "No tiene permiso para eliminar esta solicitud.";
           return RedirectToAction(nameof(Index));
         }
-
         _context.Solicitudes.Remove(solicitud);
         await _context.SaveChangesAsync();
         TempData["SuccessMessage"] = "Solicitud eliminada exitosamente.";
@@ -277,6 +256,37 @@ namespace VN_Center.Controllers
     private bool SolicitudesExists(int id)
     {
       return _context.Solicitudes.Any(e => e.SolicitudID == id);
+    }
+
+    // --- NUEVA ACCIÓN PARA EXPORTAR DETALLE DE SOLICITUD A PDF ---
+    public async Task<IActionResult> ExportDetailToPdf(int id)
+    {
+      var solicitud = await _context.Solicitudes
+          .Include(s => s.NivelesIdioma) // Incluir datos relacionados necesarios para el PDF
+          .Include(s => s.FuentesConocimiento)
+          // Incluir otras relaciones si se muestran en el PDF de detalle
+          // .Include(s => s.SolicitudCamposInteres).ThenInclude(sci => sci.CampoInteresVocacional) 
+          .FirstOrDefaultAsync(m => m.SolicitudID == id);
+
+      if (solicitud == null)
+      {
+        return NotFound();
+      }
+
+      // Verificar permisos: solo admin o el creador pueden exportar detalles
+      if (!User.IsInRole("Administrador") && solicitud.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+      {
+        TempData["ErrorMessage"] = "No tiene permiso para exportar los detalles de esta solicitud.";
+        return RedirectToAction(nameof(Index));
+      }
+
+      string wwwRootPath = _webHostEnvironment.WebRootPath;
+      string logoPath = Path.Combine(wwwRootPath, "img", "logo_vncenter_mini.png");
+
+      var document = new SolicitudDetailPdfDocument(solicitud, logoPath);
+      var pdfBytes = document.GeneratePdf();
+
+      return File(pdfBytes, "application/pdf", $"Solicitud_{solicitud.Nombres}_{solicitud.Apellidos}_ID{solicitud.SolicitudID}.pdf");
     }
   }
 }
