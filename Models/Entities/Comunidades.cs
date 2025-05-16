@@ -1,5 +1,6 @@
+// VN_Center/Models/Entities/Comunidades.cs
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations; // Necesario para [Display]
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VN_Center.Models.Entities
@@ -11,18 +12,24 @@ namespace VN_Center.Models.Entities
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int ComunidadID { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "El nombre de la comunidad es obligatorio.")]
     [StringLength(150)]
-    [Display(Name = "Nombre de la Comunidad")] // Nombre a mostrar para NombreComunidad
+    [Display(Name = "Nombre de la Comunidad")]
     public string NombreComunidad { get; set; } = null!;
 
     [Column(TypeName = "NVARCHAR(MAX)")]
-    [Display(Name = "Ubicación Detallada")] // Nombre a mostrar para UbicacionDetallada
+    [Display(Name = "Ubicación Detallada")]
     public string? UbicacionDetallada { get; set; }
 
     [Column(TypeName = "NVARCHAR(MAX)")]
-    [Display(Name = "Notas Adicionales")] // Nombre a mostrar para NotasComunidad
+    [Display(Name = "Notas Adicionales")]
     public string? NotasComunidad { get; set; }
+
+    // --- NUEVA PROPIEDAD PARA AUDITORÍA Y FILTRADO ---
+    [StringLength(450)]
+    [Display(Name = "Usuario Creador ID")]
+    public string? UsuarioCreadorId { get; set; }
+    // --- FIN DE NUEVA PROPIEDAD ---
 
     // Propiedades de navegación
     public virtual ICollection<Beneficiarios> Beneficiarios { get; set; } = new List<Beneficiarios>();
