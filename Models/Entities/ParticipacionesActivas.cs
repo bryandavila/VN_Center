@@ -1,3 +1,4 @@
+// VN_Center/Models/Entities/ParticipacionesActivas.cs
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -42,13 +43,20 @@ namespace VN_Center.Models.Entities
     public string? RolDesempenado { get; set; }
 
     [Display(Name = "Horas TCU Completadas")]
-    [Range(0, 1000, ErrorMessage = "Las horas deben ser un valor positivo.")] // Ajusta el rango según sea necesario
+    [Range(0, 1000, ErrorMessage = "Las horas deben ser un valor positivo.")]
     public int? HorasTCUCompletadas { get; set; }
 
     [Column(TypeName = "NVARCHAR(MAX)")]
     [Display(Name = "Notas del Supervisor")]
     [DataType(DataType.MultilineText)]
     public string? NotasSupervisor { get; set; }
+
+    // --- NUEVA PROPIEDAD PARA AUDITORÍA ---
+    // Quién (qué administrador) creó/asignó esta participación
+    [StringLength(450)]
+    [Display(Name = "Usuario Asignador ID")]
+    public string? UsuarioAsignadorId { get; set; }
+    // --- FIN DE NUEVA PROPIEDAD ---
 
     // --- Propiedades de Navegación ---
     [ForeignKey("SolicitudID")]
