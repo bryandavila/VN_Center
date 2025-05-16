@@ -1,6 +1,7 @@
 @* VN_Center/Views/Shared/_NavbarPartial.cshtml *@
 @using Microsoft.AspNetCore.Identity
 @using VN_Center.Models.Entities
+@using System.Security.Claims
 
 @inject SignInManager<UsuariosSistema> SignInManager
 @inject UserManager<UsuariosSistema> UserManager
@@ -11,7 +12,6 @@
     <div class="navbar-brand app-brand demo d-none d-xl-flex py-0 me-4">
         <a asp-controller="Dashboards" asp-action="Index" class="app-brand-link gap-2">
             <span class="app-brand-logo demo">
-                @* CORREGIR RUTA AQUÍ - Usando ruta desde la raíz de la aplicación *@
                 @await Html.PartialAsync("~/Views/_Partials/_Macros.cshtml")
             </span>
             <span class="app-brand-text demo menu-text fw-bold">@TempData.Peek("appName")</span>
@@ -31,33 +31,46 @@
 
 <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
 
-    <div class="navbar-nav align-items-center">
-        <div class="nav-item d-flex align-items-center">
-            <i class="bx bx-search bx-md"></i>
-            <input type="text" class="form-control border-0 shadow-none ps-1 ps-sm-2" placeholder="Buscar..." aria-label="Search...">
+    @* --- BARRA DE BÚSQUEDA --- *@
+    <form asp-controller="Busqueda" asp-action="Resultados" method="get">
+        @* Apunta a un futuro BusquedaController *@
+        <div class="navbar-nav align-items-center">
+            <div class="nav-item d-flex align-items-center">
+                <i class="bx bx-search bx-md"></i>
+                <input type="text"
+                       name="terminoBusqueda" @* Nombre del parámetro que recibirá el controlador *@
+                       class="form-control border-0 shadow-none ps-1 ps-sm-2"
+                       placeholder="Buscar en el sitio..."
+                       aria-label="Buscar...">
+                @* Podrías añadir un botón de submit si es necesario, o manejar el submit con Enter *@
+            </div>
         </div>
-    </div>
+    </form>
+    @* --- FIN BARRA DE BÚSQUEDA --- *@
+
     <ul class="navbar-nav flex-row align-items-center ms-auto">
         @if (SignInManager.IsSignedIn(User))
         {
-            var currentUser = await UserManager.GetUserAsync(User);
-            var userName = currentUser?.Nombres ?? User.Identity?.Name; // Muestra Nombres si está disponible
-            var userRole = User.IsInRole("Administrador") ? "Administrador" : (User.IsInRole("Usuario") ? "Usuario" : "Rol Desconocido"); // Obtener el rol
+            var currentUserId = UserManager.GetUserId(User); // Obtener el ID del usuario actual
+            var currentUser = await UserManager.FindByIdAsync(currentUserId); // Obtener el objeto usuario completo
+            var userName = currentUser?.Nombres ?? User.Identity?.Name;
+            var userRole = User.IsInRole("Administrador") ? "Administrador" : (User.IsInRole("Usuario") ? "Usuario" : "Rol Desconocido");
 
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
                     <div class="avatar avatar-online">
-                        <img src="~/img/avatars/1.png" alt class="w-px-40 h-auto rounded-circle">
+                        @* --- IMAGEN DE AVATAR ACTUALIZADA --- *@
+                        <img src="~/img/avatars/avatar_.png" alt="Avatar" class="w-px-40 h-auto rounded-circle">
                     </div>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li>
-                        <a class="dropdown-item" href="javascript:void(0);">
-                            @* Podrías enlazar a Details aquí también si quieres *@
+                        <a class="dropdown-item" asp-controller="UsuariosSistema" asp-action="Details" asp-route-id="@currentUserId">
                             <div class="d-flex">
                                 <div class="flex-shrink-0 me-3">
                                     <div class="avatar avatar-online">
-                                        <img src="~/img/avatars/1.png" alt class="w-px-40 h-auto rounded-circle">
+                                        @* --- IMAGEN DE AVATAR ACTUALIZADA --- *@
+                                        <img src="~/img/avatars/avatar_.png" alt="Avatar" class="w-px-40 h-auto rounded-circle">
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">
@@ -71,15 +84,13 @@
                         <div class="dropdown-divider my-1"></div>
                     </li>
                     <li>
-                        @* Enlace "Mi Perfil" apunta a la vista de Detalles del usuario actual *@
-                        <a class="dropdown-item" asp-controller="UsuariosSistema" asp-action="Details" asp-route-id="@UserManager.GetUserId(User)">
+                        <a class="dropdown-item" asp-controller="UsuariosSistema" asp-action="Details" asp-route-id="@currentUserId">
                             <i class="bx bx-user bx-md me-2"></i>
                             <span>Mi Perfil</span>
                         </a>
                     </li>
                     <li>
-                        @* --- ENLACE DE CONFIGURACIÓN MODIFICADO --- *@
-                        <a class="dropdown-item" asp-controller="UsuariosSistema" asp-action="Edit" asp-route-id="@UserManager.GetUserId(User)">
+                        <a class="dropdown-item" asp-controller="UsuariosSistema" asp-action="Edit" asp-route-id="@currentUserId">
                             <i class="bx bx-cog bx-md me-2"></i>
                             <span>Configuración</span>
                         </a>
