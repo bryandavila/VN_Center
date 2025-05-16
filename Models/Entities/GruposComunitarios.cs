@@ -1,3 +1,4 @@
+// VN_Center/Models/Entities/GruposComunitarios.cs
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -40,6 +41,12 @@ namespace VN_Center.Models.Entities
     [StringLength(254)]
     [Display(Name = "Email de Contacto del Grupo")]
     public string? EmailContactoGrupo { get; set; }
+
+    // --- NUEVA PROPIEDAD PARA AUDITORÍA Y FILTRADO ---
+    [StringLength(450)]
+    [Display(Name = "Usuario Creador ID")]
+    public string? UsuarioCreadorId { get; set; }
+    // --- FIN DE NUEVA PROPIEDAD ---
 
     // --- Propiedades de Navegación ---
     [ForeignKey("ComunidadID")]

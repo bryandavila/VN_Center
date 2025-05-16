@@ -1,3 +1,4 @@
+@* VN_Center/Views/GruposComunitarios/Index.cshtml *@
 @model IEnumerable<VN_Center.Models.Entities.GruposComunitarios>
 
 @{
@@ -17,13 +18,23 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Grupos Registrados</h5>
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="bx bx-plus me-1"></i> Crear Nuevo Grupo
-            </a>
+            @if (User.IsInRole("Administrador")) @* Mostrar botón solo a Administradores *@
+            {
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="bx bx-plus me-1"></i> Crear Nuevo Grupo
+                </a>
+            }
         </div>
         <div class="table-responsive text-nowrap">
             @if (Model.Any())
@@ -33,7 +44,7 @@
                         <tr>
                             <th>@Html.DisplayNameFor(model => model.First().NombreGrupo)</th>
                             <th>@Html.DisplayNameFor(model => model.First().TipoGrupo)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().Comunidad.NombreComunidad)</th>
+                            <th>Comunidad</th> @* Usando texto directo ya que el DisplayNameFor para propiedad de navegación es más complejo aquí *@
                             <th>@Html.DisplayNameFor(model => model.First().PersonaContactoPrincipal)</th>
                             <th class="text-center">Acciones</th>
                         </tr>
@@ -52,9 +63,12 @@
                                             <i class="bx bx-dots-vertical-rounded"></i>
                                         </button>
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item" asp-action="Edit" asp-route-id="@item.GrupoID"><i class="bx bx-edit-alt me-1"></i> Editar</a>
                                             <a class="dropdown-item" asp-action="Details" asp-route-id="@item.GrupoID"><i class="bx bx-detail me-1"></i> Detalles</a>
-                                            <a class="dropdown-item" asp-action="Delete" asp-route-id="@item.GrupoID"><i class="bx bx-trash me-1"></i> Eliminar</a>
+                                            @if (User.IsInRole("Administrador")) @* Mostrar opciones solo a Administradores *@
+                                            {
+                                                <a class="dropdown-item" asp-action="Edit" asp-route-id="@item.GrupoID"><i class="bx bx-edit-alt me-1"></i> Editar</a>
+                                                <a class="dropdown-item" asp-action="Delete" asp-route-id="@item.GrupoID"><i class="bx bx-trash me-1"></i> Eliminar</a>
+                                            }
                                         </div>
                                     </div>
                                 </td>
@@ -66,7 +80,13 @@
             else
             {
                 <div class="card-body">
-                    <p class="text-center">No hay grupos comunitarios registrados todavía. <a asp-action="Create">Crea el primero</a>.</p>
+                    <p class="text-center">
+                        No hay grupos comunitarios registrados todavía.
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <a asp-action="Create">Crea el primero</a>
+                        }
+                    </p>
                 </div>
             }
         </div>
