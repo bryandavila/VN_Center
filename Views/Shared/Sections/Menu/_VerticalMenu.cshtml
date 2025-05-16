@@ -5,7 +5,7 @@
     string? currentPage = ViewContext.HttpContext.Request.Path;
     // Determinar si el usuario está autenticado
     bool isAuthenticated = User.Identity?.IsAuthenticated ?? false;
-    // Determinar si el usuario es administrador (esto debería usar la lógica de roles de Identity)
+    // Determinar si el usuario es administrador
     bool isAdmin = isAuthenticated && User.IsInRole("Administrador");
 }
 
@@ -89,36 +89,7 @@
                 <div>Evaluaciones de Programa</div>
             </a>
         </li>
-        <li class='menu-item@(currentPage.StartsWith("/BeneficiariosProgramasProyectos") ? " active" : "")'>
-            <a asp-controller="BeneficiariosProgramasProyectos" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-user-pin"></i>
-                <div>Beneficiarios en Programas</div>
-            </a>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/BeneficiarioGrupos") ? " active" : "")'>
-            <a asp-controller="BeneficiarioGrupos" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-user-plus"></i>
-                <div>Beneficiarios en Grupos</div>
-            </a>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/BeneficiarioAsistenciaRecibida") ? " active" : "")'>
-            <a asp-controller="BeneficiarioAsistenciaRecibida" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-user-check"></i>
-                <div>Asistencia a Beneficiarios</div>
-            </a>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/ProgramaProyectoComunidades") ? " active" : "")'>
-            <a asp-controller="ProgramaProyectoComunidades" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-map-pin"></i>
-                <div>Programas en Comunidades</div>
-            </a>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/ProgramaProyectoGrupos") ? " active" : "")'>
-            <a asp-controller="ProgramaProyectoGrupos" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-sitemap"></i>
-                <div>Grupos en Programas</div>
-            </a>
-        </li>
+        @* Intereses de Solicitudes visible para todos los usuarios autenticados *@
         <li class='menu-item@(currentPage.StartsWith("/SolicitudCamposInteres") ? " active" : "")'>
             <a asp-controller="SolicitudCamposInteres" asp-action="Index" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-task"></i>
@@ -126,35 +97,73 @@
             </a>
         </li>
 
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Consultas y Catálogos</span>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/NivelesIdioma") ? " active" : "")'>
-            <a asp-controller="NivelesIdioma" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-font-color"></i>
-                <div>Niveles de Idioma</div>
-            </a>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/FuentesConocimiento") ? " active" : "")'>
-            <a asp-controller="FuentesConocimiento" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-bulb"></i>
-                <div>Fuentes Conocimiento</div>
-            </a>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/TiposAsistencia") ? " active" : "")'>
-            <a asp-controller="TiposAsistencia" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-heart-circle"></i>
-                <div>Tipos de Asistencia</div>
-            </a>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("/CamposInteresVocacional") ? " active" : "")'>
-            <a asp-controller="CamposInteresVocacional" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-purchase-tag-alt"></i>
-                <div>Campos de Interés</div>
-            </a>
-        </li>
+        @* Módulos de Vinculaciones solo para Administradores *@
+        @if (isAdmin)
+        {
+            <li class='menu-item@(currentPage.StartsWith("/BeneficiariosProgramasProyectos") ? " active" : "")'>
+                <a asp-controller="BeneficiariosProgramasProyectos" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-user-pin"></i>
+                    <div>Beneficiarios en Programas</div>
+                </a>
+            </li>
+            <li class='menu-item@(currentPage.StartsWith("/BeneficiarioGrupos") ? " active" : "")'>
+                <a asp-controller="BeneficiarioGrupos" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-user-plus"></i>
+                    <div>Beneficiarios en Grupos</div>
+                </a>
+            </li>
+            <li class='menu-item@(currentPage.StartsWith("/BeneficiarioAsistenciaRecibida") ? " active" : "")'>
+                <a asp-controller="BeneficiarioAsistenciaRecibida" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-user-check"></i>
+                    <div>Asistencia a Beneficiarios</div>
+                </a>
+            </li>
+            <li class='menu-item@(currentPage.StartsWith("/ProgramaProyectoComunidades") ? " active" : "")'>
+                <a asp-controller="ProgramaProyectoComunidades" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-map-pin"></i>
+                    <div>Programas en Comunidades</div>
+                </a>
+            </li>
+            <li class='menu-item@(currentPage.StartsWith("/ProgramaProyectoGrupos") ? " active" : "")'>
+                <a asp-controller="ProgramaProyectoGrupos" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-sitemap"></i>
+                    <div>Grupos en Programas</div>
+                </a>
+            </li>
+        }
 
-        @* Verifica si el usuario es Administrador para mostrar esta sección *@
+        @* Consultas y Catálogos solo para Administradores *@
+        @if (isAdmin)
+        {
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Consultas y Catálogos</span>
+            </li>
+            <li class='menu-item@(currentPage.StartsWith("/NivelesIdioma") ? " active" : "")'>
+                <a asp-controller="NivelesIdioma" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-font-color"></i>
+                    <div>Niveles de Idioma</div>
+                </a>
+            </li>
+            <li class='menu-item@(currentPage.StartsWith("/FuentesConocimiento") ? " active" : "")'>
+                <a asp-controller="FuentesConocimiento" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-bulb"></i>
+                    <div>Fuentes Conocimiento</div>
+                </a>
+            </li>
+            <li class='menu-item@(currentPage.StartsWith("/TiposAsistencia") ? " active" : "")'>
+                <a asp-controller="TiposAsistencia" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-heart-circle"></i>
+                    <div>Tipos de Asistencia</div>
+                </a>
+            </li>
+            <li class='menu-item@(currentPage.StartsWith("/CamposInteresVocacional") ? " active" : "")'>
+                <a asp-controller="CamposInteresVocacional" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-purchase-tag-alt"></i>
+                    <div>Campos de Interés</div>
+                </a>
+            </li>
+        }
+
         @if (isAdmin)
         {
             <li class="menu-header small text-uppercase">
@@ -184,45 +193,14 @@
                     <div>Asignar Permisos a Roles</div>
                 </a>
             </li>
-            @* --- NUEVO ENLACE PARA AUDITORÍA --- *@
             <li class='menu-item@(currentPage.StartsWith("/Auditoria") ? " active" : "")'>
                 <a asp-controller="Auditoria" asp-action="Index" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-history"></i> @* Icono de ejemplo, puedes cambiarlo *@
+                    <i class="menu-icon tf-icons bx bx-history"></i>
                     <div>Registros de Auditoría</div>
                 </a>
             </li>
         }
 
-
-        @* La sección de Autenticación solo se muestra si el usuario NO está autenticado *@
-        @if (!isAuthenticated)
-        {
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Acceso</span>
-            </li>
-            <li class='menu-item@(currentPage.StartsWith("/Auth") ? " active open" : "")'>
-                <a href="javascript:void(0);" class="menu-link menu-toggle">
-                    <i class="menu-icon tf-icons bx bx-lock-open-alt"></i>
-                    <div>Autenticación</div>
-                </a>
-                <ul class="menu-sub">
-                    <li class='menu-item@(currentPage == "/Auth/LoginBasic" ? " active" : "")'>
-                        <a asp-controller="Auth" asp-action="LoginBasic" class="menu-link" target="_blank">
-                            <div>Iniciar Sesión</div>
-                        </a>
-                    </li>
-                    <li class='menu-item@(currentPage == "/Auth/RegisterBasic" ? " active" : "")'>
-                        <a asp-controller="Auth" asp-action="RegisterBasic" class="menu-link" target="_blank">
-                            <div>Registrarse</div>
-                        </a>
-                    </li>
-                    <li class='menu-item@(currentPage == "/Auth/ForgotPasswordBasic" ? " active" : "")'>
-                        <a asp-controller="Auth" asp-action="ForgotPasswordBasic" class="menu-link" target="_blank">
-                            <div>Olvidé Contraseña</div>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-        }
+        @* La sección de Autenticación ya estaba comentada, lo cual es correcto si este menú es para usuarios logueados *@
     </ul>
 </aside>
