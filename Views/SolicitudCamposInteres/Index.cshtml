@@ -1,3 +1,4 @@
+@* VN_Center/Views/SolicitudCamposInteres/Index.cshtml *@
 @model IEnumerable<VN_Center.Models.Entities.SolicitudCamposInteres>
 
 @{
@@ -28,6 +29,7 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Asignaciones Registradas</h5>
+            @* Todos los usuarios autenticados pueden intentar asignar *@
             <a asp-action="Create" class="btn btn-primary">
                 <i class="bx bx-plus me-1"></i> Asignar Nuevo Interés a Solicitud
             </a>
@@ -38,15 +40,9 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>
-                                Solicitante
-                            </th>
-                            <th>
-                                @Html.DisplayNameFor(model => model.First().CampoInteresVocacional.NombreCampo)
-                            </th>
-                            <th>
-                                Descripción del Interés
-                            </th>
+                            <th>Solicitante</th>
+                            <th>@Html.DisplayNameFor(model => model.First().CampoInteresVocacional.NombreCampo)</th>
+                            <th>Descripción del Interés</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -68,9 +64,12 @@
                                     <a class="btn btn-sm btn-outline-info me-1" asp-action="Details" asp-route-solicitudId="@item.SolicitudID" asp-route-campoInteresId="@item.CampoInteresID" title="Detalles">
                                         <i class="bx bx-detail"></i>
                                     </a>
-                                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-solicitudId="@item.SolicitudID" asp-route-campoInteresId="@item.CampoInteresID" title="Eliminar Asignación">
-                                        <i class="bx bx-trash"></i>
-                                    </a>
+                                    @if (User.IsInRole("Administrador")) @* Solo Administradores pueden Eliminar *@
+                                    {
+                                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-solicitudId="@item.SolicitudID" asp-route-campoInteresId="@item.CampoInteresID" title="Eliminar Asignación">
+                                            <i class="bx bx-trash"></i>
+                                        </a>
+                                    }
                                 </td>
                             </tr>
                         }

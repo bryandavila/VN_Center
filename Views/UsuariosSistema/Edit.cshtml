@@ -57,6 +57,7 @@
                             <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                         </div>
 
+                        @*
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="SelectedRoleName" class="form-label">Rol</label>
@@ -71,6 +72,24 @@
                                 <span asp-validation-for="Activo" class="text-danger"></span>
                             </div>
                         </div>
+                        *@
+
+                        @* También se deben enviar los valores actuales de Activo y SelectedRoleName como campos ocultos si no quieres que se pierdan al guardar,
+                           o asegurar que el controlador los maneje adecuadamente si no se envían desde el formulario.
+                           Por simplicidad, y asumiendo que no quieres que estos valores se modifiquen desde esta vista si están ocultos,
+                           solo los comentamos. Si necesitas que se preserven, deberás añadir inputs hidden.
+                           Ejemplo (siempre enviar el valor actual de Activo):
+                        *@
+                        <input type="hidden" asp-for="Activo" />
+
+                        @* Ejemplo (siempre enviar el valor actual del Rol). 
+                           Esto es más complejo si el rol no debe cambiar.
+                           Si el rol NO debe cambiar al editar desde esta vista (cuando está oculto),
+                           es mejor que el controlador NO intente actualizar el rol si SelectedRoleName no se envía o es nulo.
+                           Si SelectedRoleName se envía como hidden, se mantendrá el rol actual.
+                        *@
+                        <input type="hidden" asp-for="SelectedRoleName" />
+
 
                         <hr class="my-4" />
                         <h5 class="mb-3 text-primary">Restablecer Contraseña (Opcional)</h5>
