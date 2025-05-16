@@ -11,6 +11,7 @@ using VN_Center.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging; // Asegúrate que ILogger está importado
 
 namespace VN_Center.Controllers
 {
@@ -19,16 +20,24 @@ namespace VN_Center.Controllers
   {
     private readonly VNCenterDbContext _context;
     private readonly UserManager<UsuariosSistema> _userManager;
+    private readonly ILogger<SolicitudesInformacionGeneralController> _logger; // Agrega el logger
 
-    public SolicitudesInformacionGeneralController(VNCenterDbContext context, UserManager<UsuariosSistema> userManager)
+    // Modifica el constructor para inyectar ILogger
+    public SolicitudesInformacionGeneralController(
+        VNCenterDbContext context,
+        UserManager<UsuariosSistema> userManager,
+        ILogger<SolicitudesInformacionGeneralController> logger) // Inyecta ILogger
     {
       _context = context;
       _userManager = userManager;
+      _logger = logger; // Asigna el logger
     }
 
     // GET: SolicitudesInformacionGeneral
     public async Task<IActionResult> Index()
     {
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Index] Verificando rol de administrador. User.IsInRole('Administrador'): {isAdmin}", User.IsInRole("Administrador"));
+
       IQueryable<SolicitudesInformacionGeneral> query = _context.SolicitudesInformacionGeneral
           .Include(s => s.FuenteConocimiento)
           .Include(s => s.UsuarioAsignado)
@@ -37,14 +46,20 @@ namespace VN_Center.Controllers
       if (!User.IsInRole("Administrador"))
       {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Index] Usuario NO es Administrador. Filtrando por UsuarioCreadorId: {userId}", userId);
         if (!string.IsNullOrEmpty(userId))
         {
           query = query.Where(s => s.UsuarioCreadorId == userId);
         }
         else
         {
+          _logger.LogWarning("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Index] Usuario NO es Administrador y NO se pudo obtener userId. Mostrando ninguna solicitud.");
           query = query.Where(s => false);
         }
+      }
+      else
+      {
+        _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Index] Usuario ES Administrador. Mostrando todas las solicitudes de información general.");
       }
       return View(await query.ToListAsync());
     }
@@ -67,12 +82,17 @@ namespace VN_Center.Controllers
         return NotFound();
       }
 
-      if (!User.IsInRole("Administrador") && solicitud.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
-      {
-        TempData["ErrorMessage"] = "No tiene permiso para ver esta solicitud.";
-        return RedirectToAction(nameof(Index));
-      }
+      var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      bool isAdmin = User.IsInRole("Administrador");
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Details ID: {SolicitudID}] isAdmin: {isAdmin}, Solicitud.UsuarioCreadorId: {creadorId}, CurrentUserId: {currentUserId}", solicitud.SolicitudInfoID, isAdmin, solicitud.UsuarioCreadorId, currentUserId);
 
+      if (!isAdmin && solicitud.UsuarioCreadorId != currentUserId)
+      {
+        _logger.LogWarning("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Details ID: {SolicitudID}] ACCESO DENEGADO (Lógica original). Usuario no es admin ni creador.", solicitud.SolicitudInfoID);
+        // TempData["ErrorMessage"] = "No tiene permiso para ver esta solicitud."; // Mensaje comentado
+        // return RedirectToAction(nameof(Index)); // Redirección comentada
+      }
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Details ID: {SolicitudID}] ACCESO PERMITIDO (o mensaje/redirección comentados).", solicitud.SolicitudInfoID);
       return View(solicitud);
     }
 
@@ -95,7 +115,7 @@ namespace VN_Center.Controllers
     public async Task<IActionResult> Create()
     {
       await PopulateDropdownsAsync();
-      var model = new SolicitudesInformacionGeneral(); // FechaRecepcion y EstadoSolicitudInfo se setean en el constructor
+      var model = new SolicitudesInformacionGeneral();
       return View(model);
     }
 
@@ -104,22 +124,20 @@ namespace VN_Center.Controllers
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("SolicitudInfoID,NombreContacto,EmailContacto,TelefonoContacto,PermiteContactoWhatsApp,ProgramaDeInteres,ProgramaDeInteresOtro,PreguntasEspecificas,FuenteConocimientoID,EstadoSolicitudInfo,UsuarioAsignadoID,NotasSeguimiento")] SolicitudesInformacionGeneral solicitud)
     {
-      // Remover propiedades de navegación para evitar problemas de binding si no se incluyen explícitamente
       ModelState.Remove("UsuarioAsignado");
       ModelState.Remove("FuenteConocimiento");
-      ModelState.Remove("UsuarioCreadorId"); // No viene del formulario
+      ModelState.Remove("UsuarioCreadorId");
 
-      // Si el usuario no es admin, los campos de gestión interna no deben venir del Bind
-      // y se les asignará valores por defecto o se ignorarán.
-      if (!User.IsInRole("Administrador"))
+      bool isAdmin = User.IsInRole("Administrador");
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Create POST] isAdmin: {isAdmin}", isAdmin);
+
+      if (!isAdmin)
       {
-        // Forzar valores por defecto para campos de gestión interna si no es admin
-        solicitud.EstadoSolicitudInfo = "Nueva"; // Estado inicial por defecto
-        solicitud.UsuarioAsignadoID = null;    // No se puede auto-asignar
-        solicitud.NotasSeguimiento = null;     // No puede añadir notas de seguimiento al crear
+        _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Create POST] Usuario NO es Administrador. Forzando valores por defecto para campos de gestión interna.");
+        solicitud.EstadoSolicitudInfo = "Nueva";
+        solicitud.UsuarioAsignadoID = null;
+        solicitud.NotasSeguimiento = null;
 
-        // Remover del ModelState para que no fallen las validaciones si estos campos
-        // se incluyeron accidentalmente en el Bind para un no-admin
         ModelState.Remove(nameof(solicitud.EstadoSolicitudInfo));
         ModelState.Remove(nameof(solicitud.UsuarioAsignadoID));
         ModelState.Remove(nameof(solicitud.NotasSeguimiento));
@@ -129,9 +147,9 @@ namespace VN_Center.Controllers
       if (ModelState.IsValid)
       {
         solicitud.UsuarioCreadorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        solicitud.FechaRecepcion = DateTime.UtcNow; // Asegurar fecha de recepción actual
+        _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Create POST] Asignando UsuarioCreadorId: {userId}", solicitud.UsuarioCreadorId);
+        solicitud.FechaRecepcion = DateTime.UtcNow;
 
-        // Si no es admin y el estado es nulo (por si acaso), establecerlo
         if (string.IsNullOrWhiteSpace(solicitud.EstadoSolicitudInfo))
         {
           solicitud.EstadoSolicitudInfo = "Nueva";
@@ -150,6 +168,7 @@ namespace VN_Center.Controllers
     [Authorize(Roles = "Administrador")] // Solo Administradores
     public async Task<IActionResult> Edit(int? id)
     {
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Edit GET ID: {SolicitudID}] Acceso por [Authorize(Roles = 'Administrador')]. User.IsInRole('Administrador'): {isAdmin}", id, User.IsInRole("Administrador"));
       if (id == null)
       {
         return NotFound();
@@ -170,6 +189,7 @@ namespace VN_Center.Controllers
     [Authorize(Roles = "Administrador")] // Solo Administradores
     public async Task<IActionResult> Edit(int id, [Bind("SolicitudInfoID,FechaRecepcion,NombreContacto,EmailContacto,TelefonoContacto,PermiteContactoWhatsApp,ProgramaDeInteres,ProgramaDeInteresOtro,PreguntasEspecificas,EstadoSolicitudInfo,NotasSeguimiento,UsuarioAsignadoID,FuenteConocimientoID")] SolicitudesInformacionGeneral solicitudModificada)
     {
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Edit POST ID: {SolicitudID}] Acceso por [Authorize(Roles = 'Administrador')]. User.IsInRole('Administrador'): {isAdmin}", id, User.IsInRole("Administrador"));
       if (id != solicitudModificada.SolicitudInfoID)
       {
         return NotFound();
@@ -180,7 +200,7 @@ namespace VN_Center.Controllers
       {
         return NotFound();
       }
-      // Preservar UsuarioCreadorId y FechaRecepcion
+
       solicitudModificada.UsuarioCreadorId = solicitudOriginal.UsuarioCreadorId;
       solicitudModificada.FechaRecepcion = solicitudOriginal.FechaRecepcion;
 
@@ -216,6 +236,7 @@ namespace VN_Center.Controllers
     [Authorize(Roles = "Administrador")] // Solo Administradores
     public async Task<IActionResult> Delete(int? id)
     {
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Delete GET ID: {SolicitudID}] Acceso por [Authorize(Roles = 'Administrador')]. User.IsInRole('Administrador'): {isAdmin}", id, User.IsInRole("Administrador"));
       if (id == null)
       {
         return NotFound();
@@ -238,6 +259,7 @@ namespace VN_Center.Controllers
     [Authorize(Roles = "Administrador")] // Solo Administradores
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.DeleteConfirmed POST ID: {SolicitudID}] Acceso por [Authorize(Roles = 'Administrador')]. User.IsInRole('Administrador'): {isAdmin}", id, User.IsInRole("Administrador"));
       var solicitud = await _context.SolicitudesInformacionGeneral.FindAsync(id);
       if (solicitud != null)
       {

@@ -13,8 +13,8 @@ using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Hosting; // Para IWebHostEnvironment
 using System.IO;                   // Para Path
-using QuestPDF.Fluent;             // Para QuestPDF
-using VN_Center.Documents;         // Para los documentos PDF
+using QuestPDF.Fluent;           // Para QuestPDF
+using VN_Center.Documents;       // Para los documentos PDF
 using Microsoft.Extensions.Logging; // Para ILogger
 
 namespace VN_Center.Controllers
@@ -42,6 +42,8 @@ namespace VN_Center.Controllers
     // GET: Solicitudes
     public async Task<IActionResult> Index()
     {
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.Index] Verificando rol de administrador. User.IsInRole('Administrador'): {isAdmin}", User.IsInRole("Administrador"));
+
       IQueryable<Solicitudes> query = _context.Solicitudes
                                           .Include(s => s.FuentesConocimiento)
                                           .Include(s => s.NivelesIdioma)
@@ -50,20 +52,25 @@ namespace VN_Center.Controllers
       if (!User.IsInRole("Administrador"))
       {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.Index] Usuario NO es Administrador. Filtrando por UsuarioCreadorId: {userId}", userId);
         if (!string.IsNullOrEmpty(userId))
         {
           query = query.Where(s => s.UsuarioCreadorId == userId);
         }
         else
         {
-          query = query.Where(s => false);
+          _logger.LogWarning("[DIAGNÓSTICO PERMISOS Solicitudes.Index] Usuario NO es Administrador y NO se pudo obtener userId. Mostrando ninguna solicitud.");
+          query = query.Where(s => false); // No mostrar nada si no hay ID de usuario
         }
+      }
+      else
+      {
+        _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.Index] Usuario ES Administrador. Mostrando todas las solicitudes.");
       }
 
       return View(await query.ToListAsync());
     }
 
-    // ... (Acciones Details GET, Create GET/POST, Edit GET/POST, Delete GET/POST existentes) ...
     // GET: Solicitudes/Details/5
     public async Task<IActionResult> Details(int? id)
     {
@@ -84,12 +91,17 @@ namespace VN_Center.Controllers
         return NotFound();
       }
 
-      if (!User.IsInRole("Administrador") && solicitud.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+      var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      bool isAdmin = User.IsInRole("Administrador");
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.Details ID: {SolicitudID}] isAdmin: {isAdmin}, Solicitud.UsuarioCreadorId: {creadorId}, CurrentUserId: {currentUserId}", solicitud.SolicitudID, isAdmin, solicitud.UsuarioCreadorId, currentUserId);
+
+      if (!isAdmin && solicitud.UsuarioCreadorId != currentUserId)
       {
+        _logger.LogWarning("[DIAGNÓSTICO PERMISOS Solicitudes.Details ID: {SolicitudID}] ACCESO DENEGADO. Usuario no es admin ni creador.", solicitud.SolicitudID);
         TempData["ErrorMessage"] = "No tiene permiso para ver esta solicitud.";
         return RedirectToAction(nameof(Index));
       }
-
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.Details ID: {SolicitudID}] ACCESO PERMITIDO.", solicitud.SolicitudID);
       return View(solicitud);
     }
 
@@ -142,11 +154,18 @@ namespace VN_Center.Controllers
       {
         return NotFound();
       }
-      if (!User.IsInRole("Administrador") && solicitud.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+
+      var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      bool isAdmin = User.IsInRole("Administrador");
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.Edit GET ID: {SolicitudID}] isAdmin: {isAdmin}, Solicitud.UsuarioCreadorId: {creadorId}, CurrentUserId: {currentUserId}", solicitud.SolicitudID, isAdmin, solicitud.UsuarioCreadorId, currentUserId);
+
+      if (!isAdmin && solicitud.UsuarioCreadorId != currentUserId)
       {
+        _logger.LogWarning("[DIAGNÓSTICO PERMISOS Solicitudes.Edit GET ID: {SolicitudID}] ACCESO DENEGADO. Usuario no es admin ni creador.", solicitud.SolicitudID);
         TempData["ErrorMessage"] = "No tiene permiso para editar esta solicitud.";
         return RedirectToAction(nameof(Index));
       }
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.Edit GET ID: {SolicitudID}] ACCESO PERMITIDO.", solicitud.SolicitudID);
       ViewData["FuenteConocimientoID"] = new SelectList(_context.FuentesConocimiento, "FuenteConocimientoID", "NombreFuente", solicitud.FuenteConocimientoID);
       ViewData["NivelIdiomaEspañolID"] = new SelectList(_context.NivelesIdioma, "NivelIdiomaID", "NombreNivel", solicitud.NivelIdiomaEspañolID);
       return View(solicitud);
@@ -166,13 +185,22 @@ namespace VN_Center.Controllers
       {
         return NotFound();
       }
-      if (!User.IsInRole("Administrador") && solicitudOriginal.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+
+      var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      bool isAdmin = User.IsInRole("Administrador");
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.Edit POST ID: {SolicitudID}] isAdmin: {isAdmin}, SolicitudOriginal.UsuarioCreadorId: {creadorId}, CurrentUserId: {currentUserId}", id, isAdmin, solicitudOriginal.UsuarioCreadorId, currentUserId);
+
+      if (!isAdmin && solicitudOriginal.UsuarioCreadorId != currentUserId)
       {
+        _logger.LogWarning("[DIAGNÓSTICO PERMISOS Solicitudes.Edit POST ID: {SolicitudID}] ACCESO DENEGADO. Usuario no es admin ni creador.", id);
         TempData["ErrorMessage"] = "No tiene permiso para editar esta solicitud.";
         return RedirectToAction(nameof(Index));
       }
-      solicitudModificada.UsuarioCreadorId = solicitudOriginal.UsuarioCreadorId;
-      solicitudModificada.FechaEnvioSolicitud = solicitudOriginal.FechaEnvioSolicitud;
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.Edit POST ID: {SolicitudID}] ACCESO PERMITIDO.", id);
+
+      solicitudModificada.UsuarioCreadorId = solicitudOriginal.UsuarioCreadorId; // Preservar el creador original
+      solicitudModificada.FechaEnvioSolicitud = solicitudOriginal.FechaEnvioSolicitud; // Preservar fecha de envío original
+
       ModelState.Remove("NivelesIdioma");
       ModelState.Remove("FuentesConocimiento");
       ModelState.Remove("SolicitudCamposInteres");
@@ -219,11 +247,18 @@ namespace VN_Center.Controllers
       {
         return NotFound();
       }
-      if (!User.IsInRole("Administrador") && solicitud.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+
+      var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      bool isAdmin = User.IsInRole("Administrador");
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.Delete GET ID: {SolicitudID}] isAdmin: {isAdmin}, Solicitud.UsuarioCreadorId: {creadorId}, CurrentUserId: {currentUserId}", solicitud.SolicitudID, isAdmin, solicitud.UsuarioCreadorId, currentUserId);
+
+      if (!isAdmin && solicitud.UsuarioCreadorId != currentUserId)
       {
+        _logger.LogWarning("[DIAGNÓSTICO PERMISOS Solicitudes.Delete GET ID: {SolicitudID}] ACCESO DENEGADO. Usuario no es admin ni creador.", solicitud.SolicitudID);
         TempData["ErrorMessage"] = "No tiene permiso para eliminar esta solicitud.";
         return RedirectToAction(nameof(Index));
       }
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.Delete GET ID: {SolicitudID}] ACCESO PERMITIDO.", solicitud.SolicitudID);
       return View(solicitud);
     }
 
@@ -235,11 +270,17 @@ namespace VN_Center.Controllers
       var solicitud = await _context.Solicitudes.FindAsync(id);
       if (solicitud != null)
       {
-        if (!User.IsInRole("Administrador") && solicitud.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        bool isAdmin = User.IsInRole("Administrador");
+        _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.DeleteConfirmed POST ID: {SolicitudID}] isAdmin: {isAdmin}, Solicitud.UsuarioCreadorId: {creadorId}, CurrentUserId: {currentUserId}", id, isAdmin, solicitud.UsuarioCreadorId, currentUserId);
+
+        if (!isAdmin && solicitud.UsuarioCreadorId != currentUserId)
         {
+          _logger.LogWarning("[DIAGNÓSTICO PERMISOS Solicitudes.DeleteConfirmed POST ID: {SolicitudID}] ACCESO DENEGADO. Usuario no es admin ni creador.", id);
           TempData["ErrorMessage"] = "No tiene permiso para eliminar esta solicitud.";
           return RedirectToAction(nameof(Index));
         }
+        _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.DeleteConfirmed POST ID: {SolicitudID}] ACCESO PERMITIDO. Eliminando solicitud.", id);
         _context.Solicitudes.Remove(solicitud);
         await _context.SaveChangesAsync();
         TempData["SuccessMessage"] = "Solicitud eliminada exitosamente.";
@@ -273,12 +314,17 @@ namespace VN_Center.Controllers
           return NotFound();
         }
 
-        if (!User.IsInRole("Administrador") && solicitud.UsuarioCreadorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        bool isAdmin = User.IsInRole("Administrador");
+        _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.ExportDetailToPdf ID: {SolicitudID}] isAdmin: {isAdmin}, Solicitud.UsuarioCreadorId: {creadorId}, CurrentUserId: {currentUserId}", id, isAdmin, solicitud.UsuarioCreadorId, currentUserId);
+
+        if (!isAdmin && solicitud.UsuarioCreadorId != currentUserId)
         {
-          _logger.LogWarning("Usuario no autorizado intentó exportar detalles de Solicitud ID: {SolicitudID}", id);
+          _logger.LogWarning("[DIAGNÓSTICO PERMISOS Solicitudes.ExportDetailToPdf ID: {SolicitudID}] ACCESO DENEGADO. Usuario no autorizado intentó exportar detalles.", id);
           TempData["ErrorMessage"] = "No tiene permiso para exportar los detalles de esta solicitud.";
           return RedirectToAction(nameof(Index));
         }
+        _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.ExportDetailToPdf ID: {SolicitudID}] ACCESO PERMITIDO.", id);
 
         string wwwRootPath = _webHostEnvironment.WebRootPath;
         string logoPath = Path.Combine(wwwRootPath, "img", "logo_vncenter_mini.png");
@@ -311,9 +357,13 @@ namespace VN_Center.Controllers
                                             .OrderByDescending(s => s.FechaEnvioSolicitud);
 
         string tituloReporte = "Lista de Todas las Solicitudes";
-        if (!User.IsInRole("Administrador"))
+        bool isAdmin = User.IsInRole("Administrador");
+        _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.ExportListToPdf] Verificando rol de administrador. User.IsInRole('Administrador'): {isAdmin}", isAdmin);
+
+        if (!isAdmin)
         {
           var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+          _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.ExportListToPdf] Usuario NO es Administrador. Filtrando por UsuarioCreadorId: {userId}", userId);
           if (!string.IsNullOrEmpty(userId))
           {
             query = query.Where(s => s.UsuarioCreadorId == userId);
@@ -321,9 +371,14 @@ namespace VN_Center.Controllers
           }
           else
           {
+            _logger.LogWarning("[DIAGNÓSTICO PERMISOS Solicitudes.ExportListToPdf] Usuario NO es Administrador y NO se pudo obtener userId. Mostrando ninguna solicitud.");
             query = query.Where(s => false);
             tituloReporte = "Lista de Solicitudes (Sin Acceso)";
           }
+        }
+        else
+        {
+          _logger.LogInformation("[DIAGNÓSTICO PERMISOS Solicitudes.ExportListToPdf] Usuario ES Administrador. Incluyendo todas las solicitudes.");
         }
 
         var solicitudes = await query.ToListAsync();
