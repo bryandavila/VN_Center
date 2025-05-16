@@ -140,7 +140,6 @@
                 </div>
             }
 
-            @* --- NUEVAS SECCIONES DE RESULTADOS --- *@
             @if (Model.EvaluacionesEncontradas.Any())
             {
                 <div class="card mb-4">
@@ -176,7 +175,61 @@
                     </div>
                 </div>
             }
-            @* --- FIN DE NUEVAS SECCIONES DE RESULTADOS --- *@
+
+            @* --- NUEVAS SECCIONES PARA RESULTADOS DE MÓDULOS DE ADMINISTRADOR --- *@
+            @if (User.IsInRole("Administrador"))
+            {
+                @if (Model.AuditoriaEncontrada.Any())
+                {
+                    <div class="card mb-4">
+                        <h5 class="card-header">Registros de Auditoría Encontrados (@Model.AuditoriaEncontrada.Count)</h5>
+                        <div class="list-group list-group-flush">
+                            @foreach (var item in Model.AuditoriaEncontrada)
+                            {
+                                <a asp-controller="Auditoria" asp-action="Details" asp-route-id="@item.AuditoriaID" class="list-group-item list-group-item-action">
+                                    <strong>@item.TipoEvento</strong> - @item.FechaHoraEvento.ToString("g")
+                                    <small class="d-block text-muted">Ejecutor: @(item.NombreUsuarioEjecutor ?? "Sistema"), Entidad: @(item.EntidadAfectada ?? "N/A") ID: @(item.IdEntidadAfectada ?? "N/A")</small>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (Model.NivelesIdiomaEncontrados.Any())
+                {
+                    <div class="card mb-4">
+                        <h5 class="card-header">Niveles de Idioma Encontrados (@Model.NivelesIdiomaEncontrados.Count)</h5>
+                        <div class="list-group list-group-flush">
+                            @foreach (var item in Model.NivelesIdiomaEncontrados)
+                            {
+                                <a asp-controller="NivelesIdioma" asp-action="Details" asp-route-id="@item.NivelIdiomaID" class="list-group-item list-group-item-action">
+                                    <strong>@item.NombreNivel</strong>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (Model.BeneficiariosEnProgramasEncontrados.Any())
+                {
+                    <div class="card mb-4">
+                        <h5 class="card-header">Beneficiarios en Programas Encontrados (@Model.BeneficiariosEnProgramasEncontrados.Count)</h5>
+                        <div class="list-group list-group-flush">
+                            @foreach (var item in Model.BeneficiariosEnProgramasEncontrados)
+                            {
+                                var beneficiarioNombre = item.Beneficiario != null ? $"{item.Beneficiario.Nombres} {item.Beneficiario.Apellidos}" : "Beneficiario Desconocido";
+                                var programaNombre = item.ProgramaProyecto?.NombreProgramaProyecto ?? "Programa Desconocido";
+                                <a asp-controller="BeneficiariosProgramasProyectos" asp-action="Details" asp-route-beneficiarioId="@item.BeneficiarioID" asp-route-programaProyectoId="@item.ProgramaProyectoID" class="list-group-item list-group-item-action">
+                                    <strong>@beneficiarioNombre</strong> en <strong>@programaNombre</strong>
+                                    <small class="d-block text-muted">Estado: @(item.EstadoParticipacionBeneficiario ?? "N/A"), Inicio: @item.FechaInscripcionBeneficiario.ToString("dd/MM/yyyy")</small>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+                @* Añade aquí más secciones para otros resultados de módulos de administrador *@
+            }
+            @* --- FIN DE NUEVAS SECCIONES --- *@
         }
     }
 </div>
