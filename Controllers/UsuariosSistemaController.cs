@@ -30,6 +30,7 @@ namespace VN_Center.Controllers
     private readonly IWebHostEnvironment _webHostEnvironment;
     private readonly IAuditoriaService _auditoriaService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<UsuariosSistemaController> _logger; // Agregado para logging
 
     public UsuariosSistemaController(
         VNCenterDbContext context,
@@ -37,7 +38,8 @@ namespace VN_Center.Controllers
         RoleManager<RolesSistema> roleManager,
         IWebHostEnvironment webHostEnvironment,
         IAuditoriaService auditoriaService,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        ILogger<UsuariosSistemaController> logger) // Inyectar ILogger
     {
       _context = context;
       _userManager = userManager;
@@ -45,6 +47,7 @@ namespace VN_Center.Controllers
       _webHostEnvironment = webHostEnvironment;
       _auditoriaService = auditoriaService;
       _httpContextAccessor = httpContextAccessor;
+      _logger = logger; // Asignar logger
     }
 
     private string? GetCurrentUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -56,6 +59,7 @@ namespace VN_Center.Controllers
     private string? GetUserIpAddress() => _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString();
 
     // GET: UsuariosSistema
+    [Authorize(Roles = "Administrador")] // Solo administradores pueden listar todos los usuarios
     public async Task<IActionResult> Index()
     {
       var usuarios = await _userManager.Users.OrderBy(u => u.Nombres).ThenBy(u => u.Apellidos).ToListAsync();
@@ -86,13 +90,26 @@ namespace VN_Center.Controllers
     {
       if (id == null)
       {
-        return NotFound();
+        TempData["ErrorMessage"] = "ID de usuario no proporcionado.";
+        return RedirectToAction("Index", "Home"); // O a una página de error apropiada
       }
       var usuario = await _userManager.FindByIdAsync(id.Value.ToString());
       if (usuario == null)
       {
+        TempData["ErrorMessage"] = "Usuario no encontrado.";
         return NotFound();
       }
+
+      // Autorización: Solo el administrador o el propio usuario pueden ver los detalles.
+      var currentUserId = GetCurrentUserId();
+      if (!User.IsInRole("Administrador") && usuario.Id.ToString() != currentUserId)
+      {
+        _logger.LogWarning($"Acceso denegado a Details para Usuario ID: {id} por Usuario ID: {currentUserId}.");
+        TempData["ErrorMessage"] = "No tiene permiso para ver los detalles de este usuario.";
+        // Redirigir al dashboard o a una página de acceso denegado específica para usuarios no admin
+        return RedirectToAction("Index", "Dashboards");
+      }
+
       var roles = await _userManager.GetRolesAsync(usuario);
       var viewModel = new UsuarioSistemaViewModel
       {
@@ -112,6 +129,7 @@ namespace VN_Center.Controllers
     }
 
     // GET: UsuariosSistema/Create
+    [Authorize(Roles = "Administrador")] // Solo administradores pueden crear usuarios
     public async Task<IActionResult> Create()
     {
       ViewData["RolesList"] = new SelectList(await _roleManager.Roles.OrderBy(r => r.Name).ToListAsync(), "Name", "Name");
@@ -121,6 +139,7 @@ namespace VN_Center.Controllers
     // POST: UsuariosSistema/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Administrador")] // Solo administradores pueden crear usuarios
     public async Task<IActionResult> Create(UsuarioCreateViewModel viewModel)
     {
       if (ModelState.IsValid)
@@ -132,7 +151,7 @@ namespace VN_Center.Controllers
           Nombres = viewModel.Nombres,
           Apellidos = viewModel.Apellidos,
           Activo = viewModel.Activo,
-          EmailConfirmed = true,
+          EmailConfirmed = true, // O manejar la confirmación por email si se implementa
           PhoneNumber = viewModel.PhoneNumber,
         };
         var result = await _userManager.CreateAsync(usuario, viewModel.Password);
@@ -179,13 +198,26 @@ namespace VN_Center.Controllers
     {
       if (id == null)
       {
-        return NotFound();
+        TempData["ErrorMessage"] = "ID de usuario no proporcionado.";
+        return RedirectToAction("Index", "Home");
       }
       var usuario = await _userManager.FindByIdAsync(id.Value.ToString());
       if (usuario == null)
       {
+        TempData["ErrorMessage"] = "Usuario no encontrado.";
         return NotFound();
       }
+
+      // Autorización: Solo el administrador o el propio usuario pueden editar.
+      var currentUserId = GetCurrentUserId();
+      if (!User.IsInRole("Administrador") && usuario.Id.ToString() != currentUserId)
+      {
+        _logger.LogWarning($"Acceso denegado a Edit GET para Usuario ID: {id} por Usuario ID: {currentUserId}.");
+        TempData["ErrorMessage"] = "No tiene permiso para editar este usuario.";
+        // Redirigir al dashboard o a una página de acceso denegado específica para usuarios no admin
+        return RedirectToAction("Details", "UsuariosSistema", new { id = currentUserId });
+      }
+
       var userRoles = await _userManager.GetRolesAsync(usuario);
       var currentRoleName = userRoles.FirstOrDefault();
       var viewModel = new UsuarioEditViewModel
@@ -213,9 +245,34 @@ namespace VN_Center.Controllers
         return NotFound();
       }
 
+      var usuario = await _userManager.FindByIdAsync(id.ToString());
+      if (usuario == null)
+      {
+        TempData["ErrorMessage"] = "Usuario no encontrado.";
+        return NotFound();
+      }
+
+      // Autorización: Solo el administrador o el propio usuario pueden procesar la edición.
+      var currentUserId = GetCurrentUserId();
+      bool isCurrentUserAdmin = User.IsInRole("Administrador");
+
+      if (!isCurrentUserAdmin && usuario.Id.ToString() != currentUserId)
+      {
+        _logger.LogWarning($"Intento de edición no autorizado para Usuario ID: {id} por Usuario ID: {currentUserId}.");
+        TempData["ErrorMessage"] = "No tiene permiso para modificar este usuario.";
+        return RedirectToAction("Details", "UsuariosSistema", new { id = currentUserId });
+      }
+
+      // Si el usuario no es administrador, no puede cambiar su propio rol ni su estado de activación.
+      // Esos valores se tomarán del usuario existente en la BD.
+      if (!isCurrentUserAdmin)
+      {
+        viewModel.SelectedRoleName = (await _userManager.GetRolesAsync(usuario)).FirstOrDefault();
+        viewModel.Activo = usuario.Activo;
+      }
+
       // No validar NewPassword y ConfirmNewPassword si están vacíos,
       // ya que el cambio de contraseña es opcional.
-      // La validación de [Compare] y [StringLength] se activará solo si NewPassword tiene valor.
       if (string.IsNullOrEmpty(viewModel.NewPassword) && string.IsNullOrEmpty(viewModel.ConfirmNewPassword))
       {
         ModelState.Remove(nameof(viewModel.NewPassword));
@@ -224,105 +281,86 @@ namespace VN_Center.Controllers
 
       if (ModelState.IsValid)
       {
-        var usuario = await _userManager.FindByIdAsync(id.ToString());
-        if (usuario == null)
-        {
-          return NotFound();
-        }
-
         var cambios = new StringBuilder();
         // Comparar y registrar cambios en propiedades
         if (usuario.UserName != viewModel.UserName) { cambios.AppendLine($"UserName: de '{usuario.UserName}' a '{viewModel.UserName}'."); usuario.UserName = viewModel.UserName; }
         if (usuario.Email != viewModel.Email) { cambios.AppendLine($"Email: de '{usuario.Email}' a '{viewModel.Email}'."); usuario.Email = viewModel.Email; }
         if (usuario.Nombres != viewModel.Nombres) { cambios.AppendLine($"Nombres: de '{usuario.Nombres}' a '{viewModel.Nombres}'."); usuario.Nombres = viewModel.Nombres; }
         if (usuario.Apellidos != viewModel.Apellidos) { cambios.AppendLine($"Apellidos: de '{usuario.Apellidos}' a '{viewModel.Apellidos}'."); usuario.Apellidos = viewModel.Apellidos; }
-        if (usuario.Activo != viewModel.Activo) { cambios.AppendLine($"Activo: de '{usuario.Activo}' a '{viewModel.Activo}'."); usuario.Activo = viewModel.Activo; }
         if (usuario.PhoneNumber != viewModel.PhoneNumber) { cambios.AppendLine($"Teléfono: de '{usuario.PhoneNumber ?? "N/A"}' a '{viewModel.PhoneNumber ?? "N/A"}'."); usuario.PhoneNumber = viewModel.PhoneNumber; }
+
+        // Solo el administrador puede cambiar el estado 'Activo'
+        if (isCurrentUserAdmin && usuario.Activo != viewModel.Activo)
+        {
+          cambios.AppendLine($"Activo: de '{usuario.Activo}' a '{viewModel.Activo}'.");
+          usuario.Activo = viewModel.Activo;
+        }
 
         var result = await _userManager.UpdateAsync(usuario);
 
         if (result.Succeeded)
         {
-          // Manejar cambio de rol
-          var currentRoles = await _userManager.GetRolesAsync(usuario);
-          var oldRoleName = currentRoles.FirstOrDefault();
-          var newRoleName = viewModel.SelectedRoleName;
-
-          if (oldRoleName != newRoleName)
+          // Manejar cambio de rol (solo si es administrador)
+          if (isCurrentUserAdmin)
           {
-            if (!string.IsNullOrEmpty(oldRoleName))
+            var currentRoles = await _userManager.GetRolesAsync(usuario);
+            var oldRoleName = currentRoles.FirstOrDefault();
+            var newRoleName = viewModel.SelectedRoleName;
+
+            if (oldRoleName != newRoleName)
             {
-              await _userManager.RemoveFromRoleAsync(usuario, oldRoleName);
-            }
-            if (!string.IsNullOrEmpty(newRoleName))
-            {
-              if (await _roleManager.RoleExistsAsync(newRoleName))
+              if (!string.IsNullOrEmpty(oldRoleName))
               {
-                await _userManager.AddToRoleAsync(usuario, newRoleName);
-                cambios.AppendLine($"Rol: de '{oldRoleName ?? "Ninguno"}' a '{newRoleName}'.");
+                await _userManager.RemoveFromRoleAsync(usuario, oldRoleName);
               }
-              else
+              if (!string.IsNullOrEmpty(newRoleName))
               {
-                ModelState.AddModelError("SelectedRoleName", "El rol seleccionado no es válido.");
-                // Repopular y retornar si hay error de rol
-                ViewData["RolesList"] = new SelectList(await _roleManager.Roles.OrderBy(r => r.Name).ToListAsync(), "Name", "Name", viewModel.SelectedRoleName);
-                return View(viewModel);
+                if (await _roleManager.RoleExistsAsync(newRoleName))
+                {
+                  await _userManager.AddToRoleAsync(usuario, newRoleName);
+                  cambios.AppendLine($"Rol: de '{oldRoleName ?? "Ninguno"}' a '{newRoleName}'.");
+                }
+                else
+                {
+                  ModelState.AddModelError("SelectedRoleName", "El rol seleccionado no es válido.");
+                  ViewData["RolesList"] = new SelectList(await _roleManager.Roles.OrderBy(r => r.Name).ToListAsync(), "Name", "Name", viewModel.SelectedRoleName);
+                  return View(viewModel);
+                }
               }
-            }
-            else if (!string.IsNullOrEmpty(oldRoleName)) // Si se quitó el rol
-            {
-              cambios.AppendLine($"Rol: de '{oldRoleName}' a 'Ninguno'.");
+              else if (!string.IsNullOrEmpty(oldRoleName))
+              {
+                cambios.AppendLine($"Rol: de '{oldRoleName}' a 'Ninguno'.");
+              }
             }
           }
 
           // Manejar restablecimiento de contraseña
           if (!string.IsNullOrEmpty(viewModel.NewPassword))
           {
-            // Validar que NewPassword y ConfirmNewPassword coincidan (ya lo hace [Compare], pero una comprobación extra no daña)
             if (viewModel.NewPassword != viewModel.ConfirmNewPassword)
             {
               ModelState.AddModelError("ConfirmNewPassword", "La nueva contraseña y la contraseña de confirmación no coinciden.");
             }
             else
             {
-              // Quitar contraseña anterior y añadir la nueva
-              var removePasswordResult = await _userManager.RemovePasswordAsync(usuario);
-              if (removePasswordResult.Succeeded)
+              var token = await _userManager.GeneratePasswordResetTokenAsync(usuario);
+              var resetPassResult = await _userManager.ResetPasswordAsync(usuario, token, viewModel.NewPassword);
+              if (resetPassResult.Succeeded)
               {
-                var addPasswordResult = await _userManager.AddPasswordAsync(usuario, viewModel.NewPassword);
-                if (addPasswordResult.Succeeded)
-                {
-                  cambios.AppendLine("Contraseña restablecida por administrador.");
-                }
-                else
-                {
-                  foreach (var error in addPasswordResult.Errors) { ModelState.AddModelError(string.Empty, error.Description); }
-                }
+                cambios.AppendLine("Contraseña restablecida.");
               }
-              else // Si el usuario no tenía contraseña (ej. login externo), AddPasswordAsync podría ser suficiente
+              else
               {
-                var addPasswordResult = await _userManager.AddPasswordAsync(usuario, viewModel.NewPassword);
-                if (addPasswordResult.Succeeded)
-                {
-                  cambios.AppendLine("Contraseña establecida por administrador (usuario no tenía contraseña previa).");
-                }
-                else
-                {
-                  // Podría ser que el usuario SÍ tenía contraseña pero RemovePasswordAsync falló por alguna razón
-                  // O que AddPasswordAsync falló por políticas de contraseña.
-                  foreach (var error in addPasswordResult.Errors) { ModelState.AddModelError(string.Empty, error.Description); }
-                }
+                foreach (var error in resetPassResult.Errors) { ModelState.AddModelError(string.Empty, error.Description); }
               }
             }
           }
 
-          // Si hay errores después de intentar cambiar contraseña, retornar
-          if (!ModelState.IsValid)
+          if (!ModelState.IsValid) // Si hubo errores al cambiar contraseña
           {
             ViewData["RolesList"] = new SelectList(await _roleManager.Roles.OrderBy(r => r.Name).ToListAsync(), "Name", "Name", viewModel.SelectedRoleName);
             return View(viewModel);
           }
-
 
           if (cambios.Length > 0)
           {
@@ -338,7 +376,17 @@ namespace VN_Center.Controllers
           }
 
           TempData["SuccessMessage"] = "Usuario del sistema actualizado exitosamente.";
-          return RedirectToAction(nameof(Index));
+
+          // *** LÓGICA DE REDIRECCIÓN MODIFICADA ***
+          if (isCurrentUserAdmin)
+          {
+            return RedirectToAction(nameof(Index));
+          }
+          else
+          {
+            // Redirigir al usuario normal a los detalles de su propio perfil
+            return RedirectToAction(nameof(Details), new { id = usuario.Id });
+          }
         }
         foreach (var error in result.Errors)
         {
@@ -350,9 +398,9 @@ namespace VN_Center.Controllers
     }
 
     // GET: UsuariosSistema/Delete/5
+    [Authorize(Roles = "Administrador")] // Solo administradores pueden eliminar
     public async Task<IActionResult> Delete(int? id)
     {
-      // ... (código existente de Delete GET) ...
       if (id == null)
       {
         return NotFound();
@@ -362,19 +410,31 @@ namespace VN_Center.Controllers
       {
         return NotFound();
       }
-      ViewBag.UserRoles = await _userManager.GetRolesAsync(usuario);
+      ViewBag.UserRoles = await _userManager.GetRolesAsync(usuario); // Para mostrar en la vista de confirmación
       return View(usuario);
     }
 
     // POST: UsuariosSistema/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Administrador")] // Solo administradores pueden eliminar
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-      // ... (código existente de Delete POST con auditoría) ...
       var usuario = await _userManager.FindByIdAsync(id.ToString());
       if (usuario != null)
       {
+        // No permitir que el admin se elimine a sí mismo si es el único admin (lógica adicional podría ser necesaria)
+        var currentUserId = GetCurrentUserId();
+        if (usuario.Id.ToString() == currentUserId && User.IsInRole("Administrador"))
+        {
+          var adminCount = (await _userManager.GetUsersInRoleAsync("Administrador")).Count;
+          if (adminCount <= 1)
+          {
+            TempData["ErrorMessage"] = "No puede eliminar al único administrador del sistema.";
+            return RedirectToAction(nameof(Index));
+          }
+        }
+
         var userNameParaAuditoria = usuario.UserName;
         var userIdParaAuditoria = usuario.Id.ToString();
 
@@ -404,9 +464,9 @@ namespace VN_Center.Controllers
       return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> ExportToPdf()
     {
-      // ... (código existente de ExportToPdf) ...
       var users = await _userManager.Users.OrderBy(u => u.Nombres).ThenBy(u => u.Apellidos).ToListAsync();
       var usuariosParaPdf = new List<UsuarioSistemaViewModel>();
 
