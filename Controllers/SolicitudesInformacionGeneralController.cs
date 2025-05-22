@@ -20,17 +20,16 @@ namespace VN_Center.Controllers
   {
     private readonly VNCenterDbContext _context;
     private readonly UserManager<UsuariosSistema> _userManager;
-    private readonly ILogger<SolicitudesInformacionGeneralController> _logger; // Agrega el logger
+    private readonly ILogger<SolicitudesInformacionGeneralController> _logger;
 
-    // Modifica el constructor para inyectar ILogger
     public SolicitudesInformacionGeneralController(
         VNCenterDbContext context,
         UserManager<UsuariosSistema> userManager,
-        ILogger<SolicitudesInformacionGeneralController> logger) // Inyecta ILogger
+        ILogger<SolicitudesInformacionGeneralController> logger)
     {
       _context = context;
       _userManager = userManager;
-      _logger = logger; // Asigna el logger
+      _logger = logger;
     }
 
     // GET: SolicitudesInformacionGeneral
@@ -89,10 +88,10 @@ namespace VN_Center.Controllers
       if (!isAdmin && solicitud.UsuarioCreadorId != currentUserId)
       {
         _logger.LogWarning("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Details ID: {SolicitudID}] ACCESO DENEGADO (Lógica original). Usuario no es admin ni creador.", solicitud.SolicitudInfoID);
-        // TempData["ErrorMessage"] = "No tiene permiso para ver esta solicitud."; // Mensaje comentado
-        // return RedirectToAction(nameof(Index)); // Redirección comentada
+        TempData["ErrorMessage"] = "No tiene permiso para ver esta solicitud.";
+        return RedirectToAction(nameof(Index));
       }
-      _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Details ID: {SolicitudID}] ACCESO PERMITIDO (o mensaje/redirección comentados).", solicitud.SolicitudInfoID);
+      _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Details ID: {SolicitudID}] ACCESO PERMITIDO.", solicitud.SolicitudInfoID);
       return View(solicitud);
     }
 
@@ -100,14 +99,19 @@ namespace VN_Center.Controllers
     {
       ViewData["FuenteConocimientoID"] = new SelectList(await _context.FuentesConocimiento.OrderBy(f => f.NombreFuente).ToListAsync(), "FuenteConocimientoID", "NombreFuente", model?.FuenteConocimientoID);
 
-      if (User.IsInRole("Administrador")) // Solo poblar usuarios asignados para administradores
+      // Solo los administradores pueden asignar, y solo deben poder asignar a otros administradores (o usuarios activos si se cambia la lógica)
+      if (User.IsInRole("Administrador"))
       {
-        var usuariosQuery = await _userManager.Users
-                               .Where(u => u.Activo) // Solo usuarios activos
-                               .OrderBy(u => u.Nombres).ThenBy(u => u.Apellidos)
-                               .Select(u => new { u.Id, NombreCompleto = u.Nombres + " " + u.Apellidos + " (" + u.UserName + ")" })
-                               .ToListAsync();
-        ViewData["UsuarioAsignadoID"] = new SelectList(usuariosQuery, "Id", "NombreCompleto", model?.UsuarioAsignadoID);
+        // *** MODIFICACIÓN AQUÍ para obtener solo administradores ***
+        var administradores = await _userManager.GetUsersInRoleAsync("Administrador");
+
+        var usuariosParaDropdown = administradores
+                                  .Where(u => u.Activo) // Opcional: asegurar que solo admins activos puedan ser asignados
+                                  .OrderBy(u => u.Nombres).ThenBy(u => u.Apellidos)
+                                  .Select(u => new { u.Id, NombreCompleto = u.Nombres + " " + u.Apellidos + " (" + u.UserName + ")" })
+                                  .ToList(); // ToList() aquí ya que GetUsersInRoleAsync devuelve IList
+
+        ViewData["UsuarioAsignadoID"] = new SelectList(usuariosParaDropdown, "Id", "NombreCompleto", model?.UsuarioAsignadoID);
       }
     }
 
@@ -165,7 +169,7 @@ namespace VN_Center.Controllers
     }
 
     // GET: SolicitudesInformacionGeneral/Edit/5
-    [Authorize(Roles = "Administrador")] // Solo Administradores
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Edit(int? id)
     {
       _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Edit GET ID: {SolicitudID}] Acceso por [Authorize(Roles = 'Administrador')]. User.IsInRole('Administrador'): {isAdmin}", id, User.IsInRole("Administrador"));
@@ -179,14 +183,14 @@ namespace VN_Center.Controllers
       {
         return NotFound();
       }
-      await PopulateDropdownsAsync(solicitud);
+      await PopulateDropdownsAsync(solicitud); // PopulateDropdownsAsync se encargará de mostrar solo admins si el usuario actual es admin
       return View(solicitud);
     }
 
     // POST: SolicitudesInformacionGeneral/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Administrador")] // Solo Administradores
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Edit(int id, [Bind("SolicitudInfoID,FechaRecepcion,NombreContacto,EmailContacto,TelefonoContacto,PermiteContactoWhatsApp,ProgramaDeInteres,ProgramaDeInteresOtro,PreguntasEspecificas,EstadoSolicitudInfo,NotasSeguimiento,UsuarioAsignadoID,FuenteConocimientoID")] SolicitudesInformacionGeneral solicitudModificada)
     {
       _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Edit POST ID: {SolicitudID}] Acceso por [Authorize(Roles = 'Administrador')]. User.IsInRole('Administrador'): {isAdmin}", id, User.IsInRole("Administrador"));
@@ -228,12 +232,12 @@ namespace VN_Center.Controllers
         }
         return RedirectToAction(nameof(Index));
       }
-      await PopulateDropdownsAsync(solicitudModificada);
+      await PopulateDropdownsAsync(solicitudModificada); // Repopulate con la lógica actualizada
       return View(solicitudModificada);
     }
 
     // GET: SolicitudesInformacionGeneral/Delete/5
-    [Authorize(Roles = "Administrador")] // Solo Administradores
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Delete(int? id)
     {
       _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.Delete GET ID: {SolicitudID}] Acceso por [Authorize(Roles = 'Administrador')]. User.IsInRole('Administrador'): {isAdmin}", id, User.IsInRole("Administrador"));
@@ -256,7 +260,7 @@ namespace VN_Center.Controllers
     // POST: SolicitudesInformacionGeneral/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Administrador")] // Solo Administradores
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
       _logger.LogInformation("[DIAGNÓSTICO PERMISOS SolicitudesInformacionGeneral.DeleteConfirmed POST ID: {SolicitudID}] Acceso por [Authorize(Roles = 'Administrador')]. User.IsInRole('Administrador'): {isAdmin}", id, User.IsInRole("Administrador"));
