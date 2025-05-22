@@ -1,4 +1,4 @@
-    @inject IHttpContextAccessor httpContextAccessor
+@inject IHttpContextAccessor httpContextAccessor
 
 <!DOCTYPE html>
 <html lang="en"
@@ -47,6 +47,29 @@
 
     @* ESTA ES LA UBICACIÓN CORRECTA PARA LA SECCIÓN DE SCRIPTS DE PÁGINA *@
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        // Script para auto-ocultar alertas de TempData
+        document.addEventListener('DOMContentLoaded', function () {
+            const autoDismissAlerts = document.querySelectorAll('.alert.alert-dismissible.fade.show');
+
+            autoDismissAlerts.forEach(function(alertElement) {
+                const displayDuration = 5000; // 5 segundos
+
+                setTimeout(function() {
+                    var bootstrapAlert = bootstrap.Alert.getInstance(alertElement);
+                    if (bootstrapAlert) {
+                        bootstrapAlert.close();
+                    } else {
+                        alertElement.classList.remove('show');
+                        setTimeout(function() {
+                            alertElement.style.display = 'none';
+                        }, 150); // Coincide con la duración de la transición de desvanecimiento de Bootstrap
+                    }
+                }, displayDuration);
+            });
+        });
+    </script>
 
     <script async defer src="https://buttons.github.io/buttons.js"></script>
 
