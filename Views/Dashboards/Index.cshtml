@@ -1,281 +1,506 @@
 @model VN_Center.Models.ViewModels.DashboardViewModel
-@using System.Text.Json;
+@using System.Text.Json
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
+@using VN_Center.Models.Entities
 
+@inject UserManager<UsuariosSistema> UserManager
+@* <--- DIRECTIVA @inject AÑADIDA (Comentario movido a la siguiente línea) *@
 @{
-    ViewData["title"] = "Dashboard Principal";
-    ViewData["pageTitle"] = "Dashboard"; // Opcional, para el breadcrumb si tu layout lo usa
+    ViewData["title"] = "Dashboard";
+    ViewData["pageTitle"] = "Dashboard";
 
     // Iconos para las tarjetas de KPI
     string iconSolicitudes = "bx bx-file-blank";
-    string iconBeneficiarios = "bx bx-male-female";
+    string iconBeneficiarios = "bx bx-male-female"; // Admin
     string iconProgramas = "bx bx-briefcase-alt-2";
-    string iconComunidades = "bx bx-arch";
+    string iconComunidades = "bx bx-arch"; // Admin
+    string iconConsultas = "bx bx-help-circle";
+    string iconParticipaciones = "bx bx-link-alt";
+    string iconEvaluaciones = "bx bx-comment-check";
 }
 
 <div class="container-xxl flex-grow-1 container-p-y">
-    <div class="row">
-        <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div class="card-info">
-                            <p class="card-text text-muted">@Html.DisplayNameFor(model => model.TotalSolicitudes)</p>
-                            <div class="d-flex align-items-end mb-2">
-                                <h4 class="card-title mb-0 me-2">@Model.TotalSolicitudes</h4>
+
+    @if (User.IsInRole("Administrador"))
+    {
+        @* --- DASHBOARD DE ADMINISTRADOR (CÓDIGO EXISTENTE) --- *@
+        <div class="row">
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="card-info">
+                                <p class="card-text text-muted">@Html.DisplayNameFor(model => model.TotalSolicitudes)</p>
+                                <div class="d-flex align-items-end mb-2">
+                                    <h4 class="card-title mb-0 me-2">@Model.TotalSolicitudes</h4>
+                                </div>
+                                <small>Total de solicitudes recibidas</small>
                             </div>
-                            <small>Total de solicitudes recibidas</small>
-                        </div>
-                        <div class="card-icon">
-                            <span class="badge bg-label-primary rounded p-2">
-                                <i class="@iconSolicitudes bx-sm"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div class="card-info">
-                            <p class="card-text text-muted">@Html.DisplayNameFor(model => model.TotalBeneficiarios)</p>
-                            <div class="d-flex align-items-end mb-2">
-                                <h4 class="card-title mb-0 me-2">@Model.TotalBeneficiarios</h4>
+                            <div class="card-icon">
+                                <span class="badge bg-label-primary rounded p-2">
+                                    <i class="@iconSolicitudes bx-sm"></i>
+                                </span>
                             </div>
-                            <small>Total de beneficiarios registrados</small>
-                        </div>
-                        <div class="card-icon">
-                            <span class="badge bg-label-info rounded p-2">
-                                <i class="@iconBeneficiarios bx-sm"></i>
-                            </span>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div class="card-info">
-                            <p class="card-text text-muted">@Html.DisplayNameFor(model => model.TotalProgramasActivos)</p>
-                            <div class="d-flex align-items-end mb-2">
-                                <h4 class="card-title mb-0 me-2">@Model.TotalProgramasActivos</h4>
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="card-info">
+                                <p class="card-text text-muted">@Html.DisplayNameFor(model => model.TotalBeneficiarios)</p>
+                                <div class="d-flex align-items-end mb-2">
+                                    <h4 class="card-title mb-0 me-2">@Model.TotalBeneficiarios</h4>
+                                </div>
+                                <small>Total de beneficiarios registrados</small>
                             </div>
-                            <small>Programas en curso o planificación</small>
-                        </div>
-                        <div class="card-icon">
-                            <span class="badge bg-label-success rounded p-2">
-                                <i class="@iconProgramas bx-sm"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div class="card-info">
-                            <p class="card-text text-muted">@Html.DisplayNameFor(model => model.TotalComunidades)</p>
-                            <div class="d-flex align-items-end mb-2">
-                                <h4 class="card-title mb-0 me-2">@Model.TotalComunidades</h4>
+                            <div class="card-icon">
+                                <span class="badge bg-label-info rounded p-2">
+                                    <i class="@iconBeneficiarios bx-sm"></i>
+                                </span>
                             </div>
-                            <small>Total de comunidades registradas</small>
-                        </div>
-                        <div class="card-icon">
-                            <span class="badge bg-label-warning rounded p-2">
-                                <i class="@iconComunidades bx-sm"></i>
-                            </span>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="row">
-        <div class="col-lg-8 col-md-12 mb-4">
-            <div class="card">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="card-title mb-0">@Html.DisplayNameFor(model => model.SolicitudesPorMes) (Últimos 12 Meses)</h5>
-                </div>
-                <div class="card-body">
-                    @if (Model.SolicitudesPorMes != null && Model.SolicitudesPorMes.Any())
-                    {
-                        <div id="chartSolicitudesPorMes"></div>
-                    }
-                    else
-                    {
-                        <p class="text-center text-muted">No hay suficientes datos para mostrar el gráfico de solicitudes por mes.</p>
-                    }
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4 col-md-12 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">@Html.DisplayNameFor(model => model.UltimasSolicitudesRecibidas)</h5>
-                </div>
-                <div class="card-body">
-                    @if (Model.UltimasSolicitudesRecibidas != null && Model.UltimasSolicitudesRecibidas.Any())
-                    {
-                        <ul class="list-group list-group-flush">
-                            @foreach (var solicitud in Model.UltimasSolicitudesRecibidas)
-                            {
-                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                    <div>
-                                        <a asp-controller="Solicitudes" asp-action="Details" asp-route-id="@solicitud.SolicitudID" class="fw-semibold">
-                                            @solicitud.Nombres @solicitud.Apellidos
-                                        </a>
-                                        <small class="d-block text-muted">@solicitud.TipoSolicitud - @solicitud.EstadoSolicitud</small>
-                                    </div>
-                                    <small class="text-muted">@solicitud.FechaEnvioSolicitud.ToString("dd MMM yy")</small>
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <p class="text-center text-muted">No hay solicitudes recientes.</p>
-                    }
-                    <div class="text-center mt-3">
-                        <a asp-controller="Solicitudes" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Todas las Solicitudes</a>
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="card-info">
+                                <p class="card-text text-muted">@Html.DisplayNameFor(model => model.TotalProgramasActivos)</p>
+                                <div class="d-flex align-items-end mb-2">
+                                    <h4 class="card-title mb-0 me-2">@Model.TotalProgramasActivos</h4>
+                                </div>
+                                <small>Programas en curso o planificación</small>
+                            </div>
+                            <div class="card-icon">
+                                <span class="badge bg-label-success rounded p-2">
+                                    <i class="@iconProgramas bx-sm"></i>
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="row">
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="card-title m-0 me-2">@Html.DisplayNameFor(model => model.TiposDeSolicitudConteo)</h5>
-                </div>
-                <div class="card-body">
-                    @if (Model.TiposDeSolicitudConteo != null && Model.TiposDeSolicitudConteo.Any(t => t.Cantidad > 0))
-                    {
-                        <div id="chartTiposSolicitud"></div>
-                    }
-                    else
-                    {
-                        <p class="text-center text-muted">No hay datos para mostrar la distribución de tipos de solicitud.</p>
-                    }
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-8 mb-4">
-            <div class="card h-100">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="card-title m-0 me-2">@Html.DisplayNameFor(model => model.ProgramasPorEstado)</h5>
-                </div>
-                <div class="card-body">
-                    @if (Model.ProgramasPorEstado != null && Model.ProgramasPorEstado.Any(p => p.Cantidad > 0))
-                    {
-                        <div id="chartProgramasPorEstado"></div>
-                    }
-                    else
-                    {
-                        <p class="text-center text-muted">No hay datos para mostrar el estado de los programas.</p>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">@Html.DisplayNameFor(model => model.ProximosProgramas)</h5>
-                </div>
-                <div class="card-body">
-                    @if (Model.ProximosProgramas != null && Model.ProximosProgramas.Any())
-                    {
-                        <ul class="list-group list-group-flush">
-                            @foreach (var programa in Model.ProximosProgramas)
-                            {
-                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                    <div>
-                                        <a asp-controller="ProgramasProyectosONG" asp-action="Details" asp-route-id="@programa.ProgramaProyectoID" class="fw-semibold">
-                                            @programa.NombreProgramaProyecto
-                                        </a>
-                                        <small class="d-block text-muted">Inicio Estimado: @(programa.FechaInicioEstimada.HasValue ? programa.FechaInicioEstimada.Value.ToString("dd MMM yy") : "N/A")</small>
-                                    </div>
-                                    <span class="badge bg-label-info">@programa.EstadoProgramaProyecto</span>
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <p class="text-center text-muted">No hay próximos programas a iniciar.</p>
-                    }
-                    <div class="text-center mt-3">
-                        <a asp-controller="ProgramasProyectosONG" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Todos los Programas</a>
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="card-info">
+                                <p class="card-text text-muted">@Html.DisplayNameFor(model => model.TotalComunidades)</p>
+                                <div class="d-flex align-items-end mb-2">
+                                    <h4 class="card-title mb-0 me-2">@Model.TotalComunidades</h4>
+                                </div>
+                                <small>Total de comunidades registradas</small>
+                            </div>
+                            <div class="card-icon">
+                                <span class="badge bg-label-warning rounded p-2">
+                                    <i class="@iconComunidades bx-sm"></i>
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">@Html.DisplayNameFor(model => model.BeneficiariosRecientes)</h5>
+        <div class="row">
+            <div class="col-lg-8 col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5 class="card-title mb-0">@Html.DisplayNameFor(model => model.SolicitudesPorMes) (Últimos 12 Meses)</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.SolicitudesPorMes != null && Model.SolicitudesPorMes.Any())
+                        {
+                            <div id="chartSolicitudesPorMes"></div>
+                        }
+                        else
+                        {
+                            <p class="text-center text-muted">No hay suficientes datos para mostrar el gráfico de solicitudes por mes.</p>
+                        }
+                    </div>
                 </div>
-                <div class="card-body">
-                    @if (Model.BeneficiariosRecientes != null && Model.BeneficiariosRecientes.Any())
-                    {
-                        <ul class="list-group list-group-flush">
-                            @foreach (var beneficiario in Model.BeneficiariosRecientes)
-                            {
-                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                    <div>
-                                        <a asp-controller="Beneficiarios" asp-action="Details" asp-route-id="@beneficiario.BeneficiarioID" class="fw-semibold">
-                                            @beneficiario.NombreCompleto
-                                        </a>
-                                        <small class="d-block text-muted">Comunidad: @(beneficiario.Comunidad?.NombreComunidad ?? "N/A")</small>
-                                    </div>
-                                    <small class="text-muted">Reg: @beneficiario.FechaRegistroBeneficiario.ToString("dd MMM yy")</small>
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <p class="text-center text-muted">No hay beneficiarios registrados recientemente.</p>
-                    }
-                    <div class="text-center mt-3">
-                        <a asp-controller="Beneficiarios" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Todos los Beneficiarios</a>
+            </div>
+            <div class="col-lg-4 col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">@Html.DisplayNameFor(model => model.UltimasSolicitudesRecibidas)</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.UltimasSolicitudesRecibidas != null && Model.UltimasSolicitudesRecibidas.Any())
+                        {
+                            <ul class="list-group list-group-flush">
+                                @foreach (var solicitud in Model.UltimasSolicitudesRecibidas)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <div>
+                                            <a asp-controller="Solicitudes" asp-action="Details" asp-route-id="@solicitud.SolicitudID" class="fw-semibold">
+                                                @solicitud.Nombres @solicitud.Apellidos
+                                            </a>
+                                            <small class="d-block text-muted">@solicitud.TipoSolicitud - @solicitud.EstadoSolicitud</small>
+                                        </div>
+                                        <small class="text-muted">@solicitud.FechaEnvioSolicitud.ToString("dd MMM yy")</small>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-center text-muted">No hay solicitudes recientes.</p>
+                        }
+                        <div class="text-center mt-3">
+                            <a asp-controller="Solicitudes" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Todas las Solicitudes</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
+        <div class="row">
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5 class="card-title m-0 me-2">@Html.DisplayNameFor(model => model.TiposDeSolicitudConteo)</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.TiposDeSolicitudConteo != null && Model.TiposDeSolicitudConteo.Any(t => t.Cantidad > 0))
+                        {
+                            <div id="chartTiposSolicitud"></div>
+                        }
+                        else
+                        {
+                            <p class="text-center text-muted">No hay datos para mostrar la distribución de tipos de solicitud.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-8 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5 class="card-title m-0 me-2">@Html.DisplayNameFor(model => model.ProgramasPorEstado)</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.ProgramasPorEstado != null && Model.ProgramasPorEstado.Any(p => p.Cantidad > 0))
+                        {
+                            <div id="chartProgramasPorEstado"></div>
+                        }
+                        else
+                        {
+                            <p class="text-center text-muted">No hay datos para mostrar el estado de los programas.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">@Html.DisplayNameFor(model => model.ProximosProgramas)</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.ProximosProgramas != null && Model.ProximosProgramas.Any())
+                        {
+                            <ul class="list-group list-group-flush">
+                                @foreach (var programa in Model.ProximosProgramas)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <div>
+                                            <a asp-controller="ProgramasProyectosONG" asp-action="Details" asp-route-id="@programa.ProgramaProyectoID" class="fw-semibold">
+                                                @programa.NombreProgramaProyecto
+                                            </a>
+                                            <small class="d-block text-muted">Inicio Estimado: @(programa.FechaInicioEstimada.HasValue ? programa.FechaInicioEstimada.Value.ToString("dd MMM yy") : "N/A")</small>
+                                        </div>
+                                        <span class="badge bg-label-info">@programa.EstadoProgramaProyecto</span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-center text-muted">No hay próximos programas a iniciar.</p>
+                        }
+                        <div class="text-center mt-3">
+                            <a asp-controller="ProgramasProyectosONG" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Todos los Programas</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">@Html.DisplayNameFor(model => model.BeneficiariosRecientes)</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.BeneficiariosRecientes != null && Model.BeneficiariosRecientes.Any())
+                        {
+                            <ul class="list-group list-group-flush">
+                                @foreach (var beneficiario in Model.BeneficiariosRecientes)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <div>
+                                            <a asp-controller="Beneficiarios" asp-action="Details" asp-route-id="@beneficiario.BeneficiarioID" class="fw-semibold">
+                                                @beneficiario.NombreCompleto
+                                            </a>
+                                            <small class="d-block text-muted">Comunidad: @(beneficiario.Comunidad?.NombreComunidad ?? "N/A")</small>
+                                        </div>
+                                        <small class="text-muted">Reg: @beneficiario.FechaRegistroBeneficiario.ToString("dd MMM yy")</small>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-center text-muted">No hay beneficiarios registrados recientemente.</p>
+                        }
+                        <div class="text-center mt-3">
+                            <a asp-controller="Beneficiarios" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Todos los Beneficiarios</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* --- DASHBOARD DE USUARIO NORMAL --- *@
+        <div class="row">
+            <div class="col-lg-12 mb-4">
+                @{
+                    // UserManager está ahora inyectado y disponible
+                    var currentUser = await UserManager.GetUserAsync(User);
+                    var userName = currentUser?.Nombres ?? User.Identity?.Name;
+                }
+                <h3>Bienvenido/a, @userName!</h3>
+                <p>Este es tu panel de control personal.</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="card-info">
+                                <p class="card-text text-muted">Mis Solicitudes (Vol/Pas)</p>
+                                <div class="d-flex align-items-end mb-2">
+                                    <h4 class="card-title mb-0 me-2">@Model.MisSolicitudesVolPasCount</h4>
+                                </div>
+                                <small>Total de tus solicitudes</small>
+                            </div>
+                            <div class="card-icon">
+                                <span class="badge bg-label-primary rounded p-2">
+                                    <i class="@iconSolicitudes bx-sm"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="card-info">
+                                <p class="card-text text-muted">Mis Consultas Generales</p>
+                                <div class="d-flex align-items-end mb-2">
+                                    <h4 class="card-title mb-0 me-2">@Model.MisConsultasGeneralesCount</h4>
+                                </div>
+                                <small>Total de tus consultas</small>
+                            </div>
+                            <div class="card-icon">
+                                <span class="badge bg-label-secondary rounded p-2">
+                                    <i class="@iconConsultas bx-sm"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="card-info">
+                                <p class="card-text text-muted">Mis Participaciones Activas</p>
+                                <div class="d-flex align-items-end mb-2">
+                                    <h4 class="card-title mb-0 me-2">@Model.MisParticipacionesActivasCount</h4>
+                                </div>
+                                <small>Programas en curso</small>
+                            </div>
+                            <div class="card-icon">
+                                <span class="badge bg-label-success rounded p-2">
+                                    <i class="@iconParticipaciones bx-sm"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="card-info">
+                                <p class="card-text text-muted">Evaluaciones Pendientes</p>
+                                <div class="d-flex align-items-end mb-2">
+                                    <h4 class="card-title mb-0 me-2">@Model.MisEvaluacionesPendientesCount</h4>
+                                </div>
+                                <small>Evaluaciones por completar</small>
+                            </div>
+                            <div class="card-icon">
+                                <span class="badge bg-label-warning rounded p-2">
+                                    <i class="@iconEvaluaciones bx-sm"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Mis Últimas Solicitudes (Vol/Pas)</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.MisUltimasSolicitudesVolPas != null && Model.MisUltimasSolicitudesVolPas.Any())
+                        {
+                            <ul class="list-group list-group-flush">
+                                @foreach (var solicitud in Model.MisUltimasSolicitudesVolPas)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <div>
+                                            <a asp-controller="Solicitudes" asp-action="Details" asp-route-id="@solicitud.SolicitudID" class="fw-semibold">
+                                                @solicitud.TipoSolicitud - @solicitud.FechaEnvioSolicitud.ToString("dd MMM yy")
+                                            </a>
+                                            <small class="d-block text-muted">Estado: @solicitud.EstadoSolicitud</small>
+                                        </div>
+                                        <a asp-controller="Solicitudes" asp-action="Details" asp-route-id="@solicitud.SolicitudID" class="btn btn-sm btn-outline-primary">Ver</a>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-center text-muted">No tienes solicitudes recientes.</p>
+                        }
+                        <div class="text-center mt-3">
+                            <a asp-controller="Solicitudes" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Todas Mis Solicitudes</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Mis Programas Asignados (Activos)</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.MisProgramasAsignados != null && Model.MisProgramasAsignados.Any())
+                        {
+                            <ul class="list-group list-group-flush">
+                                @foreach (var participacion in Model.MisProgramasAsignados)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <div>
+                                            <a asp-controller="ProgramasProyectosONG" asp-action="Details" asp-route-id="@participacion.ProgramaProyectoID" class="fw-semibold">
+                                                @(participacion.ProgramaProyecto?.NombreProgramaProyecto ?? "Programa Desconocido")
+                                            </a>
+                                            <small class="d-block text-muted">Rol: @(participacion.RolDesempenado ?? "N/A")</small>
+                                            <small class="d-block text-muted">Inicio: @participacion.FechaInicioParticipacion.ToString("dd MMM yy")</small>
+                                        </div>
+                                        <a asp-controller="ParticipacionesActivas" asp-action="Details" asp-route-id="@participacion.ParticipacionID" class="btn btn-sm btn-outline-info">Ver Participación</a>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-center text-muted">No tienes participaciones activas en programas.</p>
+                        }
+                        <div class="text-center mt-3">
+                            <a asp-controller="ParticipacionesActivas" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Todas Mis Participaciones</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Mis Evaluaciones de Programa Pendientes</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.MisEvaluacionesPendientesDetalles != null && Model.MisEvaluacionesPendientesDetalles.Any())
+                        {
+                            <ul class="list-group list-group-flush">
+                                @foreach (var evalPendiente in Model.MisEvaluacionesPendientesDetalles)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <div>
+                                            <span class="fw-semibold">@evalPendiente.NombrePrograma</span>
+                                            <small class="d-block text-muted">
+                                                Participante: @evalPendiente.NombreSolicitante
+                                                @if (evalPendiente.FechaFinParticipacion.HasValue)
+                                                {
+                                                    <span> - Finalizó: @evalPendiente.FechaFinParticipacion.Value.ToString("dd MMM yy")</span>
+                                                }
+                                                else
+                                                {
+                                                    <span> - Estado: @evalPendiente.EstadoParticipacion</span>
+                                                }
+                                            </small>
+                                        </div>
+                                        <a asp-controller="EvaluacionesPrograma" asp-action="Create" asp-route-participacionId="@evalPendiente.ParticipacionId" asp-route-solicitudId="@evalPendiente.SolicitudId" class="btn btn-sm btn-warning">Evaluar Programa</a>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-center text-muted">No tienes evaluaciones de programa pendientes.</p>
+                        }
+                        <div class="text-center mt-3">
+                            <a asp-controller="EvaluacionesPrograma" asp-action="Index" class="btn btn-sm btn-outline-primary">Ver Todas Mis Evaluaciones</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
-@* Scripts específicos para esta página *@
-@section VendorScripts {
-    <script src="~/vendor/libs/apex-charts/apexcharts.js"></script>
-}
+@* Scripts específicos para esta página (solo se cargarán si es admin y hay datos) *@
+@if (User.IsInRole("Administrador"))
+{
+    @section VendorScripts {
+        <script src="~/vendor/libs/apex-charts/apexcharts.js"></script>
+    }
 
-@section PageScripts {
+    @section PageScripts {
     <script>
-        // Esperar a que el DOM esté completamente cargado
         document.addEventListener('DOMContentLoaded', function () {
             const chartElementSolicitudesMes = document.querySelector("#chartSolicitudesPorMes");
             const chartElementTiposSolicitud = document.querySelector("#chartTiposSolicitud");
             const chartElementProgramasEstado = document.querySelector("#chartProgramasPorEstado");
 
-            // Colores de la plantilla (asumiendo que 'config' está definido globalmente por Sneat)
             const cardColor = typeof config !== 'undefined' ? config.colors.cardColor : '#fff';
             const headingColor = typeof config !== 'undefined' ? config.colors.headingColor : '#566a7f';
             const axisColor = typeof config !== 'undefined' ? config.colors.axisColor : '#a1acb8';
@@ -286,7 +511,6 @@
             const infoColor = typeof config !== 'undefined' ? config.colors.info : '#03c3ec';
             const dangerColor = typeof config !== 'undefined' ? config.colors.danger : '#ff3e1d';
 
-            // Gráfico de Solicitudes por Mes
             if (typeof ApexCharts !== 'undefined' && chartElementSolicitudesMes && @Html.Raw(JsonSerializer.Serialize(Model.SolicitudesPorMes?.Any() ?? false))) {
                 var optionsSolicitudesMes = {
                     series: [{
@@ -316,7 +540,6 @@
                 chartSolicitudesMes.render();
             }
 
-            // Gráfico Circular de Tipos de Solicitud
             if (typeof ApexCharts !== 'undefined' && chartElementTiposSolicitud && @Html.Raw(JsonSerializer.Serialize(Model.TiposDeSolicitudConteo?.Any(t => t.Cantidad > 0) ?? false))) {
                  var optionsTiposSolicitud = {
                     series: @Html.Raw(JsonSerializer.Serialize(Model.TiposDeSolicitudConteo.Select(t => t.Cantidad).ToList())),
@@ -325,46 +548,24 @@
                     colors: [primaryColor, successColor, warningColor, infoColor, dangerColor, '#a3a4a6', '#607d8b'],
                     dataLabels: {
                         enabled: true,
-                        formatter: function (val, opts) {
-                            // Mostrar SOLO el porcentaje en la porción del gráfico
-                            return val.toFixed(1) + '%'
-                        },
-                         style: {
-                            fontSize: '12px',
-                            // colors: [headingColor] // Puedes ajustar el color del texto del porcentaje si es necesario
-                            colors: ['#FFFFFF'] // Texto blanco para mejor contraste en las porciones
-                        },
+                        formatter: function (val, opts) { return val.toFixed(1) + '%' },
+                         style: { fontSize: '12px', colors: ['#FFFFFF'] },
                         dropShadow: { enabled: true, top: 1, left: 1, blur: 1, color: '#000', opacity: 0.45 }
                     },
                     legend: {
-                        show: true,
-                        position: 'bottom',
-                        horizontalAlign: 'center',
-                        fontSize: '13px',
-                        labels: { colors: axisColor, useSeriesColors: false }, // Leyenda muestra los nombres
+                        show: true, position: 'bottom', horizontalAlign: 'center', fontSize: '13px',
+                        labels: { colors: axisColor, useSeriesColors: false },
                         markers: { width: 10, height: 10, offsetX: -5, offsetY: 0}
                     },
                     tooltip: {
-                        y: {
-                            formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
-                                // Tooltip muestra nombre, cantidad y porcentaje
-                                return w.globals.labels[seriesIndex] + ": " + series[seriesIndex] + " (" + value.toFixed(1) + "%)"
-                            }
-                        }
+                        y: { formatter: function(value, { series, seriesIndex, dataPointIndex, w }) { return w.globals.labels[seriesIndex] + ": " + series[seriesIndex] + " (" + value.toFixed(1) + "%)" } }
                     },
-                    responsive: [{
-                        breakpoint: 480,
-                        options: {
-                            chart: { width: '100%', height: 300 },
-                            legend: { position: 'bottom' }
-                        }
-                    }]
+                    responsive: [{ breakpoint: 480, options: { chart: { width: '100%', height: 300 }, legend: { position: 'bottom' } } }]
                 };
                 var chartTiposSolicitud = new ApexCharts(chartElementTiposSolicitud, optionsTiposSolicitud);
                 chartTiposSolicitud.render();
             }
 
-            // Gráfico de Barras de Programas por Estado
             if (typeof ApexCharts !== 'undefined' && chartElementProgramasEstado && @Html.Raw(JsonSerializer.Serialize(Model.ProgramasPorEstado?.Any(p => p.Cantidad > 0) ?? false))) {
                 var optionsProgramasEstado = {
                     series: [{
@@ -372,57 +573,23 @@
                         data: @Html.Raw(JsonSerializer.Serialize(Model.ProgramasPorEstado.Select(p => p.Cantidad).ToList()))
                     }],
                     chart: { height: 380, type: 'bar', toolbar: { show: false } },
-                    plotOptions: {
-                        bar: {
-                            horizontal: true,
-                            columnWidth: '60%',
-                            borderRadius: 5,
-                            startingShape: 'rounded',
-                            endingShape: 'rounded',
-                            dataLabels: {
-                                position: 'top',
-                            }
-                        }
-                    },
+                    plotOptions: { bar: { horizontal: true, columnWidth: '60%', borderRadius: 5, startingShape: 'rounded', endingShape: 'rounded', dataLabels: { position: 'top', } } },
                     colors: [successColor, warningColor, infoColor, dangerColor, primaryColor, '#a3a4a6'],
-                    dataLabels: {
-                        enabled: true,
-                        offsetX: 25,
-                        style: {
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                            colors: [headingColor]
-                        },
-                        formatter: function(val, opts) {
-                            return val;
-                        }
-                    },
+                    dataLabels: { enabled: true, offsetX: 25, style: { fontSize: '12px', fontWeight: 'bold', colors: [headingColor] }, formatter: function(val, opts) { return val; } },
                     xaxis: {
                         categories: @Html.Raw(JsonSerializer.Serialize(Model.ProgramasPorEstado.Select(p => p.Estado).ToList())),
                         labels: { style: { colors: axisColor, fontSize: '13px' }, formatter: function (val) { return parseInt(val); } },
-                        axisBorder: { show: true, color: borderColor },
-                        axisTicks: { show: true, color: borderColor },
-                        min: 0,
-                        tickAmount: 5
+                        axisBorder: { show: true, color: borderColor }, axisTicks: { show: true, color: borderColor },
+                        min: 0, tickAmount: 5
                     },
-                    yaxis: {
-                        labels: {
-                            style: { colors: axisColor, fontSize: '13px' },
-                            maxWidth: 150
-                        }
-                    },
+                    yaxis: { labels: { style: { colors: axisColor, fontSize: '13px' }, maxWidth: 150 } },
                     grid: { borderColor: borderColor, strokeDashArray: 3, padding: { top: -10, bottom: -10, right: 5, left: 0 } },
-                    tooltip: {
-                        y: {
-                            formatter: function (val, { series, seriesIndex, dataPointIndex, w }) {
-                                return w.globals.labels[dataPointIndex] + ": " + val + " programas";
-                            }
-                        }
-                    }
+                    tooltip: { y: { formatter: function (val, { series, seriesIndex, dataPointIndex, w }) { return w.globals.labels[dataPointIndex] + ": " + val + " programas"; } } }
                 };
                 var chartProgramasEstado = new ApexCharts(chartElementProgramasEstado, optionsProgramasEstado);
                 chartProgramasEstado.render();
             }
         });
     </script>
+    }
 }
