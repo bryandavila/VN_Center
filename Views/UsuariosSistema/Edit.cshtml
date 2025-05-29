@@ -1,5 +1,9 @@
 @* VN_Center/Views/UsuariosSistema/Edit.cshtml *@
 @model VN_Center.Models.ViewModels.UsuarioEditViewModel
+@using Microsoft.AspNetCore.Identity
+@using VN_Center.Models.Entities
+@inject UserManager<UsuariosSistema> UserManager
+
 @{
     ViewData["Title"] = "Editar Usuario del Sistema";
     var opcionesActivo = new List<SelectListItem>
@@ -7,6 +11,17 @@
         new SelectListItem { Value = "true", Text = "Sí", Selected = Model.Activo },
         new SelectListItem { Value = "false", Text = "No", Selected = !Model.Activo }
     };
+
+    // Determinar si el usuario actual es Administrador
+    var currentUser = await UserManager.GetUserAsync(User); // Obtener el usuario actual
+    var esAdmin = false;
+    if (currentUser != null)
+    {
+        esAdmin = await UserManager.IsInRoleAsync(currentUser, "Administrador");
+    }
+
+    // Determinar si el usuario que se está editando es el mismo que el usuario logueado
+    var esPerfilPropio = currentUser?.Id == Model.Id;
 }
 
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -57,38 +72,44 @@
                             <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                         </div>
 
-                        @*
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="SelectedRoleName" class="form-label">Rol</label>
-                                <select asp-for="SelectedRoleName" class="form-select" asp-items="@(ViewData["RolesList"] as SelectList)">
-                                    <option value="">Seleccione un rol...</option>
-                                </select>
-                                <span asp-validation-for="SelectedRoleName" class="text-danger"></span>
+                        @* Sección condicional para Rol y Estado Activo *@
+                        @if (esAdmin)
+                        {
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="SelectedRoleName" class="form-label">Rol</label>
+                                    <select asp-for="SelectedRoleName" class="form-select" asp-items="@(ViewData["RolesList"] as SelectList)">
+                                        <option value="">Seleccione un rol...</option>
+                                    </select>
+                                    <span asp-validation-for="SelectedRoleName" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Activo" class="form-label"></label>
+                                    <select asp-for="Activo" class="form-select" asp-items="opcionesActivo"></select>
+                                    <span asp-validation-for="Activo" class="text-danger"></span>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Activo" class="form-label"></label>
-                                <select asp-for="Activo" class="form-select" asp-items="opcionesActivo"></select>
-                                <span asp-validation-for="Activo" class="text-danger"></span>
+                        }
+                        else if (esPerfilPropio) // Si es un usuario normal editando su propio perfil
+                        {
+                            // Mostrar el rol actual como solo lectura (o no mostrarlo si prefieres)
+                            // y mantener el valor de Activo y SelectedRoleName con campos ocultos
+                            // para que se envíen al controlador y no se pierdan.
+                            // El controlador ya tiene lógica para NO permitir que un no-admin cambie estos valores.
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Rol Actual</label>
+                                    <input type="text" class="form-control" value="@Model.SelectedRoleName" readonly />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Estado Actual</label>
+                                    <input type="text" class="form-control" value="@(Model.Activo ? "Sí" : "No")" readonly />
+                                </div>
                             </div>
-                        </div>
-                        *@
-
-                        @* También se deben enviar los valores actuales de Activo y SelectedRoleName como campos ocultos si no quieres que se pierdan al guardar,
-                           o asegurar que el controlador los maneje adecuadamente si no se envían desde el formulario.
-                           Por simplicidad, y asumiendo que no quieres que estos valores se modifiquen desde esta vista si están ocultos,
-                           solo los comentamos. Si necesitas que se preserven, deberás añadir inputs hidden.
-                           Ejemplo (siempre enviar el valor actual de Activo):
-                        *@
-                        <input type="hidden" asp-for="Activo" />
-
-                        @* Ejemplo (siempre enviar el valor actual del Rol). 
-                           Esto es más complejo si el rol no debe cambiar.
-                           Si el rol NO debe cambiar al editar desde esta vista (cuando está oculto),
-                           es mejor que el controlador NO intente actualizar el rol si SelectedRoleName no se envía o es nulo.
-                           Si SelectedRoleName se envía como hidden, se mantendrá el rol actual.
-                        *@
-                        <input type="hidden" asp-for="SelectedRoleName" />
+                            <input type="hidden" asp-for="Activo" />
+                            <input type="hidden" asp-for="SelectedRoleName" />
+                        }
+                        @* Fin Sección condicional *@
 
 
                         <hr class="my-4" />
@@ -97,19 +118,19 @@
 
                         <div class="mb-3">
                             <label asp-for="NewPassword" class="form-label"></label>
-                            <input asp-for="NewPassword" class="form-control" />
+                            <input asp-for="NewPassword" type="password" class="form-control" />
                             <span asp-validation-for="NewPassword" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="ConfirmNewPassword" class="form-label"></label>
-                            <input asp-for="ConfirmNewPassword" class="form-control" />
+                            <input asp-for="ConfirmNewPassword" type="password" class="form-control" />
                             <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
                         </div>
 
                         <div class="mt-4">
                             <button type="submit" class="btn btn-primary me-2">Guardar Cambios</button>
-                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                            <a asp-action="@(esAdmin ? "Index" : "Details")" asp-route-id="@(esAdmin ? null : Model.Id)" class="btn btn-outline-secondary">Cancelar</a>
                         </div>
                     </form>
                 </div>
